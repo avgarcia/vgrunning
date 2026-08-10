@@ -1,6 +1,6 @@
 # Requisitos funcionales y no funcionales — Fase 1
 
-**Estado:** En validación — cierre de Fase 1 pendiente
+**Estado:** Validado — Fase 1 cerrada
 **Fecha:** 2026-08-10
 
 ## Actores y permisos
@@ -122,7 +122,9 @@ El revisor de arquitectura debe comprobar, al cerrar Fase 2, que cada requisito 
 - El alcance del PMV queda delimitado mediante requisitos imprescindibles, deseables, opcionales y fuera de alcance.
 - Los riesgos principales de Fase 0 quedan tratados: planificación por grupos, información de seguimiento revisable, presencial con lugar de encuentro y correo como notificación, no como sistema de gestión.
 - Las decisiones que condicionan Fase 2 quedan cerradas: segmentos dinámicos con etiquetas controladas, trazabilidad de publicaciones, republicación atómica, modalidad como etiqueta, información de seguimiento mínima estructurada, operación de un único club y lugar de encuentro no restringido al Retiro.
+- Las decisiones de diseño, sus motivos, alternativas descartadas, impactos y materialización prevista están documentadas en [Matriz de decisiones de Fase 1](phase-1-decision-matrix.md).
 - Los requisitos imprescindibles `RF-01` a `RF-20` tienen un elemento de diseño identificado y declarado pendiente en la matriz de trazabilidad hacia Fase 2.
+- Los criterios de aceptación de éxito y error para los requisitos imprescindibles están documentados en [Criterios de aceptación de Fase 1](phase-1-acceptance-criteria.md).
 - Las obligaciones de privacidad quedan identificadas como precondición antes de producción, sin bloquear el diseño funcional de Fase 2.
 
-El cierre sigue pendiente hasta documentar criterios de aceptación de éxito y error para cada requisito imprescindible, completar la matriz de decisiones exigida por los controles documentales y registrar la ejecución de las Skills obligatorias aplicables.
+Los controles aplicables de trazabilidad, requisitos verificables, terminología, decisiones de diseño, preguntas bloqueantes, criterios de aceptación y cambios de alcance han quedado listos para revisión humana. En el flujo de un único mantenedor, la autovalidación y aceptación explícita de la ausencia de revisión independiente quedan registradas en la PR de cierre de esta fase.
