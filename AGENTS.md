@@ -1,4 +1,4 @@
-# Guía del repositorio
+# Repository Guidelines
 
 ## Estructura del proyecto y organización de módulos
 
@@ -32,3 +32,7 @@ No hay pruebas automatizadas ni requisitos de cobertura todavía. Toda funcional
 El historial existente usa asuntos cortos, imperativos y con guiones, por ejemplo `Add-phase-0-problem-statement`. Sigue ese patrón: `Add-phase-1-user-flows` o `Clarify-feedback-scope`.
 
 Mantén cada commit enfocado. Los pull requests deben indicar el problema abordado, resumir los documentos o el código modificados, enlazar el issue o la decisión correspondiente cuando exista e incluir capturas para cambios de interfaz. Señala explícitamente los cambios en supuestos, alcance o riesgos.
+
+## Flujo obligatorio de cambios
+
+No hagas commits ni pushes directos a `main`, incluidos cambios exclusivamente documentales. Para cualquier modificación crea una rama con prefijo `feature/`, por ejemplo `feature/clarify-tag-taxonomy`; confirma el alcance, valida el cambio, haz commit y abre una PR borrador contra `main`. Solo integra cambios mediante una PR aprobada. Esta regla aplica a colaboradores humanos y agentes.

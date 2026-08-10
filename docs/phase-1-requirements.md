@@ -7,7 +7,7 @@
 
 | Actor | Responsabilidades MVP |
 | --- | --- |
-| Administrador | Da de alta e invita usuarios; asigna roles; mantiene las taxonomías de tags. |
+| Administrador | Da de alta e invita usuarios; asigna roles; mantiene las definiciones de tags y sus valores permitidos. |
 | Entrenador | Gestiona todos los corredores, tags, segmentos, planes semanales, entrenamientos y feedback. El alcance no se restringe por entrenador en el MVP. |
 | Corredor | Consulta sus planes y entrenamientos, registra su ejecución y envía feedback sobre ellos. |
 
@@ -18,8 +18,8 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 ### Must have
 
 - Invitación de corredores por el administrador mediante email; activación con email, contraseña y restablecimiento de contraseña.
-- Gestión de usuarios, roles y taxonomías de tags por el administrador.
-- Tags controlados para clasificar corredores y segmentos dinámicos construidos a partir de reglas de tags.
+- Gestión de usuarios, roles, definiciones de tags y sus valores permitidos por el administrador.
+- Tags controlados para clasificar corredores y segmentos dinámicos construidos a partir de reglas de tags. No se permite crear tags ni valores libres.
 - Inclusión y exclusión manual de corredores en un segmento.
 - Creación de un plan semanal que agrupe varios entrenamientos fechados.
 - Asignación de un plan a segmentos y, excepcionalmente, a corredores individuales.
@@ -68,12 +68,11 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 
 ## Decisiones de diseño con impacto funcional
 
-- Un segmento basado en tags es dinámico. La aplicación debe conservar los destinatarios efectivos de cada publicación para que cambios posteriores de tags no alteren retrospectivamente un plan ya publicado.
+- Un segmento basado en tags es dinámico. Los tags y sus valores provienen de una taxonomía cerrada administrada por el administrador. La aplicación debe conservar los destinatarios efectivos de cada publicación para que cambios posteriores de tags no alteren retrospectivamente un plan ya publicado.
 - Un cambio relevante en un plan publicado no es una edición silenciosa: republica el plan semanal completo y comunica el cambio por email.
 - Los entrenadores tienen permisos globales por simplicidad del MVP. Esta decisión no debe confundirse con un modelo de permisos definitivo.
 
 ## Supuestos pendientes de validar
 
-- Las reglas de segmentos usarán una taxonomía de tags administrada, no tags libres creados por entrenadores.
 - El feedback se asociará al entrenamiento realizado dentro de un plan semanal publicado.
 - No se recopilarán datos de salud especiales en el MVP; si se incorporan lesiones o similares, el análisis de privacidad deberá ampliarse.
