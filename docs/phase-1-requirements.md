@@ -1,6 +1,6 @@
 # Requisitos funcionales y no funcionales — Fase 1
 
-**Estado:** En validación — cierre de Fase 1 pendiente
+**Estado:** Validado — Fase 1 cerrada
 **Fecha:** 2026-08-10
 
 ## Actores y permisos
@@ -127,4 +127,4 @@ El revisor de arquitectura debe comprobar, al cerrar Fase 2, que cada requisito 
 - Los criterios de aceptación de éxito y error para los requisitos imprescindibles están documentados en [Criterios de aceptación de Fase 1](phase-1-acceptance-criteria.md).
 - Las obligaciones de privacidad quedan identificadas como precondición antes de producción, sin bloquear el diseño funcional de Fase 2.
 
-El cierre sigue pendiente hasta registrar la ejecución de las Skills obligatorias aplicables.
+Los controles aplicables de trazabilidad, requisitos verificables, terminología, decisiones de diseño, preguntas bloqueantes, criterios de aceptación y cambios de alcance han quedado listos para revisión humana. En el flujo de un único mantenedor, la autovalidación y aceptación explícita de la ausencia de revisión independiente quedan registradas en la PR de cierre de esta fase.
