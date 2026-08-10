@@ -20,7 +20,7 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 - Invitación de corredores por el administrador mediante correo electrónico; activación con correo electrónico, contraseña y restablecimiento de contraseña.
 - Gestión de usuarios, roles, definiciones de etiquetas y sus valores permitidos por el administrador.
 - Etiquetas controladas para clasificar corredores y segmentos dinámicos construidos a partir de reglas de etiquetas. No se permite crear etiquetas ni valores libres.
-- Modalidad en línea o presencial representada mediante etiquetas controladas del corredor. El lugar de encuentro se define en el entrenamiento cuando aplique a sesiones presenciales.
+- Modalidad en línea o presencial representada mediante etiquetas controladas del corredor. El lugar de encuentro se define como texto libre en el entrenamiento cuando aplique a sesiones presenciales; no se limita al Retiro.
 - Reglas de segmentos en el PMV limitadas a condiciones sobre etiquetas con operador Y entre criterios, selección de uno o varios valores permitidos dentro de cada etiqueta y exclusión manual de corredores. No se incluyen expresiones avanzadas ni reglas libres.
 - Inclusión y exclusión manual de corredores en un segmento.
 - Creación de un plan semanal que agrupe varios entrenamientos fechados.
@@ -56,6 +56,7 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 - Uso sin conexión como prioridad.
 - Reservas, asistencia, aforo, pagos, cancelaciones o asignación de entrenadores para sesiones presenciales.
 - Métricas de salud adicionales: dolor/lesiones, fatiga o sueño.
+- Comercialización del producto a otros clubes y soporte multiclub.
 
 ## Requisitos no funcionales
 
@@ -73,6 +74,8 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 
 - Un segmento basado en etiquetas es dinámico. Las etiquetas y sus valores provienen de una taxonomía cerrada administrada por el administrador. La aplicación debe conservar los destinatarios efectivos de cada publicación para que cambios posteriores de etiquetas no alteren retrospectivamente un plan ya publicado.
 - La modalidad en línea o presencial se modela con etiquetas controladas para evitar un segundo sistema paralelo de clasificación.
+- El PMV se limita a la operación interna de un único club. La comercialización a otros clubes y cualquier requisito de multiclub quedan fuera de alcance; no se diseñará aislamiento organizativo en esta fase.
+- El Retiro es el contexto operativo inicial, no una restricción de producto. Cada entrenamiento presencial puede indicar cualquier lugar de encuentro mediante texto libre.
 - Las reglas de segmentos se limitan deliberadamente en el PMV. Si el club necesita lógica compleja, se revisará después de validar que los criterios operativos simples reducen trabajo manual.
 - Un cambio relevante en un plan publicado no es una edición silenciosa: republica el plan semanal completo y comunica el cambio por correo electrónico.
 - Recoger información de seguimiento sin vista de revisión no aporta valor operativo. Por eso la vista mínima de seguimiento para entrenadores forma parte del PMV.
@@ -89,5 +92,5 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 
 - El alcance del PMV queda delimitado mediante requisitos imprescindibles, deseables, opcionales y fuera de alcance.
 - Los riesgos principales de Fase 0 quedan tratados: planificación por grupos, información de seguimiento revisable, presencial con lugar de encuentro y correo como notificación, no como sistema de gestión.
-- Las decisiones que condicionan Fase 2 quedan cerradas: segmentos dinámicos con etiquetas controladas, trazabilidad de publicaciones, republicación atómica, modalidad como etiqueta e información de seguimiento mínima estructurada.
+- Las decisiones que condicionan Fase 2 quedan cerradas: segmentos dinámicos con etiquetas controladas, trazabilidad de publicaciones, republicación atómica, modalidad como etiqueta, información de seguimiento mínima estructurada, operación de un único club y lugar de encuentro no restringido al Retiro.
 - Las obligaciones de privacidad quedan identificadas como precondición antes de producción, sin bloquear el diseño funcional de Fase 2.
