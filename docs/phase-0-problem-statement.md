@@ -1,6 +1,6 @@
 # Problem Statement — Gestión de entrenos del club de running
 
-**Estado:** Borrador para validación de Fase 0  
+**Estado:** Validado — Fase 0 cerrada  
 **Fecha:** 2026-08-10
 
 ## Contexto
