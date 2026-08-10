@@ -5,7 +5,7 @@
 
 ## Objetivo
 
-Definir las validaciones mínimas para que la documentación de producto y diseño sea coherente, verificable y suficiente para avanzar entre fases. Estos controles no sustituyen la revisión y aprobación de la PR requerida por el repositorio.
+Definir las validaciones mínimas para que la documentación de producto y diseño sea coherente, verificable y suficiente para avanzar entre fases. Estos controles no sustituyen el proceso de revisión de PR definido por el repositorio.
 
 ## Aplicación de los controles
 
@@ -52,7 +52,7 @@ Durante la revisión de una PR documental se debe confirmar lo siguiente:
 
 Las Skills del complemento `documentation-quality-review` preparan evidencia y hallazgos para los ocho controles. Una Skill nunca aprueba una PR ni sustituye a un responsable humano.
 
-| Control | Skill de Codex | Revisor humano responsable |
+| Control | Skill de Codex | Rol revisor responsable |
 | --- | --- | --- |
 | Trazabilidad entre fases | `validate-phase-traceability` | Revisor de arquitectura |
 | Requisitos verificables | `validate-verifiable-requirements` | Revisor de producto |
@@ -63,8 +63,10 @@ Las Skills del complemento `documentation-quality-review` preparan evidencia y h
 | Control de cambios de alcance | `validate-scope-changes` | Revisor de la PR |
 | Validación de privacidad | `validate-privacy-readiness` | Responsable de privacidad o DPO |
 
-El autor ejecuta las Skills aplicables y adjunta los informes a la PR. El responsable humano asignado revisa la evidencia, resuelve o escala los hallazgos y registra la aprobación o solicitud de cambios. Antes de abrir una PR se debe asignar una persona concreta a cada rol de revisión aplicable.
+Cuando haya una persona revisora independiente disponible, el autor ejecuta las Skills aplicables y adjunta los informes a la PR. El responsable humano asignado revisa la evidencia, resuelve o escala los hallazgos y registra la aprobación o solicitud de cambios. Antes de abrir una PR se debe asignar una persona concreta a cada rol de revisión aplicable.
+
+En este proyecto de un único mantenedor, el autor asume los roles de revisión aplicables. Debe ejecutar las Skills pertinentes, documentar su conclusión para cada control en la PR y declarar explícitamente la ausencia de revisión independiente y la aceptación de ese riesgo antes de fusionar. No se permite usar una cuenta alternativa para aparentar independencia. Esta excepción deja de aplicar cuando exista una persona revisora independiente.
 
 ## Límites de esta validación
 
-Estos controles validan calidad documental; no validan que el producto sea deseable, viable técnicamente o conforme a normativa. Esas validaciones requieren revisión de las partes responsables, prototipos, análisis técnico y, antes de producción, asesoramiento de privacidad cuando corresponda.
+Estos controles validan calidad documental; no validan que el producto sea deseable, viable técnicamente o conforme a normativa. Esas validaciones requieren revisión de las partes responsables, prototipos, análisis técnico y, antes de producción, asesoramiento de privacidad cuando corresponda. El flujo de un único mantenedor no sustituye la intervención de un responsable de privacidad o DPO cuando sea necesaria.

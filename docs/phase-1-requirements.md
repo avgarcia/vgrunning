@@ -85,7 +85,7 @@ Esta matriz es el contrato de entrada para Fase 2, no una declaración de diseñ
 | RF-19 | Consulta y permisos de revisión para entrenadores | Pendiente de diseño en Fase 2 |
 | RF-20 | Contrato de contenido y entrega de correo electrónico | Pendiente de diseño en Fase 2 |
 
-El revisor de arquitectura debe comprobar, al cerrar Fase 2, que cada requisito `RF-01` a `RF-20` enlaza con su diseño, criterios de aceptación y decisión técnica correspondiente.
+El revisor de arquitectura debe comprobar, al cerrar Fase 2, que cada requisito `RF-01` a `RF-20` enlaza con su diseño, criterios de aceptación y decisión técnica correspondiente. En el flujo de un único mantenedor, el autor asume esta comprobación y deja constancia de ella en la PR.
 
 ## Requisitos no funcionales
 

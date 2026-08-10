@@ -35,4 +35,6 @@ Mantén cada commit enfocado. Los pull requests deben indicar el problema aborda
 
 ## Flujo obligatorio de cambios
 
-No hagas commits ni pushes directos a `main`, incluidos cambios exclusivamente documentales. Para cualquier modificación crea una rama con prefijo `feature/`, por ejemplo `feature/clarify-tag-taxonomy`; confirma el alcance, valida el cambio, haz commit y abre una PR borrador contra `main`. Solo integra cambios mediante una PR aprobada. Esta regla aplica a colaboradores humanos y agentes.
+No hagas commits ni pushes directos a `main`, incluidos cambios exclusivamente documentales. Para cualquier modificación crea una rama con prefijo `feature/`, por ejemplo `feature/clarify-tag-taxonomy`; confirma el alcance, valida el cambio, haz commit y abre una PR borrador contra `main`.
+
+Cuando haya una persona revisora independiente disponible, solo integra cambios mediante una PR aprobada por ella. En este proyecto de un único mantenedor, el autor puede fusionar su propia PR tras ejecutar las validaciones aplicables, realizar la autovalidación según los criterios documentados y dejar constancia en la PR de que no ha habido revisión independiente y de que el riesgo se acepta explícitamente. No uses cuentas alternativas para simular una aprobación independiente. Esta excepción deja de aplicar en cuanto exista una persona revisora independiente.
