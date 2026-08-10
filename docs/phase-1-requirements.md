@@ -17,26 +17,26 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 
 ### Imprescindible
 
-- Invitación de corredores por el administrador mediante correo electrónico; activación con correo electrónico, contraseña y restablecimiento de contraseña.
-- Gestión de usuarios, roles, definiciones de etiquetas y sus valores permitidos por el administrador.
-- Etiquetas controladas para clasificar corredores y segmentos dinámicos construidos a partir de reglas de etiquetas. No se permite crear etiquetas ni valores libres.
-- Modalidad en línea o presencial representada mediante etiquetas controladas del corredor. El lugar de encuentro se define como texto libre en el entrenamiento cuando aplique a sesiones presenciales; no se limita al Retiro.
-- Reglas de segmentos en el PMV limitadas a condiciones sobre etiquetas con operador Y entre criterios, selección de uno o varios valores permitidos dentro de cada etiqueta y exclusión manual de corredores. No se incluyen expresiones avanzadas ni reglas libres.
-- Inclusión y exclusión manual de corredores en un segmento.
-- Creación de un plan semanal que agrupe varios entrenamientos fechados.
-- Asignación de un plan a segmentos y, excepcionalmente, a corredores individuales.
-- Publicación atómica del plan semanal: todos sus entrenamientos se hacen visibles a la vez.
-- Registro de la versión publicada y de los destinatarios efectivos de cada publicación, para conservar trazabilidad si cambian las etiquetas, segmentos o asignaciones posteriores.
-- Catálogo de entrenamientos: rodaje, tirada larga, series, cambios de ritmo/fartlek, cuestas y carrera/test.
-- Objetivos por frecuencia cardiaca o ritmo relativo al corredor, según el tipo de entrenamiento, y texto libre de aclaraciones.
-- Lugar de encuentro en entrenamientos presenciales cuando aplique.
-- Estados del plan: borrador y publicado.
-- Edición de un plan publicado mediante republicación atómica y correo electrónico a todos los corredores afectados.
-- Consulta adaptable a dispositivos móviles de planes, entrenamientos y lugar de encuentro por el corredor.
-- Registro por entrenamiento: realizado/no realizado, esfuerzo percibido (1–10), sensación general con valores bien/normal/mal y comentario opcional.
-- Historial básico de entrenamientos e información de seguimiento del corredor.
-- Vista de entrenadores para revisar información de seguimiento por corredor, plan semanal y entrenamiento, con visibilidad de estado realizado/no realizado, esfuerzo, sensación y comentario.
-- Correo electrónico al publicar o republicar un plan semanal. El correo debe enviarse a todos los destinatarios efectivos afectados e incluir semana del plan, resumen de entrenamientos y enlace al plan publicado. No se incluyen otros eventos de notificación.
+- **RF-01.** Invitación de corredores por el administrador mediante correo electrónico; activación con correo electrónico, contraseña y restablecimiento de contraseña.
+- **RF-02.** Gestión de usuarios, roles, definiciones de etiquetas y sus valores permitidos por el administrador.
+- **RF-03.** Etiquetas controladas para clasificar corredores y segmentos dinámicos construidos a partir de reglas de etiquetas. No se permite crear etiquetas ni valores libres.
+- **RF-04.** Modalidad en línea o presencial representada mediante etiquetas controladas del corredor. El lugar de encuentro se define como texto libre en el entrenamiento cuando aplique a sesiones presenciales; no se limita al Retiro.
+- **RF-05.** Reglas de segmentos en el PMV limitadas a condiciones sobre etiquetas con operador Y entre criterios, selección de uno o varios valores permitidos dentro de cada etiqueta y exclusión manual de corredores. No se incluyen expresiones avanzadas ni reglas libres.
+- **RF-06.** Inclusión y exclusión manual de corredores en un segmento.
+- **RF-07.** Creación de un plan semanal que agrupe varios entrenamientos fechados.
+- **RF-08.** Asignación de un plan a segmentos y, excepcionalmente, a corredores individuales.
+- **RF-09.** Publicación atómica del plan semanal: todos sus entrenamientos se hacen visibles a la vez.
+- **RF-10.** Registro de la versión publicada y de los destinatarios efectivos de cada publicación, para conservar trazabilidad si cambian las etiquetas, segmentos o asignaciones posteriores.
+- **RF-11.** Catálogo de entrenamientos: rodaje, tirada larga, series, cambios de ritmo/fartlek, cuestas y carrera/test.
+- **RF-12.** Objetivos por frecuencia cardiaca o ritmo relativo al corredor, según el tipo de entrenamiento, y texto libre de aclaraciones.
+- **RF-13.** Lugar de encuentro en entrenamientos presenciales cuando aplique.
+- **RF-14.** Estados del plan: borrador y publicado.
+- **RF-15.** Edición de un plan publicado mediante republicación atómica y correo electrónico a todos los corredores afectados.
+- **RF-16.** Consulta adaptable a dispositivos móviles de planes, entrenamientos y lugar de encuentro por el corredor.
+- **RF-17.** Registro por entrenamiento: realizado/no realizado, esfuerzo percibido (1–10), sensación general con valores bien/normal/mal y comentario opcional.
+- **RF-18.** Historial básico de entrenamientos e información de seguimiento del corredor.
+- **RF-19.** Vista de entrenadores para revisar información de seguimiento por corredor, plan semanal y entrenamiento, con visibilidad de estado realizado/no realizado, esfuerzo, sensación y comentario.
+- **RF-20.** Correo electrónico al publicar o republicar un plan semanal. El correo debe enviarse a todos los destinatarios efectivos afectados e incluir semana del plan, resumen de entrenamientos y enlace al plan publicado. No se incluyen otros eventos de notificación.
 
 ### Deseable
 
@@ -57,6 +57,35 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 - Reservas, asistencia, aforo, pagos, cancelaciones o asignación de entrenadores para sesiones presenciales.
 - Métricas de salud adicionales: dolor/lesiones, fatiga o sueño.
 - Comercialización del producto a otros clubes y soporte multiclub.
+
+## Matriz de trazabilidad de Fase 1 a Fase 2
+
+Esta matriz es el contrato de entrada para Fase 2, no una declaración de diseño ya realizado. Cada fila debe enlazarse desde el diseño de Fase 2 que la materialice y completar sus criterios de aceptación antes de implementación.
+
+| Requisito de Fase 1 | Elemento de diseño requerido en Fase 2 | Estado |
+| --- | --- | --- |
+| RF-01 | Flujo de invitación, activación, inicio y restablecimiento de contraseña | Pendiente de diseño en Fase 2 |
+| RF-02 | Modelo de usuarios, roles y administración de taxonomías | Pendiente de diseño en Fase 2 |
+| RF-03 | Modelo de etiquetas y evaluación de segmentos dinámicos | Pendiente de diseño en Fase 2 |
+| RF-04 | Modelo de modalidad y ubicación de entrenamiento | Pendiente de diseño en Fase 2 |
+| RF-05 | Semántica y límites de reglas de segmentación | Pendiente de diseño en Fase 2 |
+| RF-06 | Interacción y persistencia de inclusiones y exclusiones manuales | Pendiente de diseño en Fase 2 |
+| RF-07 | Modelo y ciclo de vida del plan semanal | Pendiente de diseño en Fase 2 |
+| RF-08 | Modelo de asignación a segmentos y corredores | Pendiente de diseño en Fase 2 |
+| RF-09 | Flujo y consistencia de publicación atómica | Pendiente de diseño en Fase 2 |
+| RF-10 | Versionado y registro de destinatarios efectivos | Pendiente de diseño en Fase 2 |
+| RF-11 | Modelo de catálogo y tipos de entrenamiento | Pendiente de diseño en Fase 2 |
+| RF-12 | Modelo de objetivos por frecuencia cardiaca, ritmo y aclaraciones | Pendiente de diseño en Fase 2 |
+| RF-13 | Captura y consulta del lugar de encuentro presencial | Pendiente de diseño en Fase 2 |
+| RF-14 | Máquina de estados de borrador y publicado | Pendiente de diseño en Fase 2 |
+| RF-15 | Flujo de republicación y destinatarios afectados | Pendiente de diseño en Fase 2 |
+| RF-16 | Experiencia móvil de consulta para corredores | Pendiente de diseño en Fase 2 |
+| RF-17 | Modelo y captura de información de seguimiento | Pendiente de diseño en Fase 2 |
+| RF-18 | Modelo de historial de entrenamientos y seguimiento | Pendiente de diseño en Fase 2 |
+| RF-19 | Consulta y permisos de revisión para entrenadores | Pendiente de diseño en Fase 2 |
+| RF-20 | Contrato de contenido y entrega de correo electrónico | Pendiente de diseño en Fase 2 |
+
+El revisor de arquitectura debe comprobar, al cerrar Fase 2, que cada requisito `RF-01` a `RF-20` enlaza con su diseño, criterios de aceptación y decisión técnica correspondiente.
 
 ## Requisitos no funcionales
 
@@ -93,4 +122,5 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 - El alcance del PMV queda delimitado mediante requisitos imprescindibles, deseables, opcionales y fuera de alcance.
 - Los riesgos principales de Fase 0 quedan tratados: planificación por grupos, información de seguimiento revisable, presencial con lugar de encuentro y correo como notificación, no como sistema de gestión.
 - Las decisiones que condicionan Fase 2 quedan cerradas: segmentos dinámicos con etiquetas controladas, trazabilidad de publicaciones, republicación atómica, modalidad como etiqueta, información de seguimiento mínima estructurada, operación de un único club y lugar de encuentro no restringido al Retiro.
+- Los requisitos imprescindibles `RF-01` a `RF-20` tienen un elemento de diseño identificado y declarado pendiente en la matriz de trazabilidad hacia Fase 2.
 - Las obligaciones de privacidad quedan identificadas como precondición antes de producción, sin bloquear el diseño funcional de Fase 2.
