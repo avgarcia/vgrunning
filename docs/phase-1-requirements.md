@@ -1,6 +1,6 @@
 # Requisitos funcionales y no funcionales — Fase 1
 
-**Estado:** Validado — Fase 1 cerrada
+**Estado:** En validación — cierre de Fase 1 pendiente
 **Fecha:** 2026-08-10
 
 ## Actores y permisos
@@ -124,3 +124,5 @@ El revisor de arquitectura debe comprobar, al cerrar Fase 2, que cada requisito 
 - Las decisiones que condicionan Fase 2 quedan cerradas: segmentos dinámicos con etiquetas controladas, trazabilidad de publicaciones, republicación atómica, modalidad como etiqueta, información de seguimiento mínima estructurada, operación de un único club y lugar de encuentro no restringido al Retiro.
 - Los requisitos imprescindibles `RF-01` a `RF-20` tienen un elemento de diseño identificado y declarado pendiente en la matriz de trazabilidad hacia Fase 2.
 - Las obligaciones de privacidad quedan identificadas como precondición antes de producción, sin bloquear el diseño funcional de Fase 2.
+
+El cierre sigue pendiente hasta documentar criterios de aceptación de éxito y error para cada requisito imprescindible, completar la matriz de decisiones exigida por los controles documentales y registrar la ejecución de las Skills obligatorias aplicables.
