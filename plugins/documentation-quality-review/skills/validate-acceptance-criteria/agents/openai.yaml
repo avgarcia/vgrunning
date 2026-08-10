@@ -1,3 +1,3 @@
 interface:
-  display_name: "Validate Acceptance Criteria"
-  short_description: "Help with Validate Acceptance Criteria tasks"
+  display_name: "Validar criterios de aceptación"
+  short_description: "Revisa criterios de aceptación"

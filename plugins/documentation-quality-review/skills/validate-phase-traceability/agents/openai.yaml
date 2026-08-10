@@ -1,3 +1,3 @@
 interface:
-  display_name: "Validate Phase Traceability"
-  short_description: "Help with Validate Phase Traceability tasks"
+  display_name: "Validar trazabilidad entre fases"
+  short_description: "Revisa trazabilidad entre fases"

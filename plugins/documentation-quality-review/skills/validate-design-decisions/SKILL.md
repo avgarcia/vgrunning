@@ -1,24 +1,24 @@
 ---
 name: validate-design-decisions
-description: Validate documented product, data, permission, or architecture decisions. Use when a pull request introduces or changes a decision with downstream implementation impact.
+description: Valida decisiones documentadas de producto, datos, permisos o arquitectura. Úsala cuando una PR introduzca o modifique una decisión con impacto posterior en la implementación.
 ---
 
-# Validate Design Decisions
+# Validar decisiones de diseño
 
-For every changed decision, verify that the documentation contains a reason, an alternative considered or explicitly omitted, the impact, and the phase where it must be implemented.
+Para cada decisión modificada, verifica que la documentación incluye un motivo, una alternativa considerada o descartada explícitamente, el impacto y la fase donde debe implementarse.
 
-1. Identify the decision and its owner if stated.
-2. Check that the decision does not contradict existing requirements or scope.
-3. Flag decisions presented as facts without rationale, impact, or implementation target.
-4. Separate an unresolved decision from a deliberate deferral.
+1. Identifica la decisión y su responsable, si se indica.
+2. Comprueba que la decisión no contradice requisitos ni alcance existentes.
+3. Señala decisiones presentadas como hechos sin motivo, impacto u objetivo de implementación.
+4. Separa una decisión no resuelta de un aplazamiento deliberado.
 
-Do not choose an alternative on behalf of the decision owner. Produce this report:
+No elijas una alternativa en nombre del responsable de la decisión. Genera este informe:
 
 ```markdown
-## Design decision review
-- Status: ready for human review | requires decision | blocked
-- Evidence: <decision and section>
-- Findings: <missing rationale, impact, or conflict>
-- Required action: <decision owner action or none>
-- Human reviewer: Architecture reviewer
+## Revisión de decisiones de diseño
+- Estado: listo para revisión humana | requiere decisión | bloqueado
+- Evidencia: <decisión y sección>
+- Hallazgos: <motivo, impacto o conflicto ausente>
+- Acción requerida: <acción del responsable o ninguna>
+- Revisor humano: Revisor de arquitectura
 ```

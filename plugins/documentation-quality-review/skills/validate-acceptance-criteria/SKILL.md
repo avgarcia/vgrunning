@@ -1,24 +1,24 @@
 ---
 name: validate-acceptance-criteria
-description: Validate acceptance criteria for functional Must requirements. Use when requirements are prepared for implementation, user-flow design, test planning, or pull request review.
+description: Valida criterios de aceptación para requisitos funcionales imprescindibles. Úsala cuando los requisitos se preparen para implementación, diseño de flujos de usuario, planificación de pruebas o revisión de PR.
 ---
 
-# Validate Acceptance Criteria
+# Validar criterios de aceptación
 
-For every changed Must requirement, verify that its acceptance criteria describe at least one success scenario and relevant error or boundary behavior.
+Para cada requisito imprescindible modificado, verifica que sus criterios de aceptación describen al menos un escenario de éxito y el comportamiento relevante de error o límite.
 
-1. Link the requirement to its criteria; flag missing links.
-2. Check that criteria use observable inputs, actions, and outcomes.
-3. Identify criteria that depend on undocumented data, permissions, or decisions.
-4. Flag examples disguised as exhaustive criteria.
+1. Enlaza el requisito con sus criterios; señala los enlaces ausentes.
+2. Comprueba que los criterios usan entradas, acciones y resultados observables.
+3. Identifica criterios que dependen de datos, permisos o decisiones no documentados.
+4. Señala ejemplos presentados como criterios exhaustivos.
 
-Do not claim that criteria are tested; this skill validates documentation only. Produce this report:
+No afirmes que los criterios están probados; esta habilidad valida solo la documentación. Genera este informe:
 
 ```markdown
-## Acceptance criteria review
-- Status: ready for human review | requires decision | blocked
-- Evidence: <requirement and criteria>
-- Findings: <missing scenario or dependency>
-- Required action: <criterion or decision needed>
-- Human reviewer: Product reviewer and Architecture reviewer
+## Revisión de criterios de aceptación
+- Estado: listo para revisión humana | requiere decisión | bloqueado
+- Evidencia: <requisito y criterios>
+- Hallazgos: <escenario o dependencia ausente>
+- Acción requerida: <criterio o decisión necesaria>
+- Revisor humano: Revisores de producto y arquitectura
 ```

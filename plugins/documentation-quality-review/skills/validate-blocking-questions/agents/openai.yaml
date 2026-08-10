@@ -1,3 +1,3 @@
 interface:
-  display_name: "Validate Blocking Questions"
-  short_description: "Help with Validate Blocking Questions tasks"
+  display_name: "Validar preguntas bloqueantes"
+  short_description: "Revisa preguntas sin resolver"

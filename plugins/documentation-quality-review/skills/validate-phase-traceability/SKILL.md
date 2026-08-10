@@ -1,23 +1,23 @@
 ---
 name: validate-phase-traceability
-description: Validate traceability between product and design phases. Use when closing a phase or reviewing phase documentation that changes risks, decisions, requirements, or planned follow-up work.
+description: Valida la trazabilidad entre fases de producto y diseño. Úsala al cerrar una fase o revisar documentación de fase que cambie riesgos, decisiones, requisitos o trabajo posterior previsto.
 ---
 
-# Validate Phase Traceability
+# Validar trazabilidad entre fases
 
-Review the relevant phase documents and the pull request diff. Use `docs/documentation-quality-gates.md` when it exists in the workspace.
+Revisa los documentos de fase relevantes y el diff de la PR. Usa `docs/documentation-quality-gates.md` cuando exista en el espacio de trabajo.
 
-1. List each changed or active risk, decision, and Must requirement.
-2. Identify its treatment in the next phase, or verify that it is explicitly recorded as pending or out of scope.
-3. Flag missing, ambiguous, or contradictory links between phases.
+1. Enumera cada riesgo, decisión y requisito imprescindible activo o modificado.
+2. Identifica su tratamiento en la fase siguiente, o verifica que se registra explícitamente como pendiente o fuera de alcance.
+3. Señala enlaces ausentes, ambiguos o contradictorios entre fases.
 
-Do not approve the pull request or declare a product decision correct. Produce this report:
+No apruebes la PR ni declares correcta una decisión de producto. Genera este informe:
 
 ```markdown
-## Traceability review
-- Status: ready for human review | requires decision | blocked
-- Evidence: <source document and section>
-- Findings: <specific missing links or contradictions>
-- Required action: <action or none>
-- Human reviewer: Architecture reviewer
+## Revisión de trazabilidad
+- Estado: listo para revisión humana | requiere decisión | bloqueado
+- Evidencia: <documento y sección de origen>
+- Hallazgos: <enlaces ausentes o contradicciones concretas>
+- Acción requerida: <acción o ninguna>
+- Revisor humano: Revisor de arquitectura
 ```

@@ -1,24 +1,24 @@
 ---
 name: validate-privacy-readiness
-description: Validate that documentation records the privacy readiness evidence required before production. Use before a production release or when product changes introduce personal data, feedback, retention, access, or deletion behavior.
+description: Valida que la documentación registre las evidencias de preparación para privacidad requeridas antes de producción. Úsala antes de una liberación a producción o cuando cambios de producto introduzcan datos personales, seguimiento, retención, acceso o borrado.
 ---
 
-# Validate Privacy Readiness
+# Validar preparación para privacidad
 
-Review product and release documentation for the documented evidence required before production: responsible party, legal basis, retention, access, deletion, and treatment of declared feedback.
+Revisa la documentación de producto y de liberación para comprobar la evidencia requerida antes de producción: responsable, base legal, retención, acceso, borrado y tratamiento de la información de seguimiento declarada.
 
-1. Identify personal data and feedback processing described by the change.
-2. Check whether each required evidence item is documented or explicitly pending.
-3. Flag production readiness as blocked when evidence is absent.
-4. Distinguish documentation completeness from legal advice or legal approval.
+1. Identifica los datos personales y el tratamiento de seguimiento descritos por el cambio.
+2. Comprueba si cada elemento de evidencia requerido está documentado o explícitamente pendiente.
+3. Señala la preparación para producción como bloqueada cuando falte evidencia.
+4. Distingue la completitud documental del asesoramiento o aprobación legal.
 
-Do not provide legal advice or approve compliance. Produce this report:
+No proporciones asesoramiento legal ni apruebes el cumplimiento. Genera este informe:
 
 ```markdown
-## Privacy readiness review
-- Status: ready for human review | requires decision | blocked
-- Evidence: <documented controls or missing evidence>
-- Findings: <missing privacy evidence or none>
-- Required action: <privacy owner action>
-- Human reviewer: Privacy reviewer or DPO
+## Revisión de preparación para privacidad
+- Estado: listo para revisión humana | requiere decisión | bloqueado
+- Evidencia: <controles documentados o evidencia ausente>
+- Hallazgos: <evidencia de privacidad ausente o ninguna>
+- Acción requerida: <acción del responsable de privacidad>
+- Revisor humano: Revisor de privacidad o DPO
 ```

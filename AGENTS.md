@@ -1,4 +1,4 @@
-# Repository Guidelines
+# Directrices del repositorio
 
 ## Estructura del proyecto y organización de módulos
 
@@ -8,7 +8,7 @@ Cuando comience la implementación, mantén el código de producción, las prueb
 
 ## Convenciones de documentación
 
-Redacta los documentos de producto y técnicos en Markdown. Usa nombres descriptivos en kebab-case, con un prefijo de fase o tema, como `docs/phase-1-user-flows.md` o `docs/architecture-overview.md`. Inicia cada documento con un título claro y, cuando sea útil, su estado y fecha.
+Redacta los documentos de producto y técnicos en Markdown y en castellano. Conserva en su idioma original los identificadores técnicos, rutas, comandos, claves de configuración, nombres de Skills y URLs. Usa nombres descriptivos en kebab-case, con un prefijo de fase o tema, como `docs/phase-1-user-flows.md` o `docs/architecture-overview.md`. Inicia cada documento con un título claro y, cuando sea útil, su estado y fecha.
 
 Mantén la distinción entre decisiones, supuestos, preguntas abiertas y riesgos. Actualiza el enunciado del problema solo si cambia el entendimiento del producto; crea un documento nuevo para trabajo de diseño posterior, en lugar de reescribir el contexto histórico.
 

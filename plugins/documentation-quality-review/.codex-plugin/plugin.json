@@ -1,18 +1,18 @@
 {
   "name": "documentation-quality-review",
   "version": "0.1.0",
-  "description": "Eight Skills for human-led documentation quality reviews.",
+  "description": "Ocho Skills para revisiones humanas de calidad documental.",
   "author": {
     "name": "VG Running"
   },
   "skills": "./skills/",
   "interface": {
-    "displayName": "Documentation Quality Review",
-    "shortDescription": "Eight human-led documentation review Skills.",
-    "longDescription": "Guides traceability, requirements, terminology, decisions, questions, criteria, scope, and privacy reviews without replacing human approval.",
+    "displayName": "Revisión de calidad documental",
+    "shortDescription": "Ocho Skills para revisión documental humana.",
+    "longDescription": "Guía revisiones de trazabilidad, requisitos, terminología, decisiones, preguntas, criterios, alcance y privacidad sin sustituir la aprobación humana.",
     "developerName": "VG Running",
     "category": "Productivity",
     "capabilities": ["Interactive"],
-    "defaultPrompt": "Use the applicable documentation-quality Skill to prepare a human review report."
+    "defaultPrompt": "Usa la Skill de calidad documental aplicable para preparar un informe de revisión humana."
   }
 }

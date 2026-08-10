@@ -1,24 +1,24 @@
 ---
 name: validate-scope-changes
-description: Validate that a documentation pull request declares its changes to scope, assumptions, risks, and decisions. Use when reviewing any pull request that modifies phase, product, or design documents.
+description: Valida que una PR documental declare sus cambios de alcance, supuestos, riesgos y decisiones. Úsala al revisar cualquier PR que modifique documentos de fase, producto o diseño.
 ---
 
-# Validate Scope Changes
+# Validar cambios de alcance
 
-Compare the pull request description and diff with the previous document state.
+Compara la descripción de la PR y su diff con el estado anterior de los documentos.
 
-1. Identify additions, removals, and reprioritizations that affect MVP scope.
-2. Check that the PR description declares changed assumptions, risks, decisions, and exclusions.
-3. Flag scope changes hidden as wording or undocumented changes in responsibility.
-4. Verify that referenced phases and decisions still exist.
+1. Identifica añadidos, eliminaciones y cambios de prioridad que afecten al alcance del PMV.
+2. Comprueba que la descripción de la PR declara cambios en supuestos, riesgos, decisiones y exclusiones.
+3. Señala cambios de alcance ocultos como redacción o cambios de responsabilidad no documentados.
+4. Verifica que las fases y decisiones referenciadas todavía existen.
 
-Do not approve the PR; require the author to describe an omitted scope change. Produce this report:
+No apruebes la PR; exige al autor que describa un cambio de alcance omitido. Genera este informe:
 
 ```markdown
-## Scope change review
-- Status: ready for human review | requires decision | blocked
-- Evidence: <PR section and diff location>
-- Findings: <undeclared scope change or none>
-- Required action: <PR or document update>
-- Human reviewer: Pull request reviewer
+## Revisión de cambios de alcance
+- Estado: listo para revisión humana | requiere decisión | bloqueado
+- Evidencia: <sección de PR y ubicación del diff>
+- Hallazgos: <cambio de alcance no declarado o ninguno>
+- Acción requerida: <actualización de PR o documento>
+- Revisor humano: Revisor de la PR
 ```

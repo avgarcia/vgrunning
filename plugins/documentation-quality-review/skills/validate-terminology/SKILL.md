@@ -1,24 +1,24 @@
 ---
 name: validate-terminology
-description: Validate consistent terminology across product and design documents. Use when a phase closes or a pull request adds, renames, or changes operational concepts.
+description: Valida la consistencia terminológica entre documentos de producto y diseño. Úsala al cerrar una fase o cuando una PR añada, renombre o cambie conceptos operativos.
 ---
 
-# Validate Terminology
+# Validar terminología
 
-Review changed documents and their referenced phase documents for terms that describe the same concept differently or the same term with incompatible meanings.
+Revisa los documentos modificados y los documentos de fase que referencian para detectar términos que describen el mismo concepto de forma distinta o un mismo término con significados incompatibles.
 
-1. Build a short list of changed operational terms.
-2. Compare each term with existing definitions and usages.
-3. Flag synonyms, undefined terms, and conflicting definitions.
-4. Recommend one canonical term and the document that should define it.
+1. Elabora una lista breve de los términos operativos modificados.
+2. Compara cada término con las definiciones y usos existentes.
+3. Señala sinónimos, términos no definidos y definiciones contradictorias.
+4. Recomienda un término canónico y el documento que debe definirlo.
 
-Do not invent a glossary entry when the product owner has not chosen the concept. Produce this report:
+No inventes una entrada de glosario cuando el responsable de producto no haya elegido el concepto. Genera este informe:
 
 ```markdown
-## Terminology review
-- Status: ready for human review | requires decision | blocked
-- Evidence: <term and source sections>
-- Findings: <conflict or none>
-- Required action: <canonical wording or decision>
-- Human reviewer: Architecture reviewer
+## Revisión de terminología
+- Estado: listo para revisión humana | requiere decisión | bloqueado
+- Evidencia: <término y secciones de origen>
+- Hallazgos: <conflicto o ninguno>
+- Acción requerida: <redacción canónica o decisión>
+- Revisor humano: Revisor de arquitectura
 ```

@@ -1,24 +1,24 @@
 ---
 name: validate-blocking-questions
-description: Validate that open questions capable of changing scope, data models, or user flows are resolved or explicitly treated as blockers. Use before closing a project phase or approving related documentation.
+description: Valida que las preguntas abiertas que pueden cambiar alcance, modelos de datos o flujos de usuario estén resueltas o tratadas explícitamente como bloqueantes. Úsala antes de cerrar una fase o aprobar documentación relacionada.
 ---
 
-# Validate Blocking Questions
+# Validar preguntas bloqueantes
 
-Review assumptions, open questions, risks, and decisions in the changed phase documents.
+Revisa los supuestos, preguntas abiertas, riesgos y decisiones de los documentos de fase modificados.
 
-1. Identify unanswered questions that could alter scope, data, permissions, flows, or compliance.
-2. Classify each as resolved, deliberately deferred with an owner and deadline, or blocking.
-3. Flag assumptions that are presented as decisions without validation.
-4. Block phase closure when an unowned question can change the next phase.
+1. Identifica preguntas sin responder que puedan alterar alcance, datos, permisos, flujos o cumplimiento.
+2. Clasifica cada una como resuelta, aplazada deliberadamente con responsable y fecha, o bloqueante.
+3. Señala supuestos presentados como decisiones sin validación.
+4. Bloquea el cierre de fase cuando una pregunta sin responsable pueda cambiar la fase siguiente.
 
-Do not silently resolve a product question. Produce this report:
+No resuelvas silenciosamente una pregunta de producto. Genera este informe:
 
 ```markdown
-## Blocking questions review
-- Status: ready for human review | requires decision | blocked
-- Evidence: <question, assumption, or risk>
-- Findings: <classification and rationale>
-- Required action: <owner decision or none>
-- Human reviewer: Product reviewer
+## Revisión de preguntas bloqueantes
+- Estado: listo para revisión humana | requiere decisión | bloqueado
+- Evidencia: <pregunta, supuesto o riesgo>
+- Hallazgos: <clasificación y motivo>
+- Acción requerida: <decisión del responsable o ninguna>
+- Revisor humano: Revisor de producto
 ```

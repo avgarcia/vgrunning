@@ -1,23 +1,23 @@
 ---
 name: validate-verifiable-requirements
-description: Validate that functional Must requirements are observable and testable. Use when drafting or reviewing requirements, acceptance criteria, or scope changes in product documentation.
+description: Valida que los requisitos funcionales imprescindibles sean observables y verificables. Úsala al redactar o revisar requisitos, criterios de aceptación o cambios de alcance en documentación de producto.
 ---
 
-# Validate Verifiable Requirements
+# Validar requisitos verificables
 
-Review every changed Must requirement. A requirement is verifiable only when it states the actor, observable behavior, expected result, and applicable constraints or error conditions.
+Revisa cada requisito imprescindible modificado. Un requisito es verificable solo cuando indica el actor, el comportamiento observable, el resultado esperado y las restricciones o condiciones de error aplicables.
 
-1. Quote the requirement and identify the missing element, if any.
-2. Reject aspirational wording such as "basic", "easy", or "fast" unless it has an observable definition.
-3. Check that exclusions and notifications are stated as behavior, not assumptions.
+1. Cita el requisito e identifica el elemento ausente, si lo hay.
+2. Rechaza expresiones aspiracionales como "básico", "fácil" o "rápido" salvo que tengan una definición observable.
+3. Comprueba que las exclusiones y las notificaciones se declaran como comportamiento, no como supuestos.
 
-Do not rewrite business intent without identifying it as a proposed change. Produce this report:
+No reescribas la intención de negocio sin identificarla como un cambio propuesto. Genera este informe:
 
 ```markdown
-## Requirement verification review
-- Status: ready for human review | requires decision | blocked
-- Evidence: <requirement and section>
-- Findings: <non-verifiable requirement or none>
-- Required action: <precise clarification>
-- Human reviewer: Product reviewer
+## Revisión de verificabilidad de requisitos
+- Estado: listo para revisión humana | requiere decisión | bloqueado
+- Evidencia: <requisito y sección>
+- Hallazgos: <requisito no verificable o ninguno>
+- Acción requerida: <aclaración precisa>
+- Revisor humano: Revisor de producto
 ```
