@@ -1,0 +1,3 @@
+interface:
+  display_name: "Validar trazabilidad entre fases"
+  short_description: "Revisa trazabilidad entre fases"
