@@ -48,6 +48,23 @@ Durante la revisión de una pull request documental se debe confirmar lo siguien
 - Las exclusiones de alcance son explícitas y no se presentan como comportamiento futuro garantizado.
 - Se ha ejecutado `git diff --check`.
 
+## Ejecución con Skills y revisión humana
+
+Las Skills del plugin `documentation-quality-review` preparan evidencia y hallazgos para los ocho controles. Una Skill nunca aprueba una pull request ni sustituye a un responsable humano.
+
+| Control | Skill | Revisor humano responsable |
+| --- | --- | --- |
+| Trazabilidad entre fases | `validate-phase-traceability` | Revisor de arquitectura |
+| Requisitos verificables | `validate-verifiable-requirements` | Revisor de producto |
+| Consistencia terminológica | `validate-terminology` | Revisor de arquitectura |
+| Matriz de decisiones | `validate-design-decisions` | Revisor de arquitectura |
+| Preguntas abiertas bloqueantes | `validate-blocking-questions` | Revisor de producto |
+| Criterios de aceptación | `validate-acceptance-criteria` | Revisores de producto y arquitectura |
+| Control de cambios de alcance | `validate-scope-changes` | Revisor de la pull request |
+| Validación de privacidad | `validate-privacy-readiness` | Responsable de privacidad o DPO |
+
+El autor ejecuta las Skills aplicables y adjunta los informes a la pull request. El responsable humano asignado revisa la evidencia, resuelve o escala los hallazgos y registra la aprobación o solicitud de cambios. Antes de abrir una pull request se debe asignar una persona concreta a cada rol de revisión aplicable.
+
 ## Límites de esta validación
 
 Estos controles validan calidad documental; no validan que el producto sea deseable, viable técnicamente o conforme a normativa. Esas validaciones requieren revisión de las partes responsables, prototipos, análisis técnico y, antes de producción, asesoramiento de privacidad cuando corresponda.
