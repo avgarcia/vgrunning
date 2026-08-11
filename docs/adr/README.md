@@ -36,7 +36,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | --- | --- | --- | --- |
 | [ADR-0001](0001-record-architecture-decisions.md) | Registrar decisiones de arquitectura mediante ADRs | Aceptado | Todos los `RF` |
 | [ADR-0002](0002-architecture-single-club.md) | Arquitectura general del PMV y límites single-club | Aceptado | Todos los `RF`; especialmente `RF-02`, `RF-18`, `RF-19` |
-| [ADR-0003](0003-identity-authentication-invitation.md) | Identidad, autenticación, invitación y recuperación de acceso | Propuesto | `RF-01`, `RF-02`, `RF-16`, `RF-18`, `RF-19` |
+| [ADR-0003](0003-identity-authentication-invitation.md) | Identidad, autenticación, invitación y recuperación de acceso | Aceptado | `RF-01`, `RF-02`, `RF-16`, `RF-18`, `RF-19` |
 
 ## Backlog inicial de Fase 2
 

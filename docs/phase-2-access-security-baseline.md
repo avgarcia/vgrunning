@@ -1,6 +1,6 @@
 # Línea base de seguridad de acceso — Fase 2
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-11
 
 ## Propósito

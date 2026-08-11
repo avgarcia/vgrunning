@@ -1,6 +1,6 @@
 # ADR-0003: Identidad, autenticación, invitación y recuperación de acceso
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-11
 **Responsable de revisión:** Revisor de arquitectura
 
