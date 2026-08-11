@@ -11,17 +11,19 @@ Concretar los parámetros de seguridad que materializan [ADR-0003](adr/0003-iden
 
 | Control | Decisión verificable |
 | --- | --- |
-| Contraseña | Entre 12 y 128 caracteres; se permiten espacios y caracteres Unicode. No se exige rotación periódica ni reglas artificiales de composición. |
+| Contraseña | Entre 12 y 128 caracteres. Se permiten todos los caracteres imprimibles ASCII, incluido el espacio, y caracteres Unicode, incluidos números. Antes de comprobarla y almacenarla se normaliza en NFC. No se exige rotación periódica ni reglas artificiales de composición. |
+| Rechazo de contraseñas | Se rechaza una lista versionada de contraseñas comunes o comprometidas y valores contextuales previsibles del PMV. La comprobación no registra ni expone la contraseña introducida. |
 | Almacenamiento | Argon2id con al menos 19 MiB de memoria, 2 iteraciones y paralelismo 1. Los parámetros almacenados permiten aumentar el coste y rehash al iniciar sesión. |
 | Intentos de inicio | Máximo 5 fallos por cuenta y 20 por IP en 15 minutos; al superar cualquiera se retrasa o rechaza el intento sin revelar cuál fue el límite. |
+| CAPTCHA | No se habilita por defecto. Solo podrá añadirse como defensa adicional tras evidencia de abuso que los límites anteriores no contengan; antes de ello se documentarán proveedor o solución, accesibilidad, tratamiento de datos y umbral de activación. |
 | Respuesta de acceso | El inicio y la recuperación devuelven mensajes genéricos ante correo, contraseña o estado inválidos. |
 
 ## Secretos de activación y recuperación
 
 | Control | Decisión verificable |
 | --- | --- |
-| Generación | Secreto aleatorio criptográficamente seguro de al menos 256 bits. |
-| Almacenamiento | Solo se conserva un verificador no reversible, propósito, caducidad y estado de uso; el secreto en claro aparece únicamente en el enlace enviado. |
+| Generación | El CSPRNG del sistema operativo genera 32 bytes aleatorios. El secreto se codifica en `base64url` exclusivamente para incluirlo en el enlace. |
+| Almacenamiento | Solo se conserva el verificador `SHA-256` del secreto, propósito, caducidad y estado de uso; el secreto en claro aparece únicamente en el enlace enviado. |
 | Activación | Caduca a las 72 horas. Solo el último secreto emitido para la cuenta es válido. |
 | Recuperación | Caduca a la hora. Solo el último secreto emitido para la cuenta es válido. |
 | Solicitudes | Máximo 3 solicitudes por cuenta y 10 por IP en una hora; la respuesta no revela la existencia de la cuenta. |
@@ -32,7 +34,7 @@ Concretar los parámetros de seguridad que materializan [ADR-0003](adr/0003-iden
 
 | Control | Decisión verificable |
 | --- | --- |
-| Identificador | Sesión opaca generada criptográficamente, almacenada mediante un verificador no reversible en el servidor. |
+| Identificador | El CSPRNG del sistema operativo genera 32 bytes aleatorios, codificados en `base64url` para la cookie. El servidor guarda exclusivamente el verificador `SHA-256` de la sesión. |
 | Cookie | Nombre `__Host-pmv_session`, `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/` y sin atributo `Domain`. |
 | Caducidad | 12 horas de inactividad y 7 días de duración absoluta, aplicadas por el servidor. |
 | Rotación y revocación | Rotar el identificador al iniciar sesión y tras reautenticación; cerrar sesión revoca la sesión actual; cambiar contraseña revoca todas las sesiones de la cuenta. |
