@@ -127,7 +127,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 
 | ADR o pregunta | Impacto | Bloquea | Responsable | Tratamiento |
 | --- | --- | --- | --- | --- |
-| `ADR-0003`: identidad, autenticación e invitación | Seguridad de acceso y flujo de activación. | Implementar acceso. | Revisor de arquitectura | Proponer antes de cerrar el diseño de acceso. |
+| `ADR-0003`: identidad, autenticación e invitación | Seguridad de acceso y flujo de activación. | Implementar acceso. | Revisor de arquitectura | Propuesto; aceptar antes de cerrar el diseño de acceso. |
 | `ADR-0004`: autorización y aislamiento | Permisos, consultas y datos visibles. | Implementar cualquier operación autenticada. | Revisor de arquitectura | Proponer antes de cerrar diseño de permisos. |
 | `ADR-0005`: taxonomías y segmentación | Modelo de datos y semántica de destinatarios. | Implementar administración o segmentación. | Revisor de arquitectura | Proponer antes de cerrar segmentación. |
 | `ADR-0006`: plan y entrenamiento | Modelo de planificación, objetivos y ubicación. | Implementar planes o entrenamientos. | Revisor de arquitectura | Proponer antes de cerrar planificación semanal. |
