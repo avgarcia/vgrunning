@@ -1,7 +1,8 @@
 # ADR-0002: Arquitectura general del PMV y límites single-club
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-11
+**Fecha de aceptación:** 2026-08-11
 **Responsable de revisión:** Revisor de arquitectura
 
 ## Contexto
@@ -14,9 +15,11 @@ No se ha elegido framework, base de datos, proveedor de identidad, proveedor de 
 
 ## Decisión
 
-Se propone implementar el PMV como una aplicación web de despliegue único, con un backend modular y una frontera única de datos transaccionales para el club.
+El PMV se implementará como una aplicación web de despliegue único, con un backend modular y una frontera única de datos transaccionales para el club.
 
 Los módulos del backend corresponden a los componentes lógicos del diseño de alto nivel: identidad y acceso; administración y taxonomías; segmentación; planificación; publicación y notificación; consulta del corredor; y seguimiento y revisión. Cada módulo debe exponer interfaces explícitas al resto de la aplicación y conservar la responsabilidad sobre las reglas y datos que gobierna.
+
+Un módulo es una unidad lógica del backend que agrupa una capacidad de negocio, sus casos de uso, reglas y contratos de acceso a sus datos. Cada módulo expone interfaces explícitas para colaborar con otros módulos; ningún módulo debe depender directamente de los modelos internos o detalles de persistencia de otro. Los módulos se ejecutan y despliegan como una única aplicación y pueden participar en la misma transacción. Un módulo no exige microservicios, DDD ni arquitectura hexagonal; esas técnicas podrán adoptarse después si una decisión posterior las justifica.
 
 Un módulo no implica un servicio desplegable independiente. Los flujos centrales entre módulos se ejecutan dentro de la aplicación y no dependen de llamadas de red entre servicios. La frontera transaccional única no decide el tipo de almacenamiento ni sustituye las decisiones de consistencia de `ADR-0007` y entrega de correo de `ADR-0008`.
 
@@ -83,7 +86,6 @@ Se descarta porque mezclaría permisos, segmentación, publicación y seguimient
 
 ## Decisiones pendientes
 
-- **Bloqueante para cerrar el diseño técnico general e iniciar implementación:** el revisor de arquitectura debe aceptar, ajustar o descartar este ADR. Tratamiento: revisión explícita de la PR y cambio de estado antes de implementar un área.
 - **Bloqueante para implementar acceso:** `ADR-0003` debe decidir identidad, autenticación, invitación y recuperación. Responsable: revisor de arquitectura. Tratamiento: proponerlo antes de cerrar el diseño de acceso.
 - **Bloqueante para implementar operaciones autenticadas:** `ADR-0004` debe decidir autorización por rol y aislamiento del corredor. Responsable: revisor de arquitectura. Tratamiento: proponerlo antes de cerrar el diseño de permisos.
 - **Bloqueante para implementar publicación:** `ADR-0007` debe decidir transacción, versionado y destinatarios efectivos. Responsable: revisor de arquitectura. Tratamiento: proponerlo antes de cerrar publicación.
