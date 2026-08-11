@@ -37,7 +37,7 @@ No selecciona framework, base de datos, proveedor de identidad, proveedor de cor
 | Consulta del corredor | Consulta móvil de planes, entrenamientos, ubicación e historial propio. | `RF-16`, `RF-18` | Vista derivada de publicaciones y seguimiento del corredor autenticado. |
 | Seguimiento y revisión | Registro de ejecución y consulta por entrenador. | `RF-17`, `RF-18`, `RF-19` | Registro de seguimiento vinculado a entrenamiento y publicación. |
 
-Estos límites son lógicos. `ADR-0002` debe decidir cómo se materializan en módulos, procesos y despliegue sin introducir multiclub fuera de alcance.
+Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como módulos de una única aplicación desplegable, sin introducir multiclub fuera de alcance. Las decisiones de tecnología, persistencia y plataforma de despliegue siguen pendientes.
 
 ## Flujos de alto nivel
 
@@ -87,7 +87,7 @@ El modelo es conceptual y no define tablas, identificadores, índices, consisten
 
 Los criterios de validación citados son los de [Criterios de aceptación — Fase 1](phase-1-acceptance-criteria.md). El estado `Pendiente` indica diseño técnico no cerrado, no ausencia de tratamiento funcional.
 
-| Requisito | Flujo y componente | Modelo lógico o regla principal | Decisiones de Fase 1 | ADR candidato | Validación prevista | Estado |
+| Requisito | Flujo y componente | Modelo lógico o regla principal | Decisiones de Fase 1 | ADR relacionado o candidato | Validación prevista | Estado |
 | --- | --- | --- | --- | --- | --- | --- |
 | `RF-01` | Acceso; Identidad y acceso | Invitación, activación, credencial y restablecimiento sin revelar cuentas existentes. | — | `ADR-0003` | Criterios de `RF-01`; pruebas de token, caducidad y enumeración de cuentas. | Pendiente |
 | `RF-02` | Administración; Identidad y acceso | Roles y taxonomías cerradas administradas solo por administrador. | `D-01`, `D-08` | `ADR-0003`, `ADR-0004`, `ADR-0005` | Criterios de `RF-02`; pruebas de autorización. | Pendiente |
@@ -112,11 +112,11 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 
 ## Trazabilidad de decisiones de Fase 1
 
-| Decisión | Tratamiento en este diseño | ADR candidato |
+| Decisión | Tratamiento en este diseño | ADR relacionado o candidato |
 | --- | --- | --- |
 | `D-01` | Taxonomías, segmentos, excepciones, versión y destinatarios efectivos. | `ADR-0005`, `ADR-0007` |
 | `D-02` | Modalidad dentro de la taxonomía controlada. | `ADR-0005` |
-| `D-03` | Límite de un único club en todos los componentes lógicos. | `ADR-0002` |
+| `D-03` | Límite de un único club en todos los componentes lógicos, materializado como una aplicación única modular. | `ADR-0002` (Aceptado) |
 | `D-04` | Ubicación libre por entrenamiento presencial. | `ADR-0006` |
 | `D-05` | Gramática limitada de reglas de segmentos. | `ADR-0005` |
 | `D-06` | Republicación atómica, versiones, afectados y correo. | `ADR-0007`, `ADR-0008` |
@@ -127,7 +127,6 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 
 | ADR o pregunta | Impacto | Bloquea | Responsable | Tratamiento |
 | --- | --- | --- | --- | --- |
-| `ADR-0002`: arquitectura general y límites single-club | Límites de módulos, despliegue y datos. | Cerrar diseño técnico general e iniciar implementación. | Revisor de arquitectura | Proponer y aceptar antes de cerrar el diseño técnico general. |
 | `ADR-0003`: identidad, autenticación e invitación | Seguridad de acceso y flujo de activación. | Implementar acceso. | Revisor de arquitectura | Proponer antes de cerrar el diseño de acceso. |
 | `ADR-0004`: autorización y aislamiento | Permisos, consultas y datos visibles. | Implementar cualquier operación autenticada. | Revisor de arquitectura | Proponer antes de cerrar diseño de permisos. |
 | `ADR-0005`: taxonomías y segmentación | Modelo de datos y semántica de destinatarios. | Implementar administración o segmentación. | Revisor de arquitectura | Proponer antes de cerrar segmentación. |
