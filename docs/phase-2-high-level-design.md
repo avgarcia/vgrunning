@@ -46,7 +46,7 @@ Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como
 1. El administrador invita al corredor por correo.
 2. El corredor activa su cuenta, define contraseña y puede iniciar sesión o solicitar restablecimiento.
 3. El administrador administra usuarios, roles y taxonomías cerradas.
-4. El componente de identidad aplica el rol en cada operación; la administración de taxonomías no se delega a entrenador ni corredor.
+4. Identidad aporta el rol vigente y cada módulo aplica en el backend la capacidad y el alcance del recurso; la administración de taxonomías no se delega a entrenador ni corredor.
 
 ### Segmentación y planificación
 
@@ -127,8 +127,8 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 
 | ADR o pregunta | Impacto | Bloquea | Responsable | Tratamiento |
 | --- | --- | --- | --- | --- |
-| `ADR-0003`: identidad, autenticación e invitación | Seguridad de acceso y flujo de activación. | Implementar acceso. | Revisor de arquitectura | Propuesto; aceptar antes de cerrar el diseño de acceso. |
-| `ADR-0004`: autorización y aislamiento | Permisos, consultas y datos visibles. | Implementar cualquier operación autenticada. | Revisor de arquitectura | Proponer antes de cerrar diseño de permisos. |
+| `ADR-0003`: identidad, autenticación e invitación | Seguridad de acceso y flujo de activación. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con línea base de seguridad de acceso. |
+| `ADR-0004`: autorización y aislamiento | Permisos, consultas y datos visibles. | Implementar cualquier operación autenticada. | Revisor de arquitectura | Propuesto; aceptar antes de implementar operaciones autenticadas. |
 | `ADR-0005`: taxonomías y segmentación | Modelo de datos y semántica de destinatarios. | Implementar administración o segmentación. | Revisor de arquitectura | Proponer antes de cerrar segmentación. |
 | `ADR-0006`: plan y entrenamiento | Modelo de planificación, objetivos y ubicación. | Implementar planes o entrenamientos. | Revisor de arquitectura | Proponer antes de cerrar planificación semanal. |
 | `ADR-0007`: publicación, versiones y destinatarios | Consistencia, historial y cambios publicados. | Implementar publicación o republicación. | Revisor de arquitectura | Proponer antes de cerrar publicación. |
