@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gestión de ADRs"
+  short_description: "Crea y audita ADRs del proyecto"
+  default_prompt: "Usa $gestionar-adrs para auditar los ADRs del proyecto."
