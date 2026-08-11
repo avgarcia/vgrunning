@@ -35,6 +35,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | ID | Título | Estado | Requisitos relacionados |
 | --- | --- | --- | --- |
 | [ADR-0001](0001-record-architecture-decisions.md) | Registrar decisiones de arquitectura mediante ADRs | Aceptado | Todos los `RF` |
+| [ADR-0002](0002-architecture-single-club.md) | Arquitectura general del PMV y límites single-club | Propuesto | Todos los `RF`; especialmente `RF-02`, `RF-18`, `RF-19` |
 
 ## Backlog inicial de Fase 2
 
@@ -42,7 +43,6 @@ Estos ADRs candidatos deben confirmarse, dividirse o descartarse durante el dise
 
 | Candidato | Decisión pendiente | Requisitos relacionados | Tratamiento |
 | --- | --- | --- | --- |
-| ADR-0002 | Arquitectura general del PMV y límites single-club | Todos los `RF`; especialmente `RF-02`, `RF-18`, `RF-19` | Resolver antes de cerrar el diseño técnico general de Fase 2. |
 | ADR-0003 | Modelo de identidad, autenticación, invitación y recuperación de acceso | `RF-01`, `RF-02` | Resolver antes de cerrar el diseño de acceso. |
 | ADR-0004 | Modelo de autorización por roles y aislamiento de datos del corredor | `RF-02`, `RF-14`, `RF-16`, `RF-18`, `RF-19` | Resolver antes de cerrar permisos y consulta de datos. |
 | ADR-0005 | Modelo de taxonomías, etiquetas, modalidad y reglas de segmentos | `RF-02`, `RF-03`, `RF-04`, `RF-05`, `RF-06`, `RF-08` | Resolver antes de cerrar segmentación. |
