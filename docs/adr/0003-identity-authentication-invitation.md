@@ -22,9 +22,11 @@ Una invitación crea o reutiliza una cuenta pendiente de activación y envía un
 
 La recuperación de contraseña usa un secreto separado, aleatorio y de un solo uso. La solicitud responde de forma indistinguible para correos existentes o inexistentes y no revela si una cuenta está registrada. Una solicitud nueva invalida el secreto de recuperación anterior de esa cuenta.
 
-Los secretos de activación y recuperación solo se enviarán al correo del usuario y se almacenarán como valores verificables no reversibles, con propósito, fecha de expiración y estado de uso. Una contraseña se almacenará mediante un algoritmo de derivación de contraseña adaptativo; se preferirá Argon2id cuando la plataforma elegida lo soporte. Los plazos de expiración, la política de contraseñas, límites de intentos y parámetros de coste se configurarán y revisarán antes de implementar acceso.
+Los secretos de activación y recuperación solo se enviarán al correo del usuario y se almacenarán como valores verificables no reversibles, con propósito, fecha de expiración y estado de uso. Las contraseñas se almacenarán con Argon2id. La política de contraseñas, los plazos de expiración, los límites de intentos y los parámetros mínimos de coste se fijan en la [Línea base de seguridad de acceso — Fase 2](../phase-2-access-security-baseline.md).
 
-El inicio de sesión creará una sesión opaca gestionada por el servidor. El navegador la recibirá exclusivamente en una cookie `Secure`, `HttpOnly` y `SameSite=Lax`; no se expondrá un token de acceso al código del navegador. Las operaciones que cambien estado deberán protegerse contra solicitudes forjadas. El modelo de almacenamiento, la duración y revocación de sesiones se concretarán con la plataforma antes de implementar acceso.
+El inicio de sesión creará una sesión opaca gestionada por el servidor. El navegador la recibirá exclusivamente en una cookie `Secure`, `HttpOnly` y `SameSite=Lax`; no se expondrá un token de acceso al código del navegador. Las operaciones que cambien estado deberán protegerse contra solicitudes forjadas. La duración, rotación, revocación y protección anti-CSRF se fijan en la [Línea base de seguridad de acceso — Fase 2](../phase-2-access-security-baseline.md). Restablecer una contraseña invalida todas las sesiones de la cuenta y no inicia sesión automáticamente.
+
+El primer administrador se provisionará mediante el flujo de bootstrap definido en la línea base de seguridad. No se creará mediante registro público ni con una contraseña inicial visible.
 
 ## Alternativas consideradas
 
@@ -71,8 +73,6 @@ Se descarta para la primera aplicación web. Complica revocación, tratamiento a
 
 ## Decisiones pendientes
 
-- **Bloqueante para implementar acceso:** `ADR-0004` debe definir autorización por rol, comprobación de permisos y aislamiento del corredor. Responsable: revisor de arquitectura. Tratamiento: aceptarlo antes de habilitar cualquier operación autenticada.
-- **Bloqueante para implementar correo de acceso:** seleccionar proveedor, configuración de entrega y observabilidad para invitación y recuperación. Responsable: revisor de arquitectura. Tratamiento: documentarlo con la plataforma elegida antes de implementar el envío; no se reutiliza implícitamente `ADR-0008`, que cubre correo de publicación.
-- **Bloqueante para desplegar acceso:** provisionar el primer administrador sin usar registro público. Responsable: revisor de arquitectura. Tratamiento: definir el mecanismo seguro con la plataforma de despliegue y exigir activación o cambio de credencial inicial antes de uso operativo.
-- **Bloqueante para implementar acceso:** fijar política de contraseñas, expiración de secretos, límites de intentos, duración y revocación de sesiones conforme a la plataforma. Responsable: revisor de arquitectura. Tratamiento: registrarlo en el diseño técnico de acceso antes de implementar; si cambia alcance o varios módulos, abrir un ADR específico.
+- **Bloqueante para habilitar funciones operativas autenticadas:** `ADR-0004` debe definir autorización por rol, comprobación de permisos y aislamiento del corredor. Responsable: revisor de arquitectura. Tratamiento: aceptarlo antes de exponer funciones que consuman datos operativos.
+- **Bloqueante para enviar correos de acceso:** `ADR-0011` debe decidir proveedor, entrega, reintentos y observabilidad del correo transaccional. Responsable: revisor de arquitectura. Tratamiento: proponerlo y aceptarlo antes de implementar invitación o recuperación por correo; no se reutiliza implícitamente `ADR-0008`, que cubre la semántica de correo de publicación.
 - **Pendiente, sin bloquear este ADR:** elegir framework, persistencia y plataforma de despliegue. Responsable: revisor de arquitectura. Tratamiento: mantener la decisión compatible con sesiones opacas, secretos verificables y cookies seguras.

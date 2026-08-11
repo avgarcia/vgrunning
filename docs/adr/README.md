@@ -51,3 +51,4 @@ Estos ADRs candidatos deben confirmarse, dividirse o descartarse durante el dise
 | ADR-0008 | Republicación y envío de correo a destinatarios afectados | `RF-15`, `RF-20` | Resolver antes de cerrar notificaciones. |
 | ADR-0009 | Modelo de seguimiento, historial y revisión por entrenadores | `RF-17`, `RF-18`, `RF-19` | Resolver antes de cerrar seguimiento. |
 | ADR-0010 | Estrategia mínima de privacidad, retención y derechos antes de producción | Requisito no funcional de datos; `RF-17`, `RF-18`, `RF-19` | Resolver antes de salida a producción; no bloquea el arranque de Fase 2 salvo que cambie alcance o datos. |
+| ADR-0011 | Estrategia de correo transaccional para acceso y publicación | `RF-01`, `RF-15`, `RF-20` | Resolver antes de implementar cualquier correo del PMV. |

@@ -135,6 +135,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `ADR-0008`: correo a afectados | Entrega, idempotencia y tratamiento de fallo. | Implementar correo de publicación. | Revisor de arquitectura | Proponer antes de cerrar notificaciones. |
 | `ADR-0009`: seguimiento e historial | Actualización de registros, consulta y retención operativa. | Implementar seguimiento o revisión. | Revisor de arquitectura | Proponer antes de cerrar seguimiento. |
 | `ADR-0010`: privacidad, retención y derechos | Datos personales y seguimiento declarado. | Salida a producción; no el diseño funcional actual salvo cambio de alcance. | Responsable de privacidad o DPO | Resolver antes de producción. |
+| `ADR-0011`: correo transaccional | Proveedor, entrega, reintentos y observabilidad de los correos de acceso y publicación. | Implementar cualquier correo del PMV. | Revisor de arquitectura | Proponer y aceptar antes de implementar correo. |
 
 ## Riesgos y mitigaciones
 
