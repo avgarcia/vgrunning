@@ -36,6 +36,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | --- | --- | --- | --- |
 | [ADR-0001](0001-record-architecture-decisions.md) | Registrar decisiones de arquitectura mediante ADRs | Aceptado | Todos los `RF` |
 | [ADR-0002](0002-architecture-single-club.md) | Arquitectura general del PMV y límites single-club | Aceptado | Todos los `RF`; especialmente `RF-02`, `RF-18`, `RF-19` |
+| [ADR-0003](0003-identity-authentication-invitation.md) | Identidad, autenticación, invitación y recuperación de acceso | Aceptado | `RF-01`, `RF-02`, `RF-16`, `RF-18`, `RF-19` |
 
 ## Backlog inicial de Fase 2
 
@@ -43,7 +44,6 @@ Estos ADRs candidatos deben confirmarse, dividirse o descartarse durante el dise
 
 | Candidato | Decisión pendiente | Requisitos relacionados | Tratamiento |
 | --- | --- | --- | --- |
-| ADR-0003 | Modelo de identidad, autenticación, invitación y recuperación de acceso | `RF-01`, `RF-02` | Resolver antes de cerrar el diseño de acceso. |
 | ADR-0004 | Modelo de autorización por roles y aislamiento de datos del corredor | `RF-02`, `RF-14`, `RF-16`, `RF-18`, `RF-19` | Resolver antes de cerrar permisos y consulta de datos. |
 | ADR-0005 | Modelo de taxonomías, etiquetas, modalidad y reglas de segmentos | `RF-02`, `RF-03`, `RF-04`, `RF-05`, `RF-06`, `RF-08` | Resolver antes de cerrar segmentación. |
 | ADR-0006 | Modelo de plan semanal, entrenamientos, catálogo y objetivos | `RF-07`, `RF-11`, `RF-12`, `RF-13`, `RF-14`, `RF-16` | Resolver antes de cerrar planificación semanal. |
@@ -51,3 +51,4 @@ Estos ADRs candidatos deben confirmarse, dividirse o descartarse durante el dise
 | ADR-0008 | Republicación y envío de correo a destinatarios afectados | `RF-15`, `RF-20` | Resolver antes de cerrar notificaciones. |
 | ADR-0009 | Modelo de seguimiento, historial y revisión por entrenadores | `RF-17`, `RF-18`, `RF-19` | Resolver antes de cerrar seguimiento. |
 | ADR-0010 | Estrategia mínima de privacidad, retención y derechos antes de producción | Requisito no funcional de datos; `RF-17`, `RF-18`, `RF-19` | Resolver antes de salida a producción; no bloquea el arranque de Fase 2 salvo que cambie alcance o datos. |
+| ADR-0011 | Estrategia de correo transaccional para acceso y publicación | `RF-01`, `RF-15`, `RF-20` | Resolver antes de implementar cualquier correo del PMV. |
