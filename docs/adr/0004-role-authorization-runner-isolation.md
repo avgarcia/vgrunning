@@ -1,7 +1,8 @@
 # ADR-0004: Autorización por roles y aislamiento de datos del corredor
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-11
+**Fecha de aceptación:** 2026-08-11
 **Responsable de revisión:** Revisor de arquitectura
 
 ## Contexto

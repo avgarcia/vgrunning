@@ -121,14 +121,14 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `D-05` | Gramática limitada de reglas de segmentos. | `ADR-0005` |
 | `D-06` | Republicación atómica, versiones, afectados y correo. | `ADR-0007`, `ADR-0008` |
 | `D-07` | Seguimiento estructurado, historial y revisión. | `ADR-0009` |
-| `D-08` | Permisos globales de entrenador y aislamiento del corredor. | `ADR-0004` |
+| `D-08` | Permisos globales de entrenador y aislamiento del corredor. | `ADR-0004` (Aceptado) |
 
 ## Preguntas bloqueantes y ADRs pendientes
 
 | ADR o pregunta | Impacto | Bloquea | Responsable | Tratamiento |
 | --- | --- | --- | --- | --- |
 | `ADR-0003`: identidad, autenticación e invitación | Seguridad de acceso y flujo de activación. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con línea base de seguridad de acceso. |
-| `ADR-0004`: autorización y aislamiento | Permisos, consultas y datos visibles. | Implementar cualquier operación autenticada. | Revisor de arquitectura | Propuesto; aceptar antes de implementar operaciones autenticadas. |
+| `ADR-0004`: autorización y aislamiento | Permisos, consultas y datos visibles. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con jerarquía explícita e inmutabilidad del rol. |
 | `ADR-0005`: taxonomías y segmentación | Modelo de datos y semántica de destinatarios. | Implementar administración o segmentación. | Revisor de arquitectura | Proponer antes de cerrar segmentación. |
 | `ADR-0006`: plan y entrenamiento | Modelo de planificación, objetivos y ubicación. | Implementar planes o entrenamientos. | Revisor de arquitectura | Proponer antes de cerrar planificación semanal. |
 | `ADR-0007`: publicación, versiones y destinatarios | Consistencia, historial y cambios publicados. | Implementar publicación o republicación. | Revisor de arquitectura | Proponer antes de cerrar publicación. |
