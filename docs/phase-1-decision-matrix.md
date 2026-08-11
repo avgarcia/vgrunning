@@ -1,6 +1,6 @@
 # Matriz de decisiones — Fase 1
 
-**Estado:** En validación
+**Estado:** Validado — Fase 1 cerrada
 **Fecha:** 2026-08-10
 
 ## Propósito
