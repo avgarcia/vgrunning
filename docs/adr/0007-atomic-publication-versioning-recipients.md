@@ -10,7 +10,7 @@ El PMV debe publicar un plan semanal completo para los miembros efectivos de su 
 
 `ADR-0002` establece una única frontera de datos transaccionales. `ADR-0004` permite al corredor leer una publicación solo si aparece en su instantánea de destinatarios. `ADR-0005` define segmentos dinámicos y `ADR-0006` grupos exclusivos, un plan por pareja grupo-semana y contenido editable separado de sus futuras versiones publicadas.
 
-Fase 1 exige publicación y republicación atómicas, impide cambios silenciosos y exige correo para destinatarios afectados. Este ADR decide la consistencia del dominio, las versiones y la visibilidad. `ADR-0008` decidirá la solicitud y entrega del correo, incluidos reintentos e idempotencia; la entrega externa no formará parte de la transacción que hace visible el plan.
+Fase 1 exige publicación y republicación atómicas, impide cambios silenciosos y exige correo para destinatarios afectados. Este ADR decide la consistencia del dominio, las versiones y la visibilidad. `ADR-0008` define la solicitud transaccional de notificación y `ADR-0011` decidirá su entrega asíncrona; la entrega externa no formará parte de la transacción que hace visible el plan.
 
 ## Decisión
 
@@ -78,7 +78,7 @@ Se descarta porque ocultaría errores operativos y podría asignar un plan difer
 
 ### Alternativa F: Incluir la entrega del correo en la transacción
 
-Se descarta porque un sistema externo no puede participar de forma fiable en la transacción de datos del PMV. `ADR-0008` deberá desacoplar entrega sin perder la solicitud asociada a la publicación.
+Se descarta porque un sistema externo no puede participar de forma fiable en la transacción de datos del PMV. `ADR-0008` desacopla la entrega sin perder la solicitud asociada a la publicación.
 
 ### Alternativa G: Recalcular destinatarios en cada republicación
 
@@ -100,7 +100,7 @@ Se descarta para el PMV. La acción de publicar produce visibilidad inmediata y 
 - Resolver miembros en la primera publicación garantiza trazabilidad y exige detectar modificaciones concurrentes de grupos y segmentación en ese momento.
 - Congelar destinatarios mantiene estable la semana actual; un cambio de grupo solo afecta a planes todavía no publicados y no permite traslados entre planes ya publicados.
 - Rechazar grupos vacíos y republicaciones sin cambios evita versiones sin efecto observable.
-- El correo deja de condicionar la atomicidad del contenido; `ADR-0008` debe garantizar que la solicitud de notificación no se pierda.
+- El correo deja de condicionar la atomicidad del contenido; `ADR-0008` garantiza que la solicitud de notificación no se pierda.
 - Persistencia e índices deberán soportar unicidad, orden de versiones y consultas por corredor y semana sin convertir datos derivados en fuente de verdad.
 
 ## Requisitos relacionados
@@ -138,5 +138,5 @@ Se descarta para el PMV. La acción de publicar produce visibilidad inmediata y 
 
 ## Decisiones pendientes
 
-- **Bloqueante para implementar notificaciones:** `ADR-0008` debe decidir la solicitud transaccional de correo, destinatarios afectados, reintentos e idempotencia. Responsable: revisor de arquitectura. Tratamiento: aceptar antes de implementar correo, sin bloquear la persistencia de versiones y destinatarios.
+- **Bloqueante para implementar notificaciones:** `ADR-0011` debe decidir proveedor, ejecución asíncrona, reintentos automáticos, fallo definitivo y observabilidad. Responsable: revisor de arquitectura. Tratamiento: aceptar antes de implementar correo, sin bloquear la persistencia de versiones, destinatarios y solicitudes de `ADR-0008`.
 - **Pendiente, sin bloquear este ADR:** elegir persistencia, nivel de aislamiento, restricciones e índices concretos. Responsable: revisor de arquitectura. Tratamiento: documentarlo con el stack y demostrar las garantías lógicas de este ADR.
