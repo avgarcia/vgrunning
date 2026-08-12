@@ -40,6 +40,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0004](0004-role-authorization-runner-isolation.md) | Autorización por roles y aislamiento de datos del corredor | Aceptado | `RF-02`, `RF-03`, `RF-05` a `RF-09`, `RF-14`, `RF-16` a `RF-19` |
 | [ADR-0005](0005-controlled-taxonomies-dynamic-segments.md) | Taxonomías controladas y segmentos dinámicos | Aceptado | `RF-02` a `RF-06`, `RF-08`, `RF-09`, `RF-10` |
 | [ADR-0006](0006-weekly-plan-training-model.md) | Modelo de grupos de planificación, planes semanales y entrenamientos | Aceptado | `RF-04`, `RF-07`, `RF-08`, `RF-11` a `RF-14`, `RF-16` |
+| [ADR-0007](0007-atomic-publication-versioning-recipients.md) | Publicación atómica, versionado y destinatarios efectivos | Aceptado | `RF-08` a `RF-10`, `RF-14` a `RF-16`, `RF-20` |
 
 ## Backlog inicial de Fase 2
 
@@ -47,7 +48,6 @@ Estos ADRs candidatos deben confirmarse, dividirse o descartarse durante el dise
 
 | Candidato | Decisión pendiente | Requisitos relacionados | Tratamiento |
 | --- | --- | --- | --- |
-| ADR-0007 | Publicación atómica, versionado y destinatarios efectivos | `RF-08`, `RF-09`, `RF-10`, `RF-14`, `RF-15` | Resolver antes de cerrar publicación. |
 | ADR-0008 | Republicación y envío de correo a destinatarios afectados | `RF-15`, `RF-20` | Resolver antes de cerrar notificaciones. |
 | ADR-0009 | Modelo de seguimiento, historial y revisión por entrenadores | `RF-17`, `RF-18`, `RF-19` | Resolver antes de cerrar seguimiento. |
 | ADR-0010 | Estrategia mínima de privacidad, retención y derechos antes de producción | Requisito no funcional de datos; `RF-17`, `RF-18`, `RF-19` | Resolver antes de salida a producción; no bloquea el arranque de Fase 2 salvo que cambie alcance o datos. |

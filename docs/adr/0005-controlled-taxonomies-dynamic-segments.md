@@ -10,7 +10,7 @@ El PMV clasifica corredores mediante etiquetas controladas y usa esas etiquetas 
 
 `ADR-0002` sitúa administración y taxonomías y segmentación en módulos explícitos de una única aplicación. `ADR-0004` establece que el administrador gestiona definiciones y valores permitidos, mientras que administrador y entrenador gestionan corredores, asignaciones de etiquetas, segmentos y excepciones manuales.
 
-La publicación debe conservar los destinatarios efectivos aunque después cambien etiquetas, segmentos o asignaciones. Este ADR decide la semántica dinámica del segmento. `ADR-0006` usa los resultados de varios segmentos para formar grupos de planificación exclusivos y `ADR-0007` decidirá cuándo y cómo se captura la instantánea de destinatarios.
+La publicación debe conservar los destinatarios efectivos aunque después cambien etiquetas, segmentos o asignaciones. Este ADR decide la semántica dinámica del segmento. `ADR-0006` usa los resultados de varios segmentos para formar grupos de planificación exclusivos y `ADR-0007` captura la instantánea de destinatarios en la primera publicación del plan.
 
 ## Decisión
 
@@ -54,7 +54,7 @@ Una inclusión o exclusión podrá registrarse aunque en ese momento no cambie e
 
 La evaluación será dinámica al consultar el segmento y al calcular los miembros efectivos de los grupos de planificación de `ADR-0006`. No se mantendrá una lista persistente de miembros como fuente de verdad del segmento. Una implementación podrá usar índices o caché derivada, pero deberá invalidarla ante cambios de definiciones, valores, asignaciones, criterios o excepciones y producir el mismo resultado que la regla canónica.
 
-Los cambios posteriores a una publicación nunca modificarán sus destinatarios históricos. `ADR-0007` deberá capturar el resultado efectivo usado al publicar como una instantánea inmutable.
+Los cambios posteriores a una publicación nunca modificarán sus destinatarios históricos. `ADR-0007` captura el resultado efectivo de la primera publicación como una instantánea inmutable que se conserva en todas las versiones del plan.
 
 ## Alternativas consideradas
 
@@ -119,5 +119,4 @@ Se descarta porque produciría resultados obsoletos tras cambiar etiquetas o exc
 
 ## Decisiones pendientes
 
-- **Bloqueante para implementar publicación:** `ADR-0007` debe definir la transacción que captura los miembros efectivos del grupo de planificación como destinatarios inmutables. Responsable: revisor de arquitectura. Tratamiento: aceptar antes de implementar publicación; no bloquea este ADR.
 - **Pendiente, sin bloquear este ADR:** elegir estrategia concreta de índices y caché al seleccionar persistencia. Responsable: revisor de arquitectura. Tratamiento: documentarla con el stack y demostrar equivalencia con la evaluación canónica.
