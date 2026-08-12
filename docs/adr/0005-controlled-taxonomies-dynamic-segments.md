@@ -1,6 +1,6 @@
 # ADR-0005: Taxonomías controladas y segmentos dinámicos
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-12
 **Responsable de revisión:** Revisor de arquitectura
 
@@ -119,7 +119,5 @@ Se descarta porque produciría resultados obsoletos tras cambiar etiquetas o exc
 
 ## Decisiones pendientes
 
-- **Bloqueante para aceptar este ADR:** confirmar que cada corredor tendrá como máximo un valor por definición de etiqueta. Responsable: revisor de producto. Tratamiento: validar la clasificación operativa antes de aceptar; si se requieren valores múltiples, revisar modelo, criterios y modalidad.
-- **Bloqueante para aceptar este ADR:** confirmar que modalidad será una definición protegida con valores estables `en-linea` y `presencial`. Responsable: revisor de producto. Tratamiento: validar que el administrador puede adaptar nombres visibles pero no retirar esos conceptos del PMV.
-- **Bloqueante para implementar publicación:** `ADR-0007` debe definir la transacción que captura el resultado efectivo como destinatarios inmutables. Responsable: revisor de arquitectura. Tratamiento: aceptar antes de implementar publicación; no bloquea aceptar este ADR.
+- **Bloqueante para implementar publicación:** `ADR-0007` debe definir la transacción que captura el resultado efectivo como destinatarios inmutables. Responsable: revisor de arquitectura. Tratamiento: aceptar antes de implementar publicación; no bloquea este ADR.
 - **Pendiente, sin bloquear este ADR:** elegir estrategia concreta de índices y caché al seleccionar persistencia. Responsable: revisor de arquitectura. Tratamiento: documentarla con el stack y demostrar equivalencia con la evaluación canónica.
