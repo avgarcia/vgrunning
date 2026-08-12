@@ -114,11 +114,11 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 
 | Decisión | Tratamiento en este diseño | ADR relacionado o candidato |
 | --- | --- | --- |
-| `D-01` | Taxonomías, segmentos, excepciones, versión y destinatarios efectivos. | `ADR-0005`, `ADR-0007` |
-| `D-02` | Modalidad dentro de la taxonomía controlada. | `ADR-0005` |
+| `D-01` | Taxonomías, segmentos, excepciones, versión y destinatarios efectivos. | `ADR-0005` (Aceptado), `ADR-0007` |
+| `D-02` | Modalidad dentro de la taxonomía controlada. | `ADR-0005` (Aceptado) |
 | `D-03` | Límite de un único club en todos los componentes lógicos, materializado como una aplicación única modular. | `ADR-0002` (Aceptado) |
 | `D-04` | Ubicación libre por entrenamiento presencial. | `ADR-0006` |
-| `D-05` | Gramática limitada de reglas de segmentos. | `ADR-0005` |
+| `D-05` | Gramática limitada de reglas de segmentos. | `ADR-0005` (Aceptado) |
 | `D-06` | Republicación atómica, versiones, afectados y correo. | `ADR-0007`, `ADR-0008` |
 | `D-07` | Seguimiento estructurado, historial y revisión. | `ADR-0009` |
 | `D-08` | Permisos globales de entrenador y aislamiento del corredor. | `ADR-0004` (Aceptado) |
@@ -129,7 +129,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | --- | --- | --- | --- | --- |
 | `ADR-0003`: identidad, autenticación e invitación | Seguridad de acceso y flujo de activación. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con línea base de seguridad de acceso. |
 | `ADR-0004`: autorización y aislamiento | Permisos, consultas y datos visibles. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con jerarquía explícita e inmutabilidad del rol. |
-| `ADR-0005`: taxonomías y segmentación | Modelo de datos y semántica de destinatarios. | Implementar administración o segmentación. | Revisor de arquitectura | Proponer antes de cerrar segmentación. |
+| `ADR-0005`: taxonomías y segmentación | Modelo de datos y semántica de destinatarios. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con un único valor por definición y corredor, modalidad protegida y segmentos dinámicos. |
 | `ADR-0006`: plan y entrenamiento | Modelo de planificación, objetivos y ubicación. | Implementar planes o entrenamientos. | Revisor de arquitectura | Proponer antes de cerrar planificación semanal. |
 | `ADR-0007`: publicación, versiones y destinatarios | Consistencia, historial y cambios publicados. | Implementar publicación o republicación. | Revisor de arquitectura | Proponer antes de cerrar publicación. |
 | `ADR-0008`: correo a afectados | Entrega, idempotencia y tratamiento de fallo. | Implementar correo de publicación. | Revisor de arquitectura | Proponer antes de cerrar notificaciones. |
