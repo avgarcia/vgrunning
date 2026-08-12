@@ -29,7 +29,7 @@ No se introducirán entidades, campos, APIs ni permisos de organización o tenan
 
 ### Alternativa A: Microservicios por componente lógico
 
-Se descarta para el PMV. El volumen y concurrencia previstos no justifican la complejidad de despliegues, observabilidad, comunicaciones distribuidas y consistencia entre servicios. Además, haría más difícil garantizar una publicación atómica antes de resolver `ADR-0007`.
+Se descarta para el PMV. El volumen y concurrencia previstos no justifican la complejidad de despliegues, observabilidad, comunicaciones distribuidas y consistencia entre servicios. Además, haría más difícil garantizar la publicación atómica definida en `ADR-0007`.
 
 ### Alternativa B: Arquitectura multiclub desde el inicio
 
@@ -86,6 +86,5 @@ Se descarta porque mezclaría permisos, segmentación, publicación y seguimient
 
 ## Decisiones pendientes
 
-- **Bloqueante para implementar publicación:** `ADR-0007` debe decidir transacción, versionado y destinatarios efectivos. Responsable: revisor de arquitectura. Tratamiento: proponerlo antes de cerrar publicación.
 - **Bloqueante para implementar correo:** `ADR-0008` debe decidir entrega, reintentos e idempotencia. Responsable: revisor de arquitectura. Tratamiento: proponerlo antes de cerrar notificaciones.
 - **Pendiente, sin bloquear este ADR:** seleccionar framework, persistencia y plataforma de despliegue. Responsable: revisor de arquitectura. Tratamiento: registrar decisiones específicas antes de implementar los componentes que dependan de ellas.

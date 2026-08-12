@@ -21,7 +21,7 @@ No selecciona framework, base de datos, proveedor de identidad, proveedor de cor
 ## Principios de diseño
 
 - Mantener una única fuente de verdad para planes, publicaciones y seguimiento. El correo solo notifica disponibilidad o cambios.
-- Resolver el destinatario efectivo en cada publicación y conservarlo con su versión. Los cambios posteriores de etiquetas, segmentos, grupos o pertenencias no alteran una publicación histórica.
+- Resolver destinatarios en la primera publicación del plan y conservarlos en todas sus versiones. Los cambios posteriores de etiquetas, segmentos, grupos o pertenencias solo afectan a planes todavía no publicados.
 - Resolver conflictos de pertenencia al mantener grupos de planificación, no al crear cada plan semanal.
 - Separar el borrador de un plan de cada versión publicada. Una republicación no es una edición silenciosa.
 - Aplicar autorización en cada operación y no solo en la interfaz. El aislamiento de cada corredor es una regla de datos y de acceso.
@@ -63,7 +63,7 @@ Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como
 
 1. Una publicación válida hace visible el plan completo a todos los destinatarios efectivos en una única operación lógica.
 2. La publicación conserva una versión y su conjunto de destinatarios.
-3. Un cambio relevante sobre contenido publicado crea una nueva publicación del plan completo; la definición de "cambio relevante" queda pendiente de `ADR-0007`.
+3. Cualquier cambio en contenido visible crea una nueva publicación del plan completo para los mismos destinatarios; cambios internos o de auditoría no obligan a republicar.
 4. La publicación o republicación solicita el correo para los destinatarios efectivos afectados. La entrega, reintentos e idempotencia quedan pendientes de `ADR-0008`.
 
 ### Consulta, seguimiento y revisión
@@ -101,30 +101,30 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `RF-05` | Segmentación | Semántica limitada a Y, varios valores por etiqueta y sin expresiones libres. | `D-05` | `ADR-0005` | Criterios de `RF-05`; pruebas de reglas aceptadas y rechazadas. | Pendiente |
 | `RF-06` | Segmentación | Excepciones manuales se aplican sobre el resultado dinámico antes de resolver destinatarios. | `D-01`, `D-05` | `ADR-0005` | Criterios de `RF-06`; pruebas de inclusión y exclusión. | Pendiente |
 | `RF-07` | Planificación | Cada grupo tiene como máximo un plan por semana; el plan admite como máximo un entrenamiento por día de lunes a domingo. | — | `ADR-0006` (Aceptado) | Criterios de `RF-07`; pruebas de ciclo de vida, unicidad grupo-semana y unicidad diaria. | Pendiente |
-| `RF-08` | Segmentación y Planificación | Un grupo combina segmentos e inclusiones o exclusiones persistentes; un corredor pertenece como máximo a un grupo y el plan hereda sus miembros. | `D-01` | `ADR-0005` (Aceptado), `ADR-0006` (Aceptado), `ADR-0007` | Criterios de `RF-08`; pruebas de fórmula del grupo, referencias, exclusividad y captura al publicar. | Pendiente |
-| `RF-09` | Publicación y notificación | Validar todo el plan antes de hacerlo visible en una única operación lógica. | `D-01`, `D-06` | `ADR-0007` | Criterios de `RF-09`; pruebas de fallo sin visibilidad parcial. | Pendiente |
-| `RF-10` | Publicación y notificación | Cada publicación conserva versión y destinatarios efectivos inmutables. | `D-01`, `D-06` | `ADR-0007` | Criterios de `RF-10`; pruebas ante cambios posteriores de etiquetas. | Pendiente |
+| `RF-08` | Segmentación y Planificación | Un grupo combina segmentos e inclusiones o exclusiones persistentes; la primera publicación congela sus miembros para todas las versiones del plan. | `D-01` | `ADR-0005` (Aceptado), `ADR-0006` (Aceptado), `ADR-0007` (Aceptado) | Criterios de `RF-08`; pruebas de fórmula del grupo, referencias, exclusividad y captura al publicar. | Pendiente |
+| `RF-09` | Publicación y notificación | Validar, versionar y activar plan y destinatarios dentro de una única transacción. | `D-01`, `D-06` | `ADR-0007` (Aceptado) | Criterios de `RF-09`; pruebas de fallo sin visibilidad parcial. | Pendiente |
+| `RF-10` | Publicación y notificación | Cada publicación conserva contenido inmutable y el conjunto de destinatarios congelado en la primera versión. | `D-01`, `D-06` | `ADR-0007` (Aceptado) | Criterios de `RF-10`; pruebas ante cambios posteriores del borrador o grupo. | Pendiente |
 | `RF-11` | Planificación | El tipo de la parte principal usa el catálogo cerrado; calentamiento y enfriamiento son siempre `rodaje`. | — | `ADR-0006` (Aceptado) | Criterios de `RF-11`; pruebas de catálogo y fases fijas. | Pendiente |
 | `RF-12` | Planificación | Los bloques principales tienen repeticiones, duración o distancia, objetivo y recuperación estructurada; calentamiento y enfriamiento solo tienen duración. | — | `ADR-0006` (Aceptado) | Criterios de `RF-12`; pruebas de bloques, objetivos y modalidades de recuperación. | Pendiente |
 | `RF-13` | Planificación y Consulta del corredor | Ubicación libre se conserva y se muestra para entrenamiento presencial cuando exista. | `D-04` | `ADR-0006` (Aceptado) | Criterios de `RF-13`; pruebas de captura y consulta. | Pendiente |
-| `RF-14` | Planificación y Publicación | Estados visibles: borrador y publicado; las versiones no crean un tercer estado de plan. | `D-06` | `ADR-0006` (Aceptado), `ADR-0007` | Criterios de `RF-14`; pruebas de transiciones permitidas. | Pendiente |
-| `RF-15` | Publicación y notificación | Republicación completa con destinatarios afectados y correo. | `D-06` | `ADR-0007`, `ADR-0008` | Criterios de `RF-15`; pruebas de versión, afectados y notificación. | Pendiente |
+| `RF-14` | Planificación y Publicación | Estados visibles: borrador y publicado; editar el borrador no altera la versión activa ni crea un tercer estado. | `D-06` | `ADR-0006` (Aceptado), `ADR-0007` (Aceptado) | Criterios de `RF-14`; pruebas de transiciones y cambios pendientes. | Pendiente |
+| `RF-15` | Publicación y notificación | Todo cambio visible exige una republicación completa para los destinatarios congelados del plan. | `D-06` | `ADR-0007` (Aceptado), `ADR-0008` | Criterios de `RF-15`; pruebas de versión, cambios relevantes y notificación. | Pendiente |
 | `RF-16` | Consulta del corredor; Identidad y acceso | Vista móvil del único plan semanal propio, sus fases, bloques y ubicación, sin exponer datos ajenos. | `D-04`, `D-08` | `ADR-0002`, `ADR-0004`, `ADR-0006` (Aceptado) | Criterios de `RF-16`; pruebas adaptables, de estructura y aislamiento. | Pendiente |
 | `RF-17` | Seguimiento y revisión | Registro estructurado vinculado a un entrenamiento publicado. | `D-07` | `ADR-0009` | Criterios de `RF-17`; pruebas de valores permitidos y pertenencia. | Pendiente |
 | `RF-18` | Consulta del corredor y Seguimiento | Historial propio de entrenamientos y seguimiento con aislamiento por corredor. | `D-07`, `D-08` | `ADR-0004`, `ADR-0009` | Criterios de `RF-18`; pruebas de historial y acceso indebido. | Pendiente |
 | `RF-19` | Seguimiento y revisión | Entrenador consulta global por corredor, plan o entrenamiento. | `D-07`, `D-08` | `ADR-0004`, `ADR-0009` | Criterios de `RF-19`; pruebas de filtros y permisos. | Pendiente |
-| `RF-20` | Publicación y notificación | Solo publicar o republicar genera correo con semana, resumen y enlace. | `D-06` | `ADR-0007`, `ADR-0008` | Criterios de `RF-20`; pruebas de contenido, destinatario y no emisión. | Pendiente |
+| `RF-20` | Publicación y notificación | Solo una publicación o republicación confirmada genera solicitud de correo con semana, resumen y enlace. | `D-06` | `ADR-0007` (Aceptado), `ADR-0008` | Criterios de `RF-20`; pruebas de contenido, destinatario y no emisión. | Pendiente |
 
 ## Trazabilidad de decisiones de Fase 1
 
 | Decisión | Tratamiento en este diseño | ADR relacionado o candidato |
 | --- | --- | --- |
-| `D-01` | Taxonomías, segmentos solapables, grupos exclusivos, excepciones, versión y destinatarios efectivos. | `ADR-0005` (Aceptado), `ADR-0006` (Aceptado), `ADR-0007` |
+| `D-01` | Taxonomías, segmentos solapables, grupos exclusivos, excepciones e instantáneas de versión y destinatarios efectivos. | `ADR-0005` (Aceptado), `ADR-0006` (Aceptado), `ADR-0007` (Aceptado) |
 | `D-02` | Modalidad dentro de la taxonomía controlada. | `ADR-0005` (Aceptado) |
 | `D-03` | Límite de un único club en todos los componentes lógicos, materializado como una aplicación única modular. | `ADR-0002` (Aceptado) |
 | `D-04` | Ubicación libre por entrenamiento presencial. | `ADR-0006` (Aceptado) |
 | `D-05` | Gramática limitada de reglas de segmentos. | `ADR-0005` (Aceptado) |
-| `D-06` | Republicación atómica, versiones, afectados y correo. | `ADR-0007`, `ADR-0008` |
+| `D-06` | Republicación atómica, versiones completas, destinatarios congelados y correo. | `ADR-0007` (Aceptado), `ADR-0008` |
 | `D-07` | Seguimiento estructurado, historial y revisión. | `ADR-0009` |
 | `D-08` | Permisos globales de entrenador y aislamiento del corredor. | `ADR-0004` (Aceptado) |
 
@@ -136,7 +136,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `ADR-0004`: autorización y aislamiento | Permisos, consultas y datos visibles. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con jerarquía explícita e inmutabilidad del rol. |
 | `ADR-0005`: taxonomías y segmentación | Modelo de datos y semántica de segmentos. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con un único valor por definición y corredor, modalidad protegida y segmentos dinámicos solapables. |
 | `ADR-0006`: grupos, planes y entrenamientos | Grupos exclusivos, modelo semanal, fases, bloques, objetivos y ubicación. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con grupos estables, un plan por grupo-semana, un entrenamiento por día y estructura obligatoria de tres fases. |
-| `ADR-0007`: publicación, versiones y destinatarios | Consistencia, historial, captura de miembros del grupo y garantía de un plan por corredor y semana. | Implementar publicación o republicación. | Revisor de arquitectura | Proponer antes de cerrar publicación, incluida la garantía ante cambios de grupo posteriores a una publicación. |
+| `ADR-0007`: publicación, versiones y destinatarios | Consistencia, historial, captura de contenido y miembros del grupo y garantía de un plan por corredor y semana. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con visibilidad inmediata, grupo no vacío, contenido completo inmutable y destinatarios congelados desde la primera publicación. |
 | `ADR-0008`: correo a afectados | Entrega, idempotencia y tratamiento de fallo. | Implementar correo de publicación. | Revisor de arquitectura | Proponer antes de cerrar notificaciones. |
 | `ADR-0009`: seguimiento e historial | Actualización de registros, consulta y retención operativa. | Implementar seguimiento o revisión. | Revisor de arquitectura | Proponer antes de cerrar seguimiento. |
 | `ADR-0010`: privacidad, retención y derechos | Datos personales y seguimiento declarado. | Salida a producción; no el diseño funcional actual salvo cambio de alcance. | Responsable de privacidad o DPO | Resolver antes de producción. |
@@ -148,8 +148,8 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 - Un control de acceso solo de interfaz expondría datos de corredores. Mitigación: `ADR-0004` debe definir reglas de autorización aplicadas en las operaciones de datos.
 - Convertir reglas de segmentos en un lenguaje genérico ampliaría el alcance. Mitigación: conservar la gramática de `D-05` y rechazar expresiones libres.
 - Un cambio de etiquetas, segmentos o excepciones podría situar a un corredor en dos grupos. Mitigación: validar todos los grupos afectados y rechazar la operación completa mostrando los conflictos.
-- Un cambio de grupo posterior a una publicación podría intentar asignar un segundo plan de la misma semana. Mitigación: `ADR-0007` debe imponer la unicidad transaccional contra publicaciones vigentes e históricas aplicables.
-- Definir tarde la semántica de republicación puede producir correos duplicados o cambios silenciosos. Mitigación: resolver `ADR-0007` y `ADR-0008` antes de implementar publicación.
+- Un cambio de grupo posterior a una publicación podría intentar incluir al corredor en otro plan de la misma semana. Mitigación: los planes ya publicados conservan destinatarios y la primera publicación de otro plan comprueba unicidad transaccional por corredor y semana.
+- Implementar parcialmente la semántica de republicación puede producir correos duplicados o cambios silenciosos. Mitigación: aplicar `ADR-0007` y resolver `ADR-0008` antes de implementar notificaciones.
 - Extender seguimiento a salud, lesiones o datos equivalentes cambiaría privacidad y alcance. Mitigación: mantener los campos de `RF-17` y escalar cualquier ampliación a `ADR-0010` y revisión de privacidad.
 
 ## Criterios para avanzar

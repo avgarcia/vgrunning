@@ -12,7 +12,7 @@ Fase 1 define el plan semanal como agrupación de entrenamientos fechados, con e
 
 `ADR-0002` sitúa planificación como módulo de una aplicación única. `ADR-0004` permite a administrador y entrenador gestionar grupos, planes y entrenamientos, y restringe al corredor a la lectura de publicaciones propias. `ADR-0005` decide la evaluación de segmentos dinámicos, permite que sus resultados se solapen y mantiene la modalidad del corredor como etiqueta controlada, pero no convierte la ubicación del entrenamiento en taxonomía.
 
-Este ADR decide el modelo editable de planificación antes de publicar. Refina `RF-08`: la asignación por segmentos y corredores se configura una vez en el grupo, en lugar de repetirse en cada plan, pero conserva el mismo resultado observable. `ADR-0007` decidirá la transacción de publicación, versionado, destinatarios efectivos, definición de cambio relevante y relación entre borrador y versiones publicadas.
+Este ADR decide el modelo editable de planificación antes de publicar. Refina `RF-08`: la asignación por segmentos y corredores se configura una vez en el grupo, en lugar de repetirse en cada plan, pero conserva el mismo resultado observable. `ADR-0007` define la transacción de publicación, el versionado, los destinatarios efectivos, los cambios relevantes y la relación entre borrador y versiones publicadas.
 
 ## Decisión
 
@@ -41,9 +41,9 @@ Un plan semanal tendrá un identificador estable, un nombre obligatorio, un úni
 
 El PMV permitirá crear varios planes para una misma semana, pero cada grupo tendrá como máximo uno. El nombre será único dentro de la semana después de eliminar espacios exteriores y comparar sin distinguir mayúsculas de minúsculas. Se rechazará un segundo plan para la misma pareja grupo-semana y un nombre normalizado duplicado en la misma semana; el nombre podrá reutilizarse en semanas diferentes.
 
-Los planes no se asignarán directamente a segmentos ni corredores. Sus destinatarios candidatos serán los miembros efectivos del grupo en el momento de publicar. El corredor podrá quedarse sin plan si no pertenece a un grupo o si su grupo no tiene plan esa semana. `ADR-0007` impedirá además que cambios de pertenencia posteriores permitan publicar para un corredor un segundo plan de la misma semana y conservará la instantánea histórica de destinatarios.
+Los planes no se asignarán directamente a segmentos ni corredores. Sus destinatarios candidatos serán los miembros efectivos del grupo en la primera publicación. El corredor podrá quedarse sin plan si no pertenece a un grupo o si su grupo no tiene plan esa semana. `ADR-0007` impide que cambios de pertenencia posteriores permitan publicar para un corredor un segundo plan de la misma semana y conserva esos destinatarios en todas las versiones del plan.
 
-Un plan en `borrador` podrá modificarse por administrador o entrenador. Un plan en `publicado` conservará ese estado tras la primera publicación válida. La forma exacta de modificar contenido ya publicado, crear una nueva versión y calcular destinatarios afectados pertenece a `ADR-0007`; este ADR no permite ediciones silenciosas sobre contenido visible para corredores.
+Un plan en `borrador` podrá modificarse por administrador o entrenador. Un plan en `publicado` conservará ese estado tras la primera publicación válida. `ADR-0007` exige republicar los cambios visibles como una versión completa para los destinatarios congelados; este ADR no permite ediciones silenciosas sobre contenido visible para corredores.
 
 Un plan semanal válido tendrá al menos un entrenamiento para poder publicarse. Podrá existir temporalmente como borrador sin entrenamientos para permitir creación incremental, pero no será publicable en ese estado.
 
@@ -135,7 +135,7 @@ Se descarta para el PMV porque no existe un caso operativo que justifique cambia
 - Calentamiento y enfriamiento quedan deliberadamente simplificados a rodaje por duración, sin objetivo estructurado.
 - Recuperaciones estructuradas permiten distinguir pausa, marcha y rodaje, aunque aumentan las validaciones del editor de entrenamientos.
 - La ubicación libre evita administrar sedes, pero no permite búsquedas o estadísticas por lugar sin una evolución posterior.
-- El cálculo histórico de miembros del grupo y la garantía frente a cambios posteriores siguen dependiendo de `ADR-0007`.
+- La primera publicación congela los miembros efectivos del grupo y `ADR-0007` garantiza su conservación frente a cambios posteriores.
 
 ## Requisitos relacionados
 
@@ -175,9 +175,8 @@ Se descarta para el PMV porque no existe un caso operativo que justifique cambia
 - Probar que la aclaración no sustituye ninguna estructura obligatoria.
 - Probar que el lugar de encuentro conserva texto libre, puede estar ausente y no se reemplaza por valores ficticios.
 - Probar que el corredor no accede a borradores ni a entrenamientos de otros corredores, según `ADR-0004`.
-- Probar que `ADR-0007` captura los miembros efectivos del grupo y evita un segundo plan para el mismo corredor y semana tras cambios posteriores de pertenencia.
+- Probar que `ADR-0007` captura los miembros efectivos en la primera publicación, los conserva al republicar y evita un segundo plan para el mismo corredor y semana tras cambios posteriores de pertenencia.
 
 ## Decisiones pendientes
 
-- **Bloqueante para implementar publicación:** `ADR-0007` debe definir publicación, versionado, edición de planes publicados, captura de miembros efectivos del grupo y garantía transaccional de un único plan publicado por corredor y semana aunque cambie después de grupo. Responsable: revisor de arquitectura. Tratamiento: aceptar antes de implementar publicación o republicación.
 - **Pendiente, sin bloquear este ADR:** elegir persistencia, índices y restricciones físicas. Responsable: revisor de arquitectura. Tratamiento: documentarlo al seleccionar stack y conservar las reglas canónicas de este ADR.
