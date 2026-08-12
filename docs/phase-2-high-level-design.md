@@ -1,7 +1,7 @@
 # Diseño funcional y técnico de alto nivel — Fase 2
 
 **Estado:** Propuesto
-**Fecha:** 2026-08-11
+**Fecha:** 2026-08-12
 
 ## Propósito
 
@@ -15,12 +15,14 @@ No selecciona framework, base de datos, proveedor de identidad, proveedor de cor
 - Roles operativos: administrador, entrenador y corredor. El corredor solo accede a sus propios datos; administrador y entrenador acceden a todos los datos operativos del PMV.
 - La modalidad se expresa mediante una etiqueta controlada. El lugar de encuentro es texto libre por entrenamiento presencial y no se limita a El Retiro.
 - Las reglas de segmentos se limitan a condiciones de etiquetas con operador Y, varios valores por etiqueta e inclusiones o exclusiones manuales.
+- Los segmentos pueden solaparse. Los grupos de planificación combinan segmentos y excepciones persistentes, y un corredor pertenece como máximo a uno.
 - No forman parte del PMV multiclub, aplicaciones nativas, mensajería, integraciones deportivas, reservas, pagos ni datos de salud especiales.
 
 ## Principios de diseño
 
 - Mantener una única fuente de verdad para planes, publicaciones y seguimiento. El correo solo notifica disponibilidad o cambios.
-- Resolver el destinatario efectivo en cada publicación y conservarlo con su versión. Los cambios posteriores de etiquetas, segmentos o asignaciones no alteran una publicación histórica.
+- Resolver el destinatario efectivo en cada publicación y conservarlo con su versión. Los cambios posteriores de etiquetas, segmentos, grupos o pertenencias no alteran una publicación histórica.
+- Resolver conflictos de pertenencia al mantener grupos de planificación, no al crear cada plan semanal.
 - Separar el borrador de un plan de cada versión publicada. Una republicación no es una edición silenciosa.
 - Aplicar autorización en cada operación y no solo en la interfaz. El aislamiento de cada corredor es una regla de datos y de acceso.
 - Representar el seguimiento con valores estructurados y comentario opcional; no ampliar el ámbito a datos de salud especiales.
@@ -31,9 +33,9 @@ No selecciona framework, base de datos, proveedor de identidad, proveedor de cor
 | --- | --- | --- | --- |
 | Identidad y acceso | Invitación, activación, inicio, restablecimiento y autorización por rol. | `RF-01`, `RF-02`, `RF-16`, `RF-18`, `RF-19` | Usuario, rol, estado de activación y credenciales. |
 | Administración y taxonomías | Gestión de usuarios, definiciones de etiquetas y valores permitidos. | `RF-02`, `RF-03`, `RF-04` | Corredor, etiqueta, valor permitido y asignación de etiqueta. |
-| Segmentación | Reglas dinámicas y excepciones manuales para formar destinatarios. | `RF-03`, `RF-05`, `RF-06`, `RF-08` | Segmento, criterio de etiqueta, inclusión manual y exclusión manual. |
-| Planificación | Creación del plan semanal, sus entrenamientos, catálogo, objetivos y lugar de encuentro. | `RF-04`, `RF-07`, `RF-11`, `RF-12`, `RF-13`, `RF-14` | Plan semanal, entrenamiento, tipo de entrenamiento, objetivo y ubicación. |
-| Publicación y notificación | Resolución de destinatarios, publicación y republicación atómicas, versiones y solicitud de correo. | `RF-08`, `RF-09`, `RF-10`, `RF-14`, `RF-15`, `RF-20` | Asignación, publicación, versión publicada, destinatario efectivo y notificación. |
+| Segmentación | Reglas dinámicas y excepciones manuales que producen clasificaciones reutilizables y solapables. | `RF-03`, `RF-05`, `RF-06`, `RF-08` | Segmento, criterio de etiqueta, inclusión manual y exclusión manual. |
+| Planificación | Gestión de grupos exclusivos, planes semanales, fases, bloques, catálogo, objetivos y lugar de encuentro. | `RF-04`, `RF-07`, `RF-08`, `RF-11`, `RF-12`, `RF-13`, `RF-14` | Grupo de planificación, excepción de grupo, plan semanal, entrenamiento, fase, bloque, tipo, objetivo y ubicación. |
+| Publicación y notificación | Captura de miembros del grupo, publicación y republicación atómicas, versiones y solicitud de correo. | `RF-08`, `RF-09`, `RF-10`, `RF-14`, `RF-15`, `RF-20` | Publicación, versión publicada, destinatario efectivo y notificación. |
 | Consulta del corredor | Consulta móvil de planes, entrenamientos, ubicación e historial propio. | `RF-16`, `RF-18` | Vista derivada de publicaciones y seguimiento del corredor autenticado. |
 | Seguimiento y revisión | Registro de ejecución y consulta por entrenador. | `RF-17`, `RF-18`, `RF-19` | Registro de seguimiento vinculado a entrenamiento y publicación. |
 
@@ -51,9 +53,11 @@ Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como
 ### Segmentación y planificación
 
 1. El entrenador configura un segmento mediante reglas permitidas y excepciones manuales.
-2. El entrenador crea un plan semanal en borrador con entrenamientos fechados, tipo, objetivo y ubicación cuando corresponda.
-3. El entrenador asigna el plan a segmentos y, excepcionalmente, a corredores individuales.
-4. Antes de publicar, el sistema valida el plan y resuelve el conjunto de destinatarios efectivos.
+2. El entrenador crea un grupo de planificación, le asocia uno o varios segmentos y aplica inclusiones o exclusiones persistentes cuando corresponda.
+3. El sistema rechaza cualquier cambio que sitúe a un corredor en dos grupos y muestra los corredores y grupos en conflicto.
+4. El entrenador crea como máximo un plan para la pareja grupo-semana y añade como máximo un entrenamiento por día.
+5. Cada entrenamiento declara calentamiento por duración, una parte principal con bloques ordenados y enfriamiento por duración, además de ubicación cuando corresponda.
+6. Antes de publicar, el sistema valida el plan y resuelve los miembros efectivos actuales del grupo.
 
 ### Publicación y republicación
 
@@ -75,9 +79,10 @@ Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como
 | --- | --- |
 | Usuario y corredor | Un usuario recibe un único rol inmutable al crear la cuenta. El corredor se asocia a sus etiquetas, publicaciones visibles e información de seguimiento. |
 | Etiqueta y valor permitido | Una etiqueta posee un conjunto cerrado de valores. La modalidad es una de estas etiquetas; no existe un sistema paralelo de modalidad. |
-| Segmento | Evalúa criterios sobre etiquetas y aplica inclusiones o exclusiones manuales. Su resultado es dinámico hasta que una publicación captura destinatarios efectivos. |
-| Plan semanal y entrenamiento | Un plan agrupa entrenamientos fechados y existe como borrador o publicado. Cada entrenamiento declara tipo, objetivos y, solo cuando aplique, lugar de encuentro libre. |
-| Asignación y publicación | Un borrador puede dirigirse a segmentos y corredores. Una publicación crea una versión y una instantánea de destinatarios efectivos. |
+| Segmento | Evalúa criterios sobre etiquetas y aplica inclusiones o exclusiones manuales. Su resultado es dinámico y puede solaparse con otros segmentos. |
+| Grupo de planificación | Combina por unión uno o varios segmentos, inclusiones y exclusiones persistentes. Un corredor puede quedar sin grupo, pero no pertenecer a dos grupos efectivos. |
+| Plan semanal y entrenamiento | Un grupo tiene como máximo un plan por semana. El plan agrupa como máximo un entrenamiento por día; cada entrenamiento contiene calentamiento, bloques principales y enfriamiento, además de lugar libre cuando aplique. |
+| Grupo y publicación | El plan no recibe asignaciones directas. Una publicación captura una versión y la instantánea de miembros efectivos del grupo, con un único plan por corredor y semana. |
 | Seguimiento | Un corredor registra un único estado estructurado por entrenamiento publicado, con actualización semántica pendiente de `ADR-0009`. |
 | Notificación | Se origina exclusivamente por publicación o republicación; referencia la versión, destinatario, contenido requerido y resultado de entrega cuando ese dato se incorpore. |
 
@@ -91,20 +96,20 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | --- | --- | --- | --- | --- | --- | --- |
 | `RF-01` | Acceso; Identidad y acceso | Invitación, activación, credencial y restablecimiento sin revelar cuentas existentes. | — | `ADR-0003` | Criterios de `RF-01`; pruebas de token, caducidad y enumeración de cuentas. | Pendiente |
 | `RF-02` | Administración; Identidad y acceso | Rol inicial inmutable y taxonomías cerradas administrados solo por administrador; modificar roles queda descartado en Fase 2. | `D-01`, `D-08` | `ADR-0003`, `ADR-0004`, `ADR-0005` | Criterios de `RF-02`, ajustados para probar asignación inicial y rechazo de cambios; pruebas de autorización. | Pendiente |
-| `RF-03` | Segmentación; Administración y taxonomías | Etiquetas controladas alimentan segmentos dinámicos. | `D-01`, `D-02` | `ADR-0005` | Criterios de `RF-03`; pruebas de evaluación dinámica. | Pendiente |
+| `RF-03` | Segmentación; Administración y taxonomías | Etiquetas controladas alimentan segmentos dinámicos y solapables. | `D-01`, `D-02` | `ADR-0005` | Criterios de `RF-03`; pruebas de evaluación dinámica y solapamiento permitido. | Pendiente |
 | `RF-04` | Planificación; Administración y taxonomías | Modalidad como etiqueta y ubicación libre solo cuando corresponda. | `D-02`, `D-04` | `ADR-0005`, `ADR-0006` (Aceptado) | Criterios de `RF-04`; pruebas de valores permitidos y ubicación. | Pendiente |
 | `RF-05` | Segmentación | Semántica limitada a Y, varios valores por etiqueta y sin expresiones libres. | `D-05` | `ADR-0005` | Criterios de `RF-05`; pruebas de reglas aceptadas y rechazadas. | Pendiente |
 | `RF-06` | Segmentación | Excepciones manuales se aplican sobre el resultado dinámico antes de resolver destinatarios. | `D-01`, `D-05` | `ADR-0005` | Criterios de `RF-06`; pruebas de inclusión y exclusión. | Pendiente |
-| `RF-07` | Planificación | El plan semanal agrupa entrenamientos fechados; una semana admite varios planes con nombre único y no se guarda un plan sin semana identificable. | — | `ADR-0006` (Aceptado) | Criterios de `RF-07`; pruebas de ciclo de vida del borrador y unicidad del nombre por semana. | Pendiente |
-| `RF-08` | Segmentación y Publicación | Asignaciones a segmentos y corredores producen un conjunto candidato de destinatarios. | `D-01` | `ADR-0006` (Aceptado), `ADR-0007` | Criterios de `RF-08`; pruebas de combinación de asignaciones. | Pendiente |
+| `RF-07` | Planificación | Cada grupo tiene como máximo un plan por semana; el plan admite como máximo un entrenamiento por día de lunes a domingo. | — | `ADR-0006` (Aceptado) | Criterios de `RF-07`; pruebas de ciclo de vida, unicidad grupo-semana y unicidad diaria. | Pendiente |
+| `RF-08` | Segmentación y Planificación | Un grupo combina segmentos e inclusiones o exclusiones persistentes; un corredor pertenece como máximo a un grupo y el plan hereda sus miembros. | `D-01` | `ADR-0005` (Aceptado), `ADR-0006` (Aceptado), `ADR-0007` | Criterios de `RF-08`; pruebas de fórmula del grupo, referencias, exclusividad y captura al publicar. | Pendiente |
 | `RF-09` | Publicación y notificación | Validar todo el plan antes de hacerlo visible en una única operación lógica. | `D-01`, `D-06` | `ADR-0007` | Criterios de `RF-09`; pruebas de fallo sin visibilidad parcial. | Pendiente |
 | `RF-10` | Publicación y notificación | Cada publicación conserva versión y destinatarios efectivos inmutables. | `D-01`, `D-06` | `ADR-0007` | Criterios de `RF-10`; pruebas ante cambios posteriores de etiquetas. | Pendiente |
-| `RF-11` | Planificación | Catálogo cerrado de seis tipos de entrenamiento del PMV. | — | `ADR-0006` (Aceptado) | Criterios de `RF-11`; pruebas de tipos permitidos. | Pendiente |
-| `RF-12` | Planificación | Objetivos por frecuencia cardiaca o ritmo relativo; ambas familias están disponibles para todos los tipos y admiten aclaración libre. | — | `ADR-0006` (Aceptado) | Criterios de `RF-12`; pruebas de ambas familias para todos los tipos. | Pendiente |
+| `RF-11` | Planificación | El tipo de la parte principal usa el catálogo cerrado; calentamiento y enfriamiento son siempre `rodaje`. | — | `ADR-0006` (Aceptado) | Criterios de `RF-11`; pruebas de catálogo y fases fijas. | Pendiente |
+| `RF-12` | Planificación | Los bloques principales tienen repeticiones, duración o distancia, objetivo y recuperación estructurada; calentamiento y enfriamiento solo tienen duración. | — | `ADR-0006` (Aceptado) | Criterios de `RF-12`; pruebas de bloques, objetivos y modalidades de recuperación. | Pendiente |
 | `RF-13` | Planificación y Consulta del corredor | Ubicación libre se conserva y se muestra para entrenamiento presencial cuando exista. | `D-04` | `ADR-0006` (Aceptado) | Criterios de `RF-13`; pruebas de captura y consulta. | Pendiente |
 | `RF-14` | Planificación y Publicación | Estados visibles: borrador y publicado; las versiones no crean un tercer estado de plan. | `D-06` | `ADR-0006` (Aceptado), `ADR-0007` | Criterios de `RF-14`; pruebas de transiciones permitidas. | Pendiente |
 | `RF-15` | Publicación y notificación | Republicación completa con destinatarios afectados y correo. | `D-06` | `ADR-0007`, `ADR-0008` | Criterios de `RF-15`; pruebas de versión, afectados y notificación. | Pendiente |
-| `RF-16` | Consulta del corredor; Identidad y acceso | Vista móvil de publicaciones propias sin exponer datos ajenos. | `D-04`, `D-08` | `ADR-0002`, `ADR-0004` | Criterios de `RF-16`; pruebas adaptables y de aislamiento. | Pendiente |
+| `RF-16` | Consulta del corredor; Identidad y acceso | Vista móvil del único plan semanal propio, sus fases, bloques y ubicación, sin exponer datos ajenos. | `D-04`, `D-08` | `ADR-0002`, `ADR-0004`, `ADR-0006` (Aceptado) | Criterios de `RF-16`; pruebas adaptables, de estructura y aislamiento. | Pendiente |
 | `RF-17` | Seguimiento y revisión | Registro estructurado vinculado a un entrenamiento publicado. | `D-07` | `ADR-0009` | Criterios de `RF-17`; pruebas de valores permitidos y pertenencia. | Pendiente |
 | `RF-18` | Consulta del corredor y Seguimiento | Historial propio de entrenamientos y seguimiento con aislamiento por corredor. | `D-07`, `D-08` | `ADR-0004`, `ADR-0009` | Criterios de `RF-18`; pruebas de historial y acceso indebido. | Pendiente |
 | `RF-19` | Seguimiento y revisión | Entrenador consulta global por corredor, plan o entrenamiento. | `D-07`, `D-08` | `ADR-0004`, `ADR-0009` | Criterios de `RF-19`; pruebas de filtros y permisos. | Pendiente |
@@ -114,7 +119,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 
 | Decisión | Tratamiento en este diseño | ADR relacionado o candidato |
 | --- | --- | --- |
-| `D-01` | Taxonomías, segmentos, excepciones, versión y destinatarios efectivos. | `ADR-0005` (Aceptado), `ADR-0007` |
+| `D-01` | Taxonomías, segmentos solapables, grupos exclusivos, excepciones, versión y destinatarios efectivos. | `ADR-0005` (Aceptado), `ADR-0006` (Aceptado), `ADR-0007` |
 | `D-02` | Modalidad dentro de la taxonomía controlada. | `ADR-0005` (Aceptado) |
 | `D-03` | Límite de un único club en todos los componentes lógicos, materializado como una aplicación única modular. | `ADR-0002` (Aceptado) |
 | `D-04` | Ubicación libre por entrenamiento presencial. | `ADR-0006` (Aceptado) |
@@ -129,9 +134,9 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | --- | --- | --- | --- | --- |
 | `ADR-0003`: identidad, autenticación e invitación | Seguridad de acceso y flujo de activación. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con línea base de seguridad de acceso. |
 | `ADR-0004`: autorización y aislamiento | Permisos, consultas y datos visibles. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con jerarquía explícita e inmutabilidad del rol. |
-| `ADR-0005`: taxonomías y segmentación | Modelo de datos y semántica de destinatarios. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con un único valor por definición y corredor, modalidad protegida y segmentos dinámicos. |
-| `ADR-0006`: plan y entrenamiento | Modelo de planificación, objetivos y ubicación. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado; permite varios planes por semana con nombre único, objetivos por zonas o ritmos relativos y ambas familias disponibles para todos los tipos. |
-| `ADR-0007`: publicación, versiones y destinatarios | Consistencia, historial, cambios publicados y solapamiento de destinatarios entre planes de la misma semana. | Implementar publicación o republicación. | Revisor de arquitectura | Proponer antes de cerrar publicación, incluida la regla para un corredor destinatario de varios planes semanales. |
+| `ADR-0005`: taxonomías y segmentación | Modelo de datos y semántica de segmentos. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con un único valor por definición y corredor, modalidad protegida y segmentos dinámicos solapables. |
+| `ADR-0006`: grupos, planes y entrenamientos | Grupos exclusivos, modelo semanal, fases, bloques, objetivos y ubicación. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con grupos estables, un plan por grupo-semana, un entrenamiento por día y estructura obligatoria de tres fases. |
+| `ADR-0007`: publicación, versiones y destinatarios | Consistencia, historial, captura de miembros del grupo y garantía de un plan por corredor y semana. | Implementar publicación o republicación. | Revisor de arquitectura | Proponer antes de cerrar publicación, incluida la garantía ante cambios de grupo posteriores a una publicación. |
 | `ADR-0008`: correo a afectados | Entrega, idempotencia y tratamiento de fallo. | Implementar correo de publicación. | Revisor de arquitectura | Proponer antes de cerrar notificaciones. |
 | `ADR-0009`: seguimiento e historial | Actualización de registros, consulta y retención operativa. | Implementar seguimiento o revisión. | Revisor de arquitectura | Proponer antes de cerrar seguimiento. |
 | `ADR-0010`: privacidad, retención y derechos | Datos personales y seguimiento declarado. | Salida a producción; no el diseño funcional actual salvo cambio de alcance. | Responsable de privacidad o DPO | Resolver antes de producción. |
@@ -142,6 +147,8 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 - Una publicación parcialmente visible o sin destinatarios congelados rompería la trazabilidad. Mitigación: tratar publicación, versión y destinatarios como una misma decisión en `ADR-0007`.
 - Un control de acceso solo de interfaz expondría datos de corredores. Mitigación: `ADR-0004` debe definir reglas de autorización aplicadas en las operaciones de datos.
 - Convertir reglas de segmentos en un lenguaje genérico ampliaría el alcance. Mitigación: conservar la gramática de `D-05` y rechazar expresiones libres.
+- Un cambio de etiquetas, segmentos o excepciones podría situar a un corredor en dos grupos. Mitigación: validar todos los grupos afectados y rechazar la operación completa mostrando los conflictos.
+- Un cambio de grupo posterior a una publicación podría intentar asignar un segundo plan de la misma semana. Mitigación: `ADR-0007` debe imponer la unicidad transaccional contra publicaciones vigentes e históricas aplicables.
 - Definir tarde la semántica de republicación puede producir correos duplicados o cambios silenciosos. Mitigación: resolver `ADR-0007` y `ADR-0008` antes de implementar publicación.
 - Extender seguimiento a salud, lesiones o datos equivalentes cambiaría privacidad y alcance. Mitigación: mantener los campos de `RF-17` y escalar cualquier ampliación a `ADR-0010` y revisión de privacidad.
 
