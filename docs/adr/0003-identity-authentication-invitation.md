@@ -73,6 +73,5 @@ Se descarta para la primera aplicación web. Complica revocación, tratamiento a
 
 ## Decisiones pendientes
 
-- **Bloqueante para habilitar funciones operativas autenticadas:** `ADR-0004` debe definir autorización por rol, comprobación de permisos y aislamiento del corredor. Responsable: revisor de arquitectura. Tratamiento: aceptarlo antes de exponer funciones que consuman datos operativos.
 - **Bloqueante para enviar correos de acceso:** `ADR-0011` debe decidir proveedor, entrega, reintentos y observabilidad del correo transaccional. Responsable: revisor de arquitectura. Tratamiento: proponerlo y aceptarlo antes de implementar invitación o recuperación por correo; no se reutiliza implícitamente `ADR-0008`, que cubre la semántica de correo de publicación.
 - **Pendiente, sin bloquear este ADR:** elegir framework, persistencia y plataforma de despliegue. Responsable: revisor de arquitectura. Tratamiento: mantener la decisión compatible con sesiones opacas, secretos verificables y cookies seguras.
