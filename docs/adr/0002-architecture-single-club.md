@@ -21,7 +21,7 @@ Los módulos del backend corresponden a los componentes lógicos del diseño de 
 
 Un módulo es una unidad lógica del backend que agrupa una capacidad de negocio, sus casos de uso, reglas y contratos de acceso a sus datos. Cada módulo expone interfaces explícitas para colaborar con otros módulos; ningún módulo debe depender directamente de los modelos internos o detalles de persistencia de otro. Los módulos se ejecutan y despliegan como una única aplicación y pueden participar en la misma transacción. Un módulo no exige microservicios, DDD ni arquitectura hexagonal; esas técnicas podrán adoptarse después si una decisión posterior las justifica.
 
-Un módulo no implica un servicio desplegable independiente. Los flujos centrales entre módulos se ejecutan dentro de la aplicación y no dependen de llamadas de red entre servicios. La frontera transaccional única no decide el tipo de almacenamiento ni sustituye las decisiones de consistencia de `ADR-0007` y entrega de correo de `ADR-0008`.
+Un módulo no implica un servicio desplegable independiente. Los flujos centrales entre módulos se ejecutan dentro de la aplicación y no dependen de llamadas de red entre servicios. La frontera transaccional única no decide el tipo de almacenamiento ni sustituye las decisiones de consistencia de `ADR-0007`, solicitud de notificación de `ADR-0008` y entrega de correo de `ADR-0011`.
 
 No se introducirán entidades, campos, APIs ni permisos de organización o tenant. Una futura evolución multiclub requerirá reemplazar este ADR y rediseñar explícitamente aislamiento, autorización, migración y operación.
 
@@ -86,5 +86,5 @@ Se descarta porque mezclaría permisos, segmentación, publicación y seguimient
 
 ## Decisiones pendientes
 
-- **Bloqueante para implementar correo:** `ADR-0008` debe decidir entrega, reintentos e idempotencia. Responsable: revisor de arquitectura. Tratamiento: proponerlo antes de cerrar notificaciones.
+- **Bloqueante para implementar correo:** `ADR-0011` debe decidir proveedor, entrega, reintentos automáticos y observabilidad. Responsable: revisor de arquitectura. Tratamiento: aceptarlo antes de implementar cualquier correo.
 - **Pendiente, sin bloquear este ADR:** seleccionar framework, persistencia y plataforma de despliegue. Responsable: revisor de arquitectura. Tratamiento: registrar decisiones específicas antes de implementar los componentes que dependan de ellas.
