@@ -63,6 +63,4 @@ Al cerrar Fase 2 se debe comprobar que:
 
 ## Decisiones pendientes
 
-- Formato final de los documentos de diseño de Fase 2. Responsable: Revisor de arquitectura. Tratamiento: resolver antes de cerrar el primer documento de diseño de Fase 2.
-- Nivel de granularidad definitivo de los ADRs candidatos. Responsable: Revisor de arquitectura. Tratamiento: ajustar durante el diseño de Fase 2 antes de aceptar cada ADR afectado.
 - Stack técnico, despliegue y estrategia de persistencia. Responsable: Revisor de arquitectura. Tratamiento: resolver en ADRs específicos antes de cerrar el diseño técnico general.

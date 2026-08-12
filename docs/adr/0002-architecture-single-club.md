@@ -86,8 +86,6 @@ Se descarta porque mezclaría permisos, segmentación, publicación y seguimient
 
 ## Decisiones pendientes
 
-- **Bloqueante para implementar acceso:** `ADR-0003` debe decidir identidad, autenticación, invitación y recuperación. Responsable: revisor de arquitectura. Tratamiento: proponerlo antes de cerrar el diseño de acceso.
-- **Bloqueante para implementar operaciones autenticadas:** `ADR-0004` debe decidir autorización por rol y aislamiento del corredor. Responsable: revisor de arquitectura. Tratamiento: proponerlo antes de cerrar el diseño de permisos.
 - **Bloqueante para implementar publicación:** `ADR-0007` debe decidir transacción, versionado y destinatarios efectivos. Responsable: revisor de arquitectura. Tratamiento: proponerlo antes de cerrar publicación.
 - **Bloqueante para implementar correo:** `ADR-0008` debe decidir entrega, reintentos e idempotencia. Responsable: revisor de arquitectura. Tratamiento: proponerlo antes de cerrar notificaciones.
 - **Pendiente, sin bloquear este ADR:** seleccionar framework, persistencia y plataforma de despliegue. Responsable: revisor de arquitectura. Tratamiento: registrar decisiones específicas antes de implementar los componentes que dependan de ellas.
