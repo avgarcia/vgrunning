@@ -1,7 +1,7 @@
 # Architecture Decision Records
 
 **Estado:** Vigente
-**Fecha:** 2026-08-10
+**Fecha:** 2026-08-12
 
 ## Propósito
 
@@ -39,6 +39,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0003](0003-identity-authentication-invitation.md) | Identidad, autenticación, invitación y recuperación de acceso | Aceptado | `RF-01`, `RF-02`, `RF-16`, `RF-18`, `RF-19` |
 | [ADR-0004](0004-role-authorization-runner-isolation.md) | Autorización por roles y aislamiento de datos del corredor | Aceptado | `RF-02`, `RF-03`, `RF-05` a `RF-09`, `RF-14`, `RF-16` a `RF-19` |
 | [ADR-0005](0005-controlled-taxonomies-dynamic-segments.md) | Taxonomías controladas y segmentos dinámicos | Aceptado | `RF-02` a `RF-06`, `RF-08`, `RF-09`, `RF-10` |
+| [ADR-0006](0006-weekly-plan-training-model.md) | Modelo de grupos de planificación, planes semanales y entrenamientos | Aceptado | `RF-04`, `RF-07`, `RF-08`, `RF-11` a `RF-14`, `RF-16` |
 
 ## Backlog inicial de Fase 2
 
@@ -46,7 +47,6 @@ Estos ADRs candidatos deben confirmarse, dividirse o descartarse durante el dise
 
 | Candidato | Decisión pendiente | Requisitos relacionados | Tratamiento |
 | --- | --- | --- | --- |
-| ADR-0006 | Modelo de plan semanal, entrenamientos, catálogo y objetivos | `RF-07`, `RF-11`, `RF-12`, `RF-13`, `RF-14`, `RF-16` | Resolver antes de cerrar planificación semanal. |
 | ADR-0007 | Publicación atómica, versionado y destinatarios efectivos | `RF-08`, `RF-09`, `RF-10`, `RF-14`, `RF-15` | Resolver antes de cerrar publicación. |
 | ADR-0008 | Republicación y envío de correo a destinatarios afectados | `RF-15`, `RF-20` | Resolver antes de cerrar notificaciones. |
 | ADR-0009 | Modelo de seguimiento, historial y revisión por entrenadores | `RF-17`, `RF-18`, `RF-19` | Resolver antes de cerrar seguimiento. |
