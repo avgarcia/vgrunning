@@ -43,6 +43,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0007](0007-atomic-publication-versioning-recipients.md) | Publicación atómica, versionado y destinatarios efectivos | Aceptado | `RF-08` a `RF-10`, `RF-14` a `RF-16`, `RF-20` |
 | [ADR-0008](0008-transactional-publication-notifications.md) | Solicitud transaccional de notificaciones de publicación | Aceptado | `RF-15`, `RF-20` |
 | [ADR-0009](0009-training-feedback-history-review.md) | Seguimiento por entrenamiento, historial y revisión | Aceptado | `RF-17`, `RF-18`, `RF-19` |
+| [ADR-0010](0010-privacy-retention-rights-readiness.md) | Preparación para privacidad, retención y derechos | Propuesto | Todos los `RF`; requisito no funcional de datos y privacidad |
 
 ## Backlog inicial de Fase 2
 
@@ -50,5 +51,4 @@ Estos ADRs candidatos deben confirmarse, dividirse o descartarse durante el dise
 
 | Candidato | Decisión pendiente | Requisitos relacionados | Tratamiento |
 | --- | --- | --- | --- |
-| ADR-0010 | Estrategia mínima de privacidad, retención y derechos antes de producción | Requisito no funcional de datos; `RF-17`, `RF-18`, `RF-19` | Resolver antes de salida a producción; no bloquea el arranque de Fase 2 salvo que cambie alcance o datos. |
 | ADR-0011 | Estrategia de correo transaccional para acceso y publicación | `RF-01`, `RF-15`, `RF-20` | Resolver antes de implementar cualquier correo del PMV. |
