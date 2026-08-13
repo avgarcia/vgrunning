@@ -48,7 +48,7 @@ Las consultas de entrenador y administrador admitirán como mínimo los ejes exi
 
 El PMV conservará únicamente el último contenido válido del registro, junto con sus fechas de creación y actualización. No mantendrá historial de ediciones. Tampoco habrá notas, respuestas, asignación a entrenador, aprobación ni estado `revisado`.
 
-La persistencia concreta, paginación e índices se decidirán con el stack. Deberán soportar más de 500 corredores, consulta cronológica del historial propio y revisión global sin convertir proyecciones o cachés en fuente de verdad.
+`ADR-0012` define PostgreSQL, índices justificados por consulta y paginación por cursor para los históricos cronológicos. Deberán soportar más de 500 corredores, consulta del historial propio y revisión global sin convertir proyecciones o cachés en fuente de verdad.
 
 ## Alternativas consideradas
 
@@ -122,4 +122,4 @@ Se descarta para el PMV porque `RF-19` exige consulta, no asignación, aprobaci�
 ## Decisiones pendientes
 
 - **Bloqueante para producción, no para aceptar este ADR:** `ADR-0010` debe decidir base jurídica, información al corredor, retención, derechos y tratamiento de texto libre que pueda contener datos de salud. Responsable: responsable de privacidad o DPO. Tratamiento: aceptar antes de producción.
-- **Pendiente, sin bloquear este ADR:** elegir persistencia, índices y paginación. Responsable: revisor de arquitectura. Tratamiento: documentarlo con el stack y validar rendimiento.
+- **Resuelto por `ADR-0012`:** PostgreSQL será la persistencia, los recorridos cronológicos usarán cursor estable y los índices se validarán con planes de consulta.

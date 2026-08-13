@@ -38,7 +38,7 @@ Publicar o republicar ejecutará una única operación transaccional con estos p
 8. desactivar la versión anterior del mismo plan, activar la nueva y conservar el estado `publicado`;
 9. registrar actor y fecha de la publicación.
 
-Si falla cualquier paso, no se crea versión visible, no cambia la versión activa, no se modifican destinatarios históricos y el borrador conserva su estado anterior. La implementación usará una transacción de la persistencia elegida y restricciones físicas equivalentes; no coordinará esta atomicidad mediante compensaciones entre servicios.
+Si falla cualquier paso, no se crea versión visible, no cambia la versión activa, no se modifican destinatarios históricos y el borrador conserva su estado anterior. `ADR-0012` lo materializa en una transacción PostgreSQL con restricciones físicas; no se coordinará esta atomicidad mediante compensaciones entre servicios.
 
 La comprobación de concurrencia comparará una revisión estable del borrador o mecanismo equivalente. En la primera publicación también comprobará una revisión estable del grupo y sus miembros. Si otro actor modifica alguno de esos datos entre la lectura y la confirmación, la publicación se rechazará como obsoleta y deberá reintentarse después de mostrar el estado actualizado. Una republicación no dependerá de la pertenencia actual al grupo porque reutiliza los destinatarios congelados.
 
@@ -46,7 +46,7 @@ La instantánea de contenido contendrá todos los datos necesarios para consulta
 
 La instantánea de destinatarios contendrá identificadores estables de corredor y la versión publicada a la que pertenecen. Cada nueva versión del mismo plan copiará el conjunto congelado en la primera publicación. Cambios posteriores de etiquetas, segmentos, excepciones, grupos o borrador no añadirán, retirarán ni trasladarán destinatarios de ese plan publicado.
 
-La exclusividad se aplicará sobre versiones activas: un corredor tendrá como máximo un plan activo por semana. La restricción se comprobará dentro de la misma transacción de publicación y se reforzará en persistencia cuando la tecnología lo permita. Un conflicto rechazará la publicación completa y mostrará los corredores y planes afectados; no habrá prioridades ni sobrescrituras automáticas.
+La exclusividad se aplicará sobre versiones activas: un corredor tendrá como máximo un plan activo por semana. La restricción se comprobará dentro de la misma transacción de publicación y `ADR-0012` la refuerza mediante una restricción única física. Un conflicto rechazará la publicación completa y mostrará los corredores y planes afectados; no habrá prioridades ni sobrescrituras automáticas.
 
 Se considerará relevante cualquier cambio en los datos visibles incluidos en la instantánea de contenido: identidad visible del plan, semana, entrenamientos, fases, bloques, tipos, cargas, objetivos, recuperaciones, aclaraciones o lugares de encuentro. Los metadatos internos y de auditoría no obligarán a republicar. Si no existe ninguna diferencia relevante respecto a la versión activa, la republicación se rechazará y no creará una versión nueva.
 
@@ -138,4 +138,4 @@ Se descarta para el PMV. La acción de publicar produce visibilidad inmediata y 
 
 ## Decisiones pendientes
 
-- **Pendiente, sin bloquear este ADR:** elegir persistencia, nivel de aislamiento, restricciones e índices concretos. Responsable: revisor de arquitectura. Tratamiento: documentarlo con el stack y demostrar las garantías lógicas de este ADR.
+- **Resuelto por `ADR-0012`:** PostgreSQL con `READ COMMITTED`, bloqueo de coordinación, bloqueo del plan y restricciones únicas materializará estas garantías.

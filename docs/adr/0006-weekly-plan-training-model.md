@@ -179,4 +179,4 @@ Se descarta para el PMV porque no existe un caso operativo que justifique cambia
 
 ## Decisiones pendientes
 
-- **Pendiente, sin bloquear este ADR:** elegir persistencia, índices y restricciones físicas. Responsable: revisor de arquitectura. Tratamiento: documentarlo al seleccionar stack y conservar las reglas canónicas de este ADR.
+- **Resuelto por `ADR-0012`:** PostgreSQL reforzará las invariantes locales, coordinará transaccionalmente la pertenencia de grupos e incorporará índices justificados.

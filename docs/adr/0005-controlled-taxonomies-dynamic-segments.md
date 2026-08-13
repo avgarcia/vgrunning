@@ -119,4 +119,4 @@ Se descarta porque produciría resultados obsoletos tras cambiar etiquetas o exc
 
 ## Decisiones pendientes
 
-- **Pendiente, sin bloquear este ADR:** elegir estrategia concreta de índices y caché al seleccionar persistencia. Responsable: revisor de arquitectura. Tratamiento: documentarla con el stack y demostrar equivalencia con la evaluación canónica.
+- **Resuelto por `ADR-0012`:** PostgreSQL evaluará la regla canónica con índices justificados por consulta y sin caché en el PMV.

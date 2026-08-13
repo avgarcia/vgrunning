@@ -86,4 +86,5 @@ Se descarta porque mezclaría permisos, segmentación, publicación y seguimient
 
 ## Decisiones pendientes
 
-- **Pendiente, sin bloquear este ADR:** seleccionar framework, persistencia y plataforma de despliegue. Responsable: revisor de arquitectura. Tratamiento: registrar decisiones específicas antes de implementar los componentes que dependan de ellas.
+- **Pendiente, sin bloquear este ADR:** seleccionar framework, runtime y plataforma de despliegue. Responsable: revisor de arquitectura. Tratamiento: registrar decisiones específicas antes de implementar los componentes que dependan de ellas.
+- **Resuelto por `ADR-0012`:** PostgreSQL será la persistencia primaria compartida por los módulos.
