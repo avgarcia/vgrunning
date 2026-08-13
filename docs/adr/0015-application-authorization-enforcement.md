@@ -1,4 +1,4 @@
-# ADR-0015: Aplicación reactiva de autorización y alcance por recurso
+# ADR-0015: Aplicación de autorización y alcance por recurso
 
 **Estado:** Propuesto
 **Fecha:** 2026-08-13
@@ -6,9 +6,9 @@
 
 ## Contexto
 
-`ADR-0004` define roles, capacidades, denegación por defecto y aislamiento del corredor. También decide que cada módulo autorice sus casos de uso y deja pendiente el mecanismo concreto del framework. `ADR-0012` descarta Row-Level Security como mecanismo del PMV y `ADR-0013` propone WebFlux y R2DBC de extremo a extremo.
+`ADR-0004` define roles, capacidades, denegación por defecto y aislamiento del corredor. También decide que cada módulo autorice sus casos de uso y deja pendiente el mecanismo concreto del framework. `ADR-0012` descarta Row-Level Security como mecanismo del PMV y `ADR-0013` propone Spring MVC, jOOQ y JDBC.
 
-En un flujo reactivo no se puede depender de `ThreadLocal` ni asumir que autenticar una ruta autoriza todos los recursos alcanzados por la cadena. La política debe sobrevivir a cambios de hilo, llamadas internas y consultas asíncronas sin confiar en identificadores enviados por el cliente ni filtrar resultados después de leerlos.
+Autenticar una ruta no autoriza automáticamente todos los recursos alcanzados por el caso de uso. La política debe proteger también llamadas internas y consultas por identificador sin confiar en datos enviados por el cliente ni filtrar resultados después de leerlos.
 
 Este ADR materializa técnicamente `ADR-0004`; no modifica roles, jerarquía, capacidades, tratamiento de no encontrado ni alcance global del entrenador.
 
@@ -16,9 +16,9 @@ Este ADR materializa técnicamente `ADR-0004`; no modifica roles, jerarquía, ca
 
 ### Autenticación y actor
 
-Spring Security para WebFlux autenticará cada solicitud mediante la sesión opaca de `ADR-0003`. Un `ServerSecurityContextRepository` reactivo resolverá exclusivamente el verificador persistido por R2DBC y producirá una identidad autenticada con cuenta, rol vigente, estado y referencia de corredor cuando corresponda.
+Spring Security autenticará cada solicitud mediante la sesión opaca de `ADR-0003`. Un `SecurityContextRepository` propio resolverá exclusivamente el verificador persistido mediante jOOQ/JDBC y producirá una identidad autenticada con cuenta, rol vigente, estado y referencia de corredor cuando corresponda.
 
-El adaptador HTTP transformará esa identidad en un `ActorContext` inmutable emitido por `identity-access`. El actor se pasará explícitamente a cada caso de uso protegido; la capa de aplicación y el dominio no leerán `ReactiveSecurityContextHolder`, cookies, cabeceras ni clases de Spring Security. Reactor Context podrá transportar el contexto técnico dentro de los filtros, pero no será una dependencia oculta de las reglas de autorización.
+El adaptador HTTP transformará esa identidad en un `ActorContext` inmutable emitido por `identity-access`. El actor se pasará explícitamente a cada caso de uso protegido; la capa de aplicación y el dominio no leerán `SecurityContextHolder`, cookies, cabeceras ni clases de Spring Security. El contexto de seguridad asociado al hilo quedará limitado a filtros y adaptadores.
 
 Las entradas sin usuario, como el worker, usarán una identidad de sistema explícita y acotada a su capacidad técnica. No podrán construir un actor administrador ni invocar casos de uso interactivos.
 
@@ -26,17 +26,17 @@ Las entradas sin usuario, como el worker, usarán una identidad de sistema expl�
 
 Cada API de aplicación declarará una acción y aplicará denegación por defecto antes de leer o modificar recursos. Las capacidades simples de rol podrán reutilizar una política común, pero el módulo propietario evaluará el alcance que depende de sus datos.
 
-Las anotaciones de Spring Security y reglas de rutas podrán actuar como primera barrera para capacidades gruesas. No serán la única autorización ni contendrán en SpEL las reglas de negocio o pertenencia. La decisión canónica residirá en políticas Java explícitas, tipadas y probables de forma aislada.
+Las anotaciones `@PreAuthorize` y reglas de rutas podrán actuar como primera barrera para capacidades gruesas. No serán la única autorización ni contendrán en SpEL las reglas de negocio o pertenencia. La decisión canónica residirá en políticas Java explícitas, tipadas y comprobables de forma aislada.
 
-Una llamada entre módulos transportará el mismo `ActorContext` y el módulo receptor volverá a autorizar su propia acción. Proceder de otro módulo, de un controlador autenticado o de una cola interna no concederá permisos.
+Una llamada entre módulos transportará el mismo `ActorContext` y el módulo receptor volverá a autorizar su propia acción. Proceder de otro módulo, de un controlador autenticado o de un proceso interno no concederá permisos.
 
 ### Alcance por recurso y consultas
 
 Para operaciones de corredor, su identificador se derivará del actor autenticado y no se aceptará como selector de propiedad desde la solicitud. Un identificador de plan, publicación, entrenamiento o seguimiento recibido del cliente será solo un criterio de localización.
 
-El alcance se aplicará en la consulta jOOQ/R2DBC o en una actualización condicionada, por ejemplo mediante destinatario efectivo y corredor autenticado. No se recuperarán filas globales para filtrarlas posteriormente. Las listas, conteos, cursores, búsquedas y relaciones anidadas usarán el mismo predicado de autorización que las consultas individuales.
+El alcance se aplicará en la consulta jOOQ/JDBC o en una actualización condicionada, por ejemplo mediante destinatario efectivo y corredor autenticado. No se recuperarán filas globales para filtrarlas posteriormente. Las listas, conteos, cursores, búsquedas y relaciones anidadas usarán el mismo predicado de autorización que las consultas individuales.
 
-Las políticas que necesiten comprobar varias condiciones lo harán dentro de la misma transacción reactiva que la operación protegida cuando una modificación concurrente pueda invalidar la decisión. La autorización no abrirá suscripciones internas ni ejecutará `block()`.
+Las políticas que necesiten comprobar varias condiciones lo harán dentro de la misma transacción que la operación protegida cuando una modificación concurrente pueda invalidar la decisión. No se separará la autorización de la mutación mediante una comprobación previa fuera de esa transacción.
 
 Una falta de capacidad independiente del recurso devolverá acceso denegado. Un recurso inexistente o fuera del alcance del corredor devolverá el mismo resultado de no encontrado conforme a `ADR-0004`, sin revelar existencia mediante mensaje, estado, tiempo deliberado ni conteos laterales.
 
@@ -44,7 +44,7 @@ Una falta de capacidad independiente del recurso devolverá acceso denegado. Un 
 
 OpenAPI declarará requisitos de sesión y CSRF, pero no intentará describir como suficientes las reglas de autorización por recurso. El frontend podrá ocultar acciones según capacidades devueltas por el backend, pero esas capacidades serán solo una ayuda de presentación y no una concesión reutilizable.
 
-No se enviará el rol en una cabecera controlada por el cliente ni se confiará en claims almacenados por la SPA. Cambios de estado de cuenta o revocación de sesión se comprobarán en servidor según `ADR-0003`.
+No se enviará el rol en una cabecera controlada por el cliente ni se confiará en datos almacenados por la SPA. Cambios de estado de cuenta o revocación de sesión se comprobarán en servidor según `ADR-0003`.
 
 ### Pruebas y observabilidad
 
@@ -58,11 +58,11 @@ Los eventos de seguridad registrarán actor, acción, módulo, resultado y corre
 
 Se descarta porque dispersa reglas, dificulta probar consultas por alcance y acopla la política de dominio al framework. Las anotaciones se admiten únicamente como defensa gruesa complementaria.
 
-### Alternativa B: Obtener la identidad desde Reactor Context dentro de cada servicio
+### Alternativa B: Obtener la identidad desde `SecurityContextHolder` dentro de cada servicio
 
-Se descarta como contrato de aplicación. Aunque Reactor Context propaga seguridad correctamente entre hilos, convertirlo en una dependencia oculta hace más difícil probar casos de uso, ejecutar procesos internos y reconocer qué operaciones requieren actor. El adaptador extraerá el actor y lo pasará explícitamente.
+Se descarta como contrato de aplicación. Es una dependencia global y oculta que dificulta probar casos de uso, ejecutar procesos internos y reconocer qué operaciones requieren actor. El adaptador extraerá el actor y lo pasará explícitamente.
 
-### Alternativa C: Autorizar solo en controladores o router functions
+### Alternativa C: Autorizar solo en controladores o filtros
 
 Se descarta porque las APIs de aplicación también se invocan entre módulos y desde entradas no HTTP. Una ruta autenticada no protege accesos internos ni garantiza alcance por recurso.
 
@@ -113,14 +113,13 @@ Se descarta para el PMV. No existe una matriz dinámica que justifique otro leng
 - Probar que ningún endpoint de corredor acepta otro `runnerId` como concesión de acceso.
 - Probar acceso directo por UUID ajeno, listas, filtros, conteos, cursores y recursos anidados sin diferencias que revelen existencia.
 - Probar que cada módulo vuelve a autorizar llamadas internas con el actor recibido.
-- Verificar mediante ArchUnit que aplicación y dominio no dependen de Spring Security ni acceden a `ReactiveSecurityContextHolder`.
-- Ejecutar las pruebas con cambios de hilo Reactor y confirmar que no se usa `ThreadLocal` ni `block()`.
+- Verificar mediante ArchUnit que aplicación y dominio no dependen de Spring Security ni acceden a `SecurityContextHolder`.
 - Ejecutar carreras entre autorización y modificación para confirmar que las comprobaciones sensibles comparten la transacción adecuada.
 - Revisar logs y métricas para impedir secretos, datos personales innecesarios y cardinalidad no acotada.
 
 ## Decisiones pendientes
 
-- **Bloqueante para aceptar este ADR:** confirmar que `ActorContext` será un parámetro explícito de los casos de uso y que Reactor Context quedará limitado a filtros y adaptación técnica. Responsable: revisor de arquitectura. Tratamiento: validar el contrato de aplicación propuesto.
+- **Bloqueante para aceptar este ADR:** confirmar que `ActorContext` será un parámetro explícito de los casos de uso y que `SecurityContextHolder` quedará limitado a filtros y adaptación técnica. Responsable: revisor de arquitectura. Tratamiento: validar el contrato de aplicación propuesto.
 - **Bloqueante para aceptar este ADR:** confirmar que `@PreAuthorize` o reglas de ruta solo serán una defensa gruesa y que las políticas Java de cada módulo serán canónicas. Responsable: revisor de arquitectura. Tratamiento: aceptar la separación entre capacidad y alcance por recurso.
 - **Bloqueante para aceptar este ADR:** confirmar una identidad de sistema mínima para worker y procesos internos, sin privilegios administrativos. Responsable: revisor de arquitectura. Tratamiento: enumerar sus únicas capacidades al diseñar los procesos internos.
 - **Bloqueante para producción, no para aceptar este ADR:** `ADR-0010` debe fijar retención y acceso a eventos de seguridad. Responsable: responsable de privacidad o DPO. Tratamiento: resolverlo antes de producción.

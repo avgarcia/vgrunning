@@ -55,9 +55,9 @@ Cada módulo aplicará arquitectura hexagonal en sus fronteras significativas:
   api/                     contrato entre módulos
   application/             casos de uso, políticas y transacciones
   domain/                  reglas y tipos de dominio cuando aporten valor
-  adapter/in/web/          adaptación desde OpenAPI/WebFlux
+  adapter/in/web/          adaptación desde OpenAPI/Spring MVC
   adapter/in/scheduling/   entradas programadas cuando correspondan
-  adapter/out/persistence/ jOOQ/R2DBC
+  adapter/out/persistence/ jOOQ/JDBC
   adapter/out/provider/    servicios externos cuando correspondan
 ```
 
@@ -73,7 +73,7 @@ Se aplicará DDD estratégico a todos los módulos: límite explícito, lenguaje
 
 DDD táctico será selectivo. Se usarán entidades, value objects, agregados, servicios de dominio y eventos solo donde protejan invariantes o reduzcan ambigüedad. Plan, publicación, destinatario, seguimiento, segmento y grupo son candidatos a modelos ricos; catálogos y proyecciones de lectura podrán permanecer como modelos simples. Una tabla no implica una entidad de dominio y un agregado no tiene por qué reproducir todas sus relaciones en memoria.
 
-Los agregados no se usarán para fingir atomicidad sobre grandes grafos. Las invariantes que `ADR-0012` coordina mediante consultas, bloqueos y restricciones podrán residir en servicios de aplicación y políticas de dominio respaldadas por PostgreSQL. El dominio no dependerá de Reactor, Spring, jOOQ, OpenAPI ni clases de infraestructura; la capa de aplicación podrá usar tipos reactivos en sus puertos para conservar el flujo no bloqueante.
+Los agregados no se usarán para fingir atomicidad sobre grandes grafos. Las invariantes que `ADR-0012` coordina mediante consultas, bloqueos y restricciones podrán residir en servicios de aplicación y políticas de dominio respaldadas por PostgreSQL. El dominio no dependerá de Spring, jOOQ, OpenAPI ni clases de infraestructura; los puertos de aplicación usarán tipos Java del módulo y no expondrán tipos JDBC o del framework.
 
 No existirá un `shared-kernel` de negocio inicial. Solo se compartirán tipos técnicos mínimos, estables y sin semántica de un módulo concreto, como reloj o identificadores base. Cualquier ampliación de ese núcleo requerirá demostrar que no roba propiedad a un módulo.
 
