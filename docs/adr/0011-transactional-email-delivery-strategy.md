@@ -11,7 +11,7 @@ El PMV necesita correo transaccional para invitación, recuperación de acceso y
 
 `ADR-0003` define los secretos de acceso y sus caducidades: `72` horas para activación y una hora para recuperación. `ADR-0007` y `ADR-0008` hacen visible la publicación sin esperar al proveedor, crean una solicitud individual por versión y destinatario dentro de la transacción y exigen procesar las versiones en orden. Este ADR no modifica esas semánticas; decide cómo entregar todas las solicitudes de correo después de confirmarlas.
 
-El diseño todavía no ha elegido runtime ni plataforma de despliegue. `ADR-0012` define PostgreSQL como persistencia y concreta la reclamación recuperable de la outbox. Tampoco existe un dominio propio de envío. `ADR-0010` exige revisar encargados, subencargados, regiones, contrato, retención y transferencias antes de habilitar un proveedor con datos reales.
+`ADR-0013` propone el runtime reactivo y los parámetros iniciales del worker, pero la plataforma de despliegue sigue pendiente. `ADR-0012` define PostgreSQL como persistencia y concreta la reclamación recuperable de la outbox. Tampoco existe un dominio propio de envío. `ADR-0010` exige revisar encargados, subencargados, regiones, contrato, retención y transferencias antes de habilitar un proveedor con datos reales.
 
 La escala prevista, superior a `500` corredores pero limitada a un único club, no justifica introducir un broker distribuido solo para correo. Sí exige recuperar trabajo después de caídas, evitar duplicados lógicos, distinguir aceptación del proveedor de entrega y operar rebotes o fallos globales sin depender de estados visibles en el producto.
 
@@ -177,7 +177,7 @@ Se descarta porque trasladaría reputación, entregabilidad, seguridad, rebotes,
 - **Bloqueante para producción:** adquirir y controlar un dominio, definir remitente y autenticarlo con Brevo. Responsable: propietario del servicio. Tratamiento: completar DNS y pruebas de entrega antes del primer envío real.
 - **Bloqueante para producción:** revisar y aprobar Brevo como encargado bajo `ADR-0010`, incluidos DPA, subencargados, ubicaciones, retención y cualquier transferencia. Responsable: responsable del tratamiento con asesoramiento de privacidad. Tratamiento: no contratar ni enviar datos reales hasta aportar la evidencia.
 - **Bloqueante para producción:** fijar canal, destinatario y umbrales de alertas con la plataforma de despliegue. Responsable: revisor de arquitectura y persona operadora. Tratamiento: documentar y probar antes de habilitar el worker en producción.
-- **Pendiente, sin bloquear la aceptación:** concretar proceso, frecuencia, concurrencia, timeouts y tamaño de lote del worker con el runtime y despliegue elegidos. Responsable: revisor de arquitectura. Tratamiento: conservar la semántica verificable de este ADR y el mecanismo de reclamación de `ADR-0012`.
+- **Tratado por `ADR-0013` (Propuesto):** proceso reactivo, frecuencia, concurrencia, timeouts, lease y tamaño de lote iniciales del worker. La decisión no se considera cerrada hasta aceptar ese ADR.
 - **Resuelto por `ADR-0012`:** PostgreSQL reclamará lotes con `FOR UPDATE SKIP LOCKED`, lease persistente y token frente a workers obsoletos.
 
 ## Referencias

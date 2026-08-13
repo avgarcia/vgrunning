@@ -7,7 +7,7 @@
 
 Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazable. Este documento delimita los componentes lógicos, los flujos, los datos y las decisiones técnicas que deben resolverse antes de implementar el PMV.
 
-No selecciona framework, proveedor de identidad ni estrategia de despliegue. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. Las decisiones todavía abiertas deben registrarse en ADRs antes de cerrar el diseño afectado.
+`ADR-0013` propone runtime, framework, acceso reactivo a datos, frontend conjunto y contrato API; `ADR-0014` propone la estructura modular y `ADR-0015` el mecanismo técnico de autorización. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. La plataforma de despliegue y los ADRs aún propuestos deben resolverse antes de cerrar el diseño afectado.
 
 ## Alcance y restricciones heredadas
 
@@ -39,7 +39,7 @@ No selecciona framework, proveedor de identidad ni estrategia de despliegue. `AD
 | Consulta del corredor | Consulta móvil de planes, entrenamientos, ubicación e historial propio. | `RF-16`, `RF-18` | Vista derivada de publicaciones y seguimiento del corredor autenticado. |
 | Seguimiento y revisión | Registro de ejecución y consulta por entrenador. | `RF-17`, `RF-18`, `RF-19` | Registro de seguimiento vinculado a entrenamiento y publicación. |
 
-Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como módulos de una única aplicación desplegable, sin introducir multiclub fuera de alcance. Framework, runtime y plataforma de despliegue siguen pendientes; persistencia y transacciones se rigen por `ADR-0012` aceptado.
+Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como módulos de una única aplicación desplegable, sin introducir multiclub fuera de alcance. `ADR-0014` propone refinarlos en ocho módulos al separar publicación de entrega de notificaciones. `ADR-0013` propone WebFlux, R2DBC y despliegue conjunto del frontend; persistencia y transacciones se rigen por `ADR-0012` aceptado. La plataforma de despliegue sigue pendiente.
 
 ## Flujos de alto nivel
 
@@ -142,6 +142,9 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `ADR-0010`: privacidad, retención y derechos | Responsable, bases, mayores de edad, conservación, derechos, encargados, riesgos y evidencias. | Salida a producción y cualquier cambio de alcance derivado. | Responsable del tratamiento con asesoramiento de privacidad | Propuesto con validación documental superada; aceptación bloqueada por identidad real, contacto, bases y revisión de retención, sin autorización de producción. |
 | `ADR-0011`: correo transaccional | Brevo por API REST, outbox persistente, worker interno, reintentos por tipo, webhooks, supresión y observabilidad. | No bloquea implementación; decisión aceptada. Dominio, revisión de privacidad y alertas bloquean producción. | Revisor de arquitectura | Aceptado con reconciliación dentro del TTL, entrega posterior gestionada por Brevo y orden liberado al aceptar el proveedor. |
 | `ADR-0012`: persistencia y transacciones | PostgreSQL, restricciones, coordinación de planificación, publicación, outbox recuperable, índices, cursores y migraciones. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con PostgreSQL compartido, `READ COMMITTED`, bloqueos explícitos, restricciones físicas, outbox con lease, cursor y migraciones versionadas. |
+| `ADR-0013`: runtime y contrato API | Java, WebFlux, R2DBC, jOOQ, Flyway, frontend conjunto, OpenAPI y gates de calidad. | Implementación del runtime y de cualquier módulo. | Revisor de arquitectura | Propuesto; revisar coherencia reactiva, build reproducible, worker, contrato y umbrales antes de aceptar. |
+| `ADR-0014`: módulos, hexagonal y DDD | Límites físicos, dependencias permitidas, puertos y modelado de dominio. | Estructura inicial del backend y desarrollo de dominio. | Revisor de arquitectura | Propuesto; confirmar mapa de ocho módulos, proyecto Gradle único y aplicación selectiva de patrones. |
+| `ADR-0015`: autorización reactiva | Propagación del actor, políticas de aplicación, alcance en consultas y pruebas. | Implementación de cualquier caso de uso protegido. | Revisor de arquitectura | Propuesto; confirmar actor explícito, políticas canónicas y capacidades de identidad de sistema. |
 
 ## Riesgos y mitigaciones
 
