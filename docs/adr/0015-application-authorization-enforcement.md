@@ -16,9 +16,11 @@ Este ADR materializa técnicamente `ADR-0004`; no modifica roles, jerarquía, ca
 
 ### Autenticación y actor
 
-Spring Security autenticará cada solicitud mediante la sesión opaca de `ADR-0003`. Un `SecurityContextRepository` propio resolverá exclusivamente el verificador persistido mediante jOOQ/JDBC y producirá una identidad autenticada con cuenta, rol vigente, estado y referencia de corredor cuando corresponda.
+Spring Security autenticará cada solicitud mediante la sesión opaca de `ADR-0003`. Un `SecurityContextRepository` propio resolverá exclusivamente el verificador persistido mediante jOOQ/JDBC y producirá una identidad autenticada con identificador de cuenta, rol vigente y estado. `identity-access` no resolverá ni poseerá la vinculación entre cuenta y corredor.
 
-El adaptador HTTP transformará esa identidad en un `ActorContext` inmutable emitido por `identity-access`. El actor se pasará explícitamente a cada caso de uso protegido; la capa de aplicación y el dominio no leerán `SecurityContextHolder`, cookies, cabeceras ni clases de Spring Security. El contexto de seguridad asociado al hilo quedará limitado a filtros y adaptadores.
+El adaptador HTTP transformará esa identidad en un `ActorContext` inmutable emitido por `identity-access`, compuesto por identificador de cuenta, rol y clase de actor. El actor se pasará explícitamente a cada caso de uso protegido; la capa de aplicación y el dominio no leerán `SecurityContextHolder`, cookies, cabeceras ni clases de Spring Security. El contexto de seguridad asociado al hilo quedará limitado a filtros y adaptadores.
+
+Cuando un caso de uso necesite el corredor asociado, el módulo consumidor resolverá el identificador mediante la API Java publicada por `runner-management`, propietario de esa vinculación. La consulta partirá del identificador de cuenta del actor, nunca de un `runnerId` suministrado por el cliente. `identity-access` no dependerá de `runner-management`; esta dirección evita un ciclo entre autenticación y gestión de corredores.
 
 Las entradas sin usuario, como el worker, usarán una identidad de sistema explícita y acotada a su capacidad técnica. No podrán construir un actor administrador ni invocar casos de uso interactivos.
 
@@ -32,7 +34,7 @@ Una llamada entre módulos transportará el mismo `ActorContext` y el módulo re
 
 ### Alcance por recurso y consultas
 
-Para operaciones de corredor, su identificador se derivará del actor autenticado y no se aceptará como selector de propiedad desde la solicitud. Un identificador de plan, publicación, entrenamiento o seguimiento recibido del cliente será solo un criterio de localización.
+Para operaciones de corredor, su identificador se derivará de la cuenta del actor autenticado mediante `runner-management` y no se aceptará como selector de propiedad desde la solicitud. Un identificador de plan, publicación, entrenamiento o seguimiento recibido del cliente será solo un criterio de localización.
 
 El alcance se aplicará en la consulta jOOQ/JDBC o en una actualización condicionada, por ejemplo mediante destinatario efectivo y corredor autenticado. No se recuperarán filas globales para filtrarlas posteriormente. Las listas, conteos, cursores, búsquedas y relaciones anidadas usarán el mismo predicado de autorización que las consultas individuales.
 
@@ -81,6 +83,7 @@ Se descarta para el PMV. No existe una matriz dinámica que justifique otro leng
 - Las consultas jOOQ deberán incorporar predicados de alcance; omitirlos será un defecto de seguridad que las pruebas de matriz deben detectar.
 - La doble barrera de ruta y aplicación añade algo de duplicación, pero la primera será gruesa y la segunda canónica.
 - Las llamadas internas no serán privilegiadas por defecto y deberán propagar actor, lo que hace visibles sus requisitos de seguridad.
+- Los módulos que necesiten alcance de corredor dependerán de la API de `runner-management`; no podrán leer su esquema ni duplicar la asociación cuenta-corredor.
 - La identidad de sistema permitirá procesos internos sin simular usuarios, pero deberá mantenerse mínima y separada de capacidades interactivas.
 - No usar RLS deja la última defensa en la aplicación y sus pruebas, riesgo ya aceptado en `ADR-0012`.
 
@@ -113,6 +116,7 @@ Se descarta para el PMV. No existe una matriz dinámica que justifique otro leng
 - Probar que ningún endpoint de corredor acepta otro `runnerId` como concesión de acceso.
 - Probar acceso directo por UUID ajeno, listas, filtros, conteos, cursores y recursos anidados sin diferencias que revelen existencia.
 - Probar que cada módulo vuelve a autorizar llamadas internas con el actor recibido.
+- Probar que la asociación cuenta-corredor se resuelve mediante la API de `runner-management` y que un cambio de asociación se refleja sin duplicar estado en `identity-access`.
 - Verificar mediante ArchUnit que aplicación y dominio no dependen de Spring Security ni acceden a `SecurityContextHolder`.
 - Ejecutar carreras entre autorización y modificación para confirmar que las comprobaciones sensibles comparten la transacción adecuada.
 - Revisar logs y métricas para impedir secretos, datos personales innecesarios y cardinalidad no acotada.
