@@ -27,8 +27,10 @@ El contenido estructurado usará valores cerrados:
 - `realizado`: booleano explícito;
 - `esfuerzo`: entero obligatorio entre `1` y `10` cuando `realizado` sea verdadero y ausente cuando sea falso;
 - `sensacion`: valor obligatorio `bien`, `normal` o `mal` cuando `realizado` sea verdadero y ausente cuando sea falso;
-- `comentario`: texto opcional, sujeto a un límite técnico documentado y sin formato enriquecido;
+- `comentario`: texto plano opcional de hasta `1.000` caracteres, conservando saltos de línea y sin formato enriquecido;
 - fechas de creación y última actualización.
+
+Antes de validar el comentario se eliminarán sus espacios exteriores, conservando los saltos de línea y espacios interiores. Si supera `1.000` caracteres después de esa normalización, se rechazará la operación completa y nunca se truncará silenciosamente.
 
 Guardar o actualizar será una única operación. Una entrada inválida, una modificación concurrente o una referencia a un entrenamiento no autorizado se rechazará completa y no sustituirá el último registro válido. La implementación usará revisión optimista o mecanismo equivalente para no perder cambios por dos envíos simultáneos.
 
@@ -46,7 +48,7 @@ Las consultas de entrenador y administrador admitirán como mínimo los ejes exi
 
 El PMV conservará únicamente el último contenido válido del registro, junto con sus fechas de creación y actualización. No mantendrá historial de ediciones. Tampoco habrá notas, respuestas, asignación a entrenador, aprobación ni estado `revisado`.
 
-La persistencia concreta, paginación, índices y límites de texto se decidirán con el stack. Deberán soportar más de 500 corredores, consulta cronológica del historial propio y revisión global sin convertir proyecciones o cachés en fuente de verdad.
+La persistencia concreta, paginación e índices se decidirán con el stack. Deberán soportar más de 500 corredores, consulta cronológica del historial propio y revisión global sin convertir proyecciones o cachés en fuente de verdad.
 
 ## Alternativas consideradas
 
@@ -81,6 +83,7 @@ Se descarta para el PMV porque `RF-19` exige consulta, no asignación, aprobaci�
 - Conservar la versión inicial permite reproducir el contexto, pero requiere mantener el vínculo con instantáneas publicadas.
 - La ventana de siete días impide respuestas futuras o cambios indefinidos, pero también bloquea correcciones tardías aunque el entrenador las solicite por otro canal.
 - Los entrenamientos retirados permanecen visibles para conservar la historia de lo que llegó a publicarse, sin permitir nuevas respuestas.
+- El límite de `1.000` caracteres mantiene el comentario acotado y verificable; los textos mayores se rechazan completos para evitar pérdida silenciosa.
 - Entrenadores y administrador pueden revisar globalmente sin alterar declaraciones del corredor.
 - No existe flujo operativo para marcar registros como revisados ni responder al corredor; esa limitación es deliberada.
 - El comentario libre introduce riesgo real de recibir datos de salud no solicitados y bloquea producción hasta resolver `ADR-0010`.
@@ -103,6 +106,7 @@ Se descarta para el PMV porque `RF-19` exige consulta, no asignación, aprobaci�
 - Probar los valores permitidos y que una entrada inválida no sustituye el registro válido existente.
 - Probar que `sin seguimiento` se deriva de la ausencia y se diferencia de `no-realizado`.
 - Probar que `realizado` exige esfuerzo y sensación y que `no-realizado` los rechaza, manteniendo comentario opcional en ambos casos.
+- Probar que el comentario acepta exactamente `1.000` caracteres, rechaza `1.001` sin truncar ni sustituir un registro válido y conserva saltos de línea tras eliminar espacios exteriores.
 - Probar que no se responde antes de la fecha, que la fecha cuenta como primer día y que creación y edición se cierran al terminar el sexto día posterior en la zona horaria configurada.
 - Probar que solo el corredor propietario crea o actualiza y que entrenador y administrador solo leen.
 - Probar acceso directo, listas y filtros para impedir exposición entre corredores.
@@ -118,4 +122,4 @@ Se descarta para el PMV porque `RF-19` exige consulta, no asignación, aprobaci�
 ## Decisiones pendientes
 
 - **Bloqueante para producción, no para aceptar este ADR:** `ADR-0010` debe decidir base jurídica, información al corredor, retención, derechos y tratamiento de texto libre que pueda contener datos de salud. Responsable: responsable de privacidad o DPO. Tratamiento: aceptar antes de producción.
-- **Pendiente, sin bloquear este ADR:** elegir persistencia, índices, paginación y límite concreto del comentario. Responsable: revisor de arquitectura. Tratamiento: documentarlo con el stack y validar rendimiento y límites.
+- **Pendiente, sin bloquear este ADR:** elegir persistencia, índices y paginación. Responsable: revisor de arquitectura. Tratamiento: documentarlo con el stack y validar rendimiento.
