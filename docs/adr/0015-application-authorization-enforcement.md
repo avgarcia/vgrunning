@@ -1,12 +1,12 @@
 # ADR-0015: Aplicación de autorización y alcance por recurso
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
 
 ## Contexto
 
-`ADR-0004` define roles, capacidades, denegación por defecto y aislamiento del corredor. También decide que cada módulo autorice sus casos de uso y deja pendiente el mecanismo concreto del framework. `ADR-0012` descarta Row-Level Security como mecanismo del PMV y `ADR-0013` propone Spring MVC, jOOQ y JDBC.
+`ADR-0004` define roles, capacidades, denegación por defecto y aislamiento del corredor. También decide que cada módulo autorice sus casos de uso y deja pendiente el mecanismo concreto del framework. `ADR-0012` descarta Row-Level Security como mecanismo del PMV y `ADR-0013` define Spring MVC, jOOQ y JDBC.
 
 Autenticar una ruta no autoriza automáticamente todos los recursos alcanzados por el caso de uso. La política debe proteger también llamadas internas y consultas por identificador sin confiar en datos enviados por el cliente ni filtrar resultados después de leerlos.
 
@@ -123,7 +123,7 @@ Se descarta para el PMV. No existe una matriz dinámica que justifique otro leng
 
 ## Decisiones pendientes
 
-- **Bloqueante para aceptar este ADR:** confirmar que `ActorContext` será un parámetro explícito de los casos de uso y que `SecurityContextHolder` quedará limitado a filtros y adaptación técnica. Responsable: revisor de arquitectura. Tratamiento: validar el contrato de aplicación propuesto.
-- **Bloqueante para aceptar este ADR:** confirmar que `@PreAuthorize` o reglas de ruta solo serán una defensa gruesa y que las políticas Java de cada módulo serán canónicas. Responsable: revisor de arquitectura. Tratamiento: aceptar la separación entre capacidad y alcance por recurso.
-- **Bloqueante para aceptar este ADR:** confirmar una identidad de sistema mínima para worker y procesos internos, sin privilegios administrativos. Responsable: revisor de arquitectura. Tratamiento: enumerar sus únicas capacidades al diseñar los procesos internos.
+- **Resuelto:** `ActorContext` será un parámetro explícito de los casos de uso y `SecurityContextHolder` quedará limitado a filtros y adaptación técnica.
+- **Resuelto:** `@PreAuthorize` y las reglas de ruta serán una defensa gruesa; las políticas Java de cada módulo serán canónicas.
+- **Resuelto:** worker y procesos internos usarán una identidad de sistema mínima, sin privilegios administrativos y limitada a capacidades técnicas explícitas.
 - **Bloqueante para producción, no para aceptar este ADR:** `ADR-0010` debe fijar retención y acceso a eventos de seguridad. Responsable: responsable de privacidad o DPO. Tratamiento: resolverlo antes de producción.

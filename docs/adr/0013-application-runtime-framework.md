@@ -1,6 +1,6 @@
 # ADR-0013: Runtime imperativo, framework de aplicación y contrato API
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
 
@@ -10,7 +10,7 @@
 
 El PMV prevé más de `500` corredores y picos iniciales inferiores a `100` usuarios concurrentes. Su carga está dominada por casos de uso transaccionales, consultas relacionales y un volumen moderado de llamadas externas. No existe una necesidad medida de streaming, composición masiva de I/O ni concurrencia que justifique asumir la complejidad de un flujo reactivo de extremo a extremo.
 
-Este ADR elige runtime, framework, acceso a datos, migraciones, frontend, contrato API y controles mínimos del build. `ADR-0014` debe concretar los módulos, la arquitectura hexagonal y el uso de DDD. `ADR-0015` debe concretar el mecanismo técnico de autorización sin cambiar la política funcional de `ADR-0004`.
+Este ADR elige runtime, framework, acceso a datos, migraciones, frontend, contrato API y controles mínimos del build. `ADR-0014` concreta los módulos, la arquitectura hexagonal y el uso de DDD. `ADR-0015` concreta el mecanismo técnico de autorización sin cambiar la política funcional de `ADR-0004`.
 
 ## Decisión
 
@@ -64,7 +64,7 @@ Spring Security para aplicaciones servlet materializará autenticación, cookies
 
 Argon2id se configurará explícitamente con al menos `19 MiB`, `2` iteraciones y paralelismo `1`; no se aceptarán valores por defecto inferiores. Su coste se medirá en el entorno objetivo y los límites de intentos protegerán la capacidad del servidor.
 
-La autorización se regirá por `ADR-0004` y su mecanismo se definirá en `ADR-0015`.
+La autorización se regirá por `ADR-0004` y su mecanismo se define en `ADR-0015`.
 
 ### Worker y reintentos transaccionales
 
@@ -153,6 +153,6 @@ Se descarta. Generar OpenAPI desde controladores convierte la implementación en
 
 ## Decisiones pendientes
 
-- **Delegada a `ADR-0014`, bloqueante antes de implementar dominio:** confirmar módulos, dependencias permitidas, arquitectura hexagonal y uso táctico de DDD. Responsable: revisor de arquitectura. Tratamiento: aceptar el ADR específico antes de estructurar el backend.
-- **Delegada a `ADR-0015`, bloqueante antes de implementar casos de uso protegidos:** confirmar propagación del actor, políticas de aplicación y pruebas del alcance por recurso. Responsable: revisor de arquitectura. Tratamiento: aceptar el ADR específico sin cambiar `ADR-0004`.
+- **Resuelto por `ADR-0014` (Aceptado):** módulos, dependencias permitidas, arquitectura hexagonal y uso táctico selectivo de DDD.
+- **Resuelto por `ADR-0015` (Aceptado):** propagación del actor, políticas de aplicación y pruebas del alcance por recurso.
 - **Bloqueante para producción, no para aceptar este ADR:** seleccionar plataforma de despliegue, operación de PostgreSQL, secretos, copias de seguridad, alertas y observabilidad. Responsable: revisor de arquitectura y persona operadora. Tratamiento: ADR de despliegue y runbooks antes de producción.

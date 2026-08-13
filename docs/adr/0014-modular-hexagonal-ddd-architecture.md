@@ -1,6 +1,6 @@
 # ADR-0014: Arquitectura modular, hexagonal y DDD selectivo
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
 
@@ -8,7 +8,7 @@
 
 `ADR-0002` decide un monolito modular de despliegue único y el diseño de alto nivel identifica componentes lógicos. Esa decisión no fija cómo materializar límites, dependencias, puertos, modelo de dominio ni propiedad de datos. Sin reglas estructurales, la aplicación puede degradarse en paquetes técnicos compartidos, acceso cruzado a tablas y ciclos difíciles de detectar.
 
-`ADR-0013` propone Gradle y un stack imperativo con Spring MVC, jOOQ y JDBC. Este ADR debe convertir los límites funcionales existentes en módulos verificables sin introducir microservicios, duplicar modelos por ceremonia ni aplicar patrones tácticos de DDD donde solo existe CRUD.
+`ADR-0013` define Gradle y un stack imperativo con Spring MVC, jOOQ y JDBC. Este ADR convierte los límites funcionales existentes en módulos verificables sin introducir microservicios, duplicar modelos por ceremonia ni aplicar patrones tácticos de DDD donde solo existe CRUD.
 
 `ADR-0012` exige una única frontera PostgreSQL y transacciones que pueden atravesar planificación, publicación, destinatarios y outbox. La modularidad debe preservar esas garantías y, al mismo tiempo, impedir que compartir base de datos convierta cualquier tabla en una API interna.
 
@@ -226,8 +226,8 @@ Se descarta porque combina ciclo de vida, clasificación administrativa y compos
 
 ## Decisiones pendientes
 
-- **Bloqueante para aceptar este ADR:** confirmar un único proyecto Gradle con módulos por paquetes, en lugar de un subproyecto por módulo. Responsable: revisor de arquitectura. Tratamiento: aceptar el coste y la suficiencia de Spring Modulith y ArchUnit.
-- **Bloqueante para aceptar este ADR:** confirmar que DDD táctico y puertos hexagonales serán selectivos y no obligatorios para toda tabla o clase. Responsable: revisor de arquitectura. Tratamiento: validar los criterios descritos antes de crear la estructura inicial.
+- **Resuelto:** se confirma un único proyecto Gradle con módulos por paquetes verificados mediante Spring Modulith y ArchUnit, sin subproyectos por módulo.
+- **Resuelto:** se confirma que DDD táctico y puertos hexagonales serán selectivos y se aplicarán donde protejan invariantes o fronteras reales.
 - **Resuelto:** se confirman los ocho módulos, sus responsabilidades, comunicación síncrona o por eventos y dependencias permitidas.
 - **Resuelto:** se confirma una base PostgreSQL, un esquema por módulo con estado, un único `DataSource`, usuario técnico e historial Flyway, y `runner-portal` sin esquema inicial.
 - **Resuelto:** se permiten claves foráneas entre esquemas según dependencias declaradas y se prohíben acceso SQL directo y joins entre módulos.
