@@ -11,7 +11,7 @@ El PMV necesita correo transaccional para invitación, recuperación de acceso y
 
 `ADR-0003` define los secretos de acceso y sus caducidades: `72` horas para activación y una hora para recuperación. `ADR-0007` y `ADR-0008` hacen visible la publicación sin esperar al proveedor, crean una solicitud individual por versión y destinatario dentro de la transacción y exigen procesar las versiones en orden. Este ADR no modifica esas semánticas; decide cómo entregar todas las solicitudes de correo después de confirmarlas.
 
-El diseño todavía no ha elegido runtime, persistencia ni plataforma de despliegue. Tampoco existe un dominio propio de envío. `ADR-0010` exige revisar encargados, subencargados, regiones, contrato, retención y transferencias antes de habilitar un proveedor con datos reales.
+El diseño todavía no ha elegido runtime ni plataforma de despliegue. `ADR-0012` define PostgreSQL como persistencia y concreta la reclamación recuperable de la outbox. Tampoco existe un dominio propio de envío. `ADR-0010` exige revisar encargados, subencargados, regiones, contrato, retención y transferencias antes de habilitar un proveedor con datos reales.
 
 La escala prevista, superior a `500` corredores pero limitada a un único club, no justifica introducir un broker distribuido solo para correo. Sí exige recuperar trabajo después de caídas, evitar duplicados lógicos, distinguir aceptación del proveedor de entrega y operar rebotes o fallos globales sin depender de estados visibles en el producto.
 
@@ -30,7 +30,7 @@ Todas las solicitudes se persistirán en una outbox de la misma base de datos de
 - si no puede persistirse la solicitud, tampoco se confirmará el secreto o publicación que la origina;
 - confirmar la transacción no esperará a Brevo.
 
-Un worker ejecutado dentro de la misma aplicación reclamará solicitudes mediante un arrendamiento temporal recuperable. La implementación concreta de bloqueo dependerá de la persistencia elegida, pero deberá impedir procesamiento concurrente ordinario y devolver a `pendiente` cualquier trabajo abandonado tras una caída. El PMV no incorporará un broker externo para esta carga.
+Un worker ejecutado dentro de la misma aplicación reclamará solicitudes mediante el bloqueo, lease con token y recuperación definidos por `ADR-0012`. Deberá impedir procesamiento concurrente ordinario y devolver a `pendiente` cualquier trabajo abandonado tras una caída. El PMV no incorporará un broker externo para esta carga.
 
 La entrega tendrá semántica **al menos una vez**. Cada solicitud lógica será inmutable y conservará una clave idempotente UUID estable y una etiqueta opaca de correlación. Todos sus intentos usarán la misma clave, etiqueta, destino y contenido. El adaptador enviará ambos identificadores a Brevo y persistirá el identificador de mensaje devuelto. La idempotencia reduce duplicados ante respuestas perdidas, pero no permite prometer exactamente un correo físico y Brevo solo conserva su clave durante `30` minutos.
 
@@ -177,7 +177,8 @@ Se descarta porque trasladaría reputación, entregabilidad, seguridad, rebotes,
 - **Bloqueante para producción:** adquirir y controlar un dominio, definir remitente y autenticarlo con Brevo. Responsable: propietario del servicio. Tratamiento: completar DNS y pruebas de entrega antes del primer envío real.
 - **Bloqueante para producción:** revisar y aprobar Brevo como encargado bajo `ADR-0010`, incluidos DPA, subencargados, ubicaciones, retención y cualquier transferencia. Responsable: responsable del tratamiento con asesoramiento de privacidad. Tratamiento: no contratar ni enviar datos reales hasta aportar la evidencia.
 - **Bloqueante para producción:** fijar canal, destinatario y umbrales de alertas con la plataforma de despliegue. Responsable: revisor de arquitectura y persona operadora. Tratamiento: documentar y probar antes de habilitar el worker en producción.
-- **Pendiente, sin bloquear la aceptación:** concretar bloqueo, arrendamiento, planificación y ejecución del worker con la persistencia y runtime elegidos. Responsable: revisor de arquitectura. Tratamiento: conservar la semántica verificable de este ADR al decidir stack y despliegue.
+- **Pendiente, sin bloquear la aceptación:** concretar proceso, frecuencia, concurrencia, timeouts y tamaño de lote del worker con el runtime y despliegue elegidos. Responsable: revisor de arquitectura. Tratamiento: conservar la semántica verificable de este ADR y el mecanismo de reclamación de `ADR-0012`.
+- **Resuelto por `ADR-0012`:** PostgreSQL reclamará lotes con `FOR UPDATE SKIP LOCKED`, lease persistente y token frente a workers obsoletos.
 
 ## Referencias
 

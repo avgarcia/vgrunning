@@ -10,7 +10,7 @@ El PMV necesita que el administrador invite corredores por correo, que estos act
 
 `ADR-0002` establece una aplicación web única con backend modular y una frontera transaccional común. La identidad debe aportar una persona autenticada y una sesión segura sin asumir qué operaciones permite cada rol; la autorización por rol y el aislamiento del corredor pertenecen a `ADR-0004`.
 
-Este ADR no elige framework, persistencia, proveedor de correo ni plataforma. La entrega de los correos de acceso se rige por `ADR-0011`; el resto de elecciones debe permitir gestionar credenciales y secretos de forma segura sin exponerlos al navegador ni almacenar contraseñas o tokens en texto claro.
+Este ADR no elige framework ni plataforma. `ADR-0012` define la persistencia y `ADR-0011` rige la entrega de los correos de acceso; el resto de elecciones debe permitir gestionar credenciales y secretos de forma segura sin exponerlos al navegador ni almacenar contraseñas o tokens en texto claro.
 
 ## Decisión
 
@@ -73,4 +73,5 @@ Se descarta para la primera aplicación web. Complica revocación, tratamiento a
 
 ## Decisiones pendientes
 
-- **Pendiente, sin bloquear este ADR:** elegir framework, persistencia y plataforma de despliegue. Responsable: revisor de arquitectura. Tratamiento: mantener la decisión compatible con sesiones opacas, secretos verificables y cookies seguras.
+- **Pendiente, sin bloquear este ADR:** elegir framework, runtime y plataforma de despliegue. Responsable: revisor de arquitectura. Tratamiento: mantener la decisión compatible con sesiones opacas, secretos verificables y cookies seguras.
+- **Resuelto por `ADR-0012`:** sesiones y verificadores se persistirán en PostgreSQL bajo las restricciones y migraciones allí definidas.

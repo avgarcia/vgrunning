@@ -63,4 +63,5 @@ Al cerrar Fase 2 se debe comprobar que:
 
 ## Decisiones pendientes
 
-- Stack técnico, despliegue y estrategia de persistencia. Responsable: Revisor de arquitectura. Tratamiento: resolver en ADRs específicos antes de cerrar el diseño técnico general.
+- Framework, runtime y despliegue. Responsable: Revisor de arquitectura. Tratamiento: resolver en ADRs específicos antes de cerrar el diseño técnico general.
+- **Resuelto por `ADR-0012`:** PostgreSQL como persistencia primaria y estrategia transaccional del PMV.

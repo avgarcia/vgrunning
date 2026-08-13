@@ -1,7 +1,7 @@
 # Architecture Decision Records
 
 **Estado:** Vigente
-**Fecha:** 2026-08-12
+**Fecha:** 2026-08-13
 
 ## Propósito
 
@@ -45,6 +45,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0009](0009-training-feedback-history-review.md) | Seguimiento por entrenamiento, historial y revisión | Aceptado | `RF-17`, `RF-18`, `RF-19` |
 | [ADR-0010](0010-privacy-retention-rights-readiness.md) | Preparación para privacidad, retención y derechos | Propuesto | Todos los `RF`; requisito no funcional de datos y privacidad |
 | [ADR-0011](0011-transactional-email-delivery-strategy.md) | Entrega de correo transaccional | Aceptado | `RF-01`, `RF-15`, `RF-20` |
+| [ADR-0012](0012-relational-persistence-transaction-strategy.md) | Persistencia relacional y estrategia transaccional | Aceptado | Todos los `RF`; especialmente `RF-03`, `RF-05` a `RF-10`, `RF-14`, `RF-15` y `RF-17` a `RF-20` |
 
 ## Backlog inicial de Fase 2
 

@@ -51,7 +51,7 @@ Solo un administrador puede crear o invitar cuentas y asignar su rol inicial. Un
 
 La asignación inicial de rol registrará actor, cuenta afectada, rol y fecha, sin almacenar credenciales ni secretos. Esta inmutabilidad restringe deliberadamente el criterio de aceptación original de `RF-02`, que contemplaba modificar el rol de un usuario. El cambio queda registrado en Fase 2 y deberá reflejarse en sus pruebas: se acepta asignar el rol al crear la cuenta y se rechaza modificarlo después.
 
-La política se implementará en la capa de aplicación de cada módulo. Una futura base de datos podrá añadir controles como seguridad por fila como defensa adicional, pero estos no sustituirán la autorización de casos de uso ni serán requisito para aceptar este ADR.
+La política se implementará en la capa de aplicación de cada módulo. `ADR-0012` descarta PostgreSQL Row-Level Security para el PMV; una decisión futura podrá añadirla como defensa adicional, pero nunca sustituirá la autorización de casos de uso.
 
 ## Alternativas consideradas
 
@@ -69,7 +69,7 @@ Se descarta porque una misma persona necesitaría dos cuentas y, por la unicidad
 
 ### Alternativa D: Seguridad por fila en base de datos como mecanismo principal
 
-Se descarta como mecanismo principal porque todavía no se ha elegido persistencia y porque no cubre por sí sola acciones, transiciones ni reglas entre módulos. Puede adoptarse después como control complementario.
+Se descarta como mecanismo principal porque no cubre por sí sola acciones, transiciones ni reglas entre módulos. `ADR-0012` decide no añadirla tampoco como defensa complementaria durante el PMV.
 
 ### Alternativa E: Permitir cambios de rol
 
@@ -122,5 +122,5 @@ Se descarta para el PMV. Aunque facilitaría promociones, correcciones y cambios
 ## Decisiones pendientes
 
 - **Pendiente, sin bloquear este ADR:** elegir el mecanismo concreto de políticas del framework. Responsable: revisor de arquitectura. Tratamiento: documentarlo al seleccionar el stack y conservar denegación por defecto, matriz y alcance por recurso.
-- **Pendiente, sin bloquear este ADR:** decidir si la persistencia elegida añade seguridad por fila como defensa adicional. Responsable: revisor de arquitectura. Tratamiento: evaluarlo con la elección de base de datos sin sustituir controles de aplicación.
+- **Resuelto por `ADR-0012`:** el PMV no usará PostgreSQL Row-Level Security y la autorización del backend seguirá siendo canónica y obligatoria.
 - **Bloqueante para producción, no para aceptar este ADR:** `ADR-0010` debe fijar retención y acceso al registro de asignaciones iniciales de rol. Responsable: responsable de privacidad o DPO. Tratamiento: resolverlo antes de producción.

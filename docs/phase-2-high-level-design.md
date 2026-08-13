@@ -1,13 +1,13 @@
 # Diseño funcional y técnico de alto nivel — Fase 2
 
 **Estado:** Propuesto
-**Fecha:** 2026-08-12
+**Fecha:** 2026-08-13
 
 ## Propósito
 
 Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazable. Este documento delimita los componentes lógicos, los flujos, los datos y las decisiones técnicas que deben resolverse antes de implementar el PMV.
 
-No selecciona framework, base de datos, proveedor de identidad ni estrategia de despliegue. La entrega de correo se concreta en `ADR-0011`; las decisiones todavía abiertas deben registrarse en ADRs antes de cerrar el diseño afectado.
+No selecciona framework, proveedor de identidad ni estrategia de despliegue. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. Las decisiones todavía abiertas deben registrarse en ADRs antes de cerrar el diseño afectado.
 
 ## Alcance y restricciones heredadas
 
@@ -39,7 +39,7 @@ No selecciona framework, base de datos, proveedor de identidad ni estrategia de 
 | Consulta del corredor | Consulta móvil de planes, entrenamientos, ubicación e historial propio. | `RF-16`, `RF-18` | Vista derivada de publicaciones y seguimiento del corredor autenticado. |
 | Seguimiento y revisión | Registro de ejecución y consulta por entrenador. | `RF-17`, `RF-18`, `RF-19` | Registro de seguimiento vinculado a entrenamiento y publicación. |
 
-Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como módulos de una única aplicación desplegable, sin introducir multiclub fuera de alcance. Las decisiones de tecnología, persistencia y plataforma de despliegue siguen pendientes.
+Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como módulos de una única aplicación desplegable, sin introducir multiclub fuera de alcance. Framework, runtime y plataforma de despliegue siguen pendientes; persistencia y transacciones se rigen por `ADR-0012` aceptado.
 
 ## Flujos de alto nivel
 
@@ -86,7 +86,7 @@ Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como
 | Seguimiento | Un corredor registra una única respuesta estructurada por entrenamiento publicado durante su ventana de siete días; ausencia, no realización y retirada son estados diferenciados. |
 | Notificación | Se origina exclusivamente por publicación o republicación; referencia la versión, destinatario, contenido requerido y resultado de entrega cuando ese dato se incorpore. |
 
-El modelo es conceptual y no define tablas, identificadores, índices, consistencia transaccional ni retención. Esos detalles dependen de ADRs y diseño posterior.
+El modelo es conceptual y no define tablas, identificadores, índices físicos concretos ni retención. `ADR-0012` define el motor, las garantías transaccionales y la estrategia de índices; los detalles restantes dependen del diseño posterior.
 
 ## Trazabilidad de requisitos
 
@@ -141,6 +141,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `ADR-0009`: seguimiento e historial | Identidad del registro, ventana de actualización, versiones, conjunto histórico y revisión global. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con siete días, versión fijada al responder, retirados históricos y lectura global sin flujo de revisión. |
 | `ADR-0010`: privacidad, retención y derechos | Responsable, bases, mayores de edad, conservación, derechos, encargados, riesgos y evidencias. | Salida a producción y cualquier cambio de alcance derivado. | Responsable del tratamiento con asesoramiento de privacidad | Propuesto con validación documental superada; aceptación bloqueada por identidad real, contacto, bases y revisión de retención, sin autorización de producción. |
 | `ADR-0011`: correo transaccional | Brevo por API REST, outbox persistente, worker interno, reintentos por tipo, webhooks, supresión y observabilidad. | No bloquea implementación; decisión aceptada. Dominio, revisión de privacidad y alertas bloquean producción. | Revisor de arquitectura | Aceptado con reconciliación dentro del TTL, entrega posterior gestionada por Brevo y orden liberado al aceptar el proveedor. |
+| `ADR-0012`: persistencia y transacciones | PostgreSQL, restricciones, coordinación de planificación, publicación, outbox recuperable, índices, cursores y migraciones. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con PostgreSQL compartido, `READ COMMITTED`, bloqueos explícitos, restricciones físicas, outbox con lease, cursor y migraciones versionadas. |
 
 ## Riesgos y mitigaciones
 
