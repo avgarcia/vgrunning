@@ -11,7 +11,7 @@ El PMV es una aplicación web adaptable para la operación interna de un único 
 
 El diseño de alto nivel separa identidad y acceso, administración y taxonomías, segmentación, planificación, publicación y notificación, consulta del corredor y seguimiento y revisión. Sin una decisión de arquitectura, estos límites pueden convertirse en una aplicación sin fronteras verificables o, en sentido contrario, en servicios distribuidos injustificados.
 
-No se ha elegido framework, base de datos, proveedor de identidad, proveedor de correo ni plataforma de despliegue. La publicación atómica, la autorización y las notificaciones tienen ADRs propios pendientes, por lo que esta decisión no define sus mecanismos internos.
+Este ADR no elige framework, base de datos, proveedor de identidad, proveedor de correo ni plataforma de despliegue. La publicación atómica, la autorización y las notificaciones tienen ADRs propios, por lo que esta decisión no define sus mecanismos internos.
 
 ## Decisión
 
@@ -45,7 +45,7 @@ Se descarta porque mezclaría permisos, segmentación, publicación y seguimient
 - Los módulos reducen el acoplamiento lógico, pero requieren revisión de sus interfaces y pruebas de autorización y publicación en sus límites.
 - No existe aislamiento entre organizaciones porque solo hay un club; esta limitación es intencionada y no debe presentarse como capacidad multiclub.
 - La evolución a multiclub no será un cambio de configuración. Requerirá un ADR de reemplazo, migraciones de datos y rediseño de permisos.
-- La elección de tecnología, persistencia, autenticación, autorización, publicación y correo sigue abierta. No debe inferirse de esta decisión.
+- La tecnología, persistencia y despliegue no deben inferirse de esta decisión. Identidad, autorización, publicación y correo se rigen por sus ADRs específicos.
 
 ## Requisitos relacionados
 
@@ -86,5 +86,4 @@ Se descarta porque mezclaría permisos, segmentación, publicación y seguimient
 
 ## Decisiones pendientes
 
-- **Bloqueante para implementar correo:** `ADR-0011` debe decidir proveedor, entrega, reintentos automáticos y observabilidad. Responsable: revisor de arquitectura. Tratamiento: aceptarlo antes de implementar cualquier correo.
 - **Pendiente, sin bloquear este ADR:** seleccionar framework, persistencia y plataforma de despliegue. Responsable: revisor de arquitectura. Tratamiento: registrar decisiones específicas antes de implementar los componentes que dependan de ellas.

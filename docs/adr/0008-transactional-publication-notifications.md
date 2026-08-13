@@ -10,7 +10,7 @@
 
 `ADR-0007` hace visible cada versión de forma atómica, congela los destinatarios en la primera publicación y evita que la entrega de un sistema externo participe en la transacción de publicación. Queda por garantizar que toda versión confirmada produzca las solicitudes de notificación correctas sin perderlas, duplicarlas como eventos lógicos ni revertir una publicación porque el proveedor de correo esté temporalmente indisponible.
 
-Este ADR decide la semántica de las notificaciones de publicación y su vínculo con la versión publicada. `ADR-0011` decidirá la infraestructura común de correo transaccional para acceso y publicación: proveedor, procesamiento asíncrono, política temporal de reintentos, credenciales, observabilidad técnica y operación del canal.
+Este ADR decide la semántica de las notificaciones de publicación y su vínculo con la versión publicada. `ADR-0011` define la infraestructura común de correo transaccional para acceso y publicación: proveedor, procesamiento asíncrono, política temporal de reintentos, credenciales, observabilidad técnica y operación del canal.
 
 ## Decisión
 
@@ -29,11 +29,11 @@ El contenido se generará exclusivamente a partir de la instantánea inmutable d
 
 El enlace abrirá el plan semanal activo del destinatario, no concederá acceso por sí mismo y aplicará la autorización de `ADR-0004`. Si existe una versión posterior cuando se abre el enlace, se mostrará la versión activa actual; el correo no crea acceso permanente a una versión histórica.
 
-La solicitud conservará un estado lógico de entrega suficiente para trazabilidad técnica, pero el PMV no expondrá estados ni detalles de entrega a administrador, entrenador o corredor. El procesamiento, las transiciones técnicas, la política de reintentos automáticos y el criterio de fallo definitivo se concretarán en `ADR-0011` sin cambiar la relación inmutable entre solicitud, publicación y destinatario.
+La solicitud conservará un estado lógico de entrega suficiente para trazabilidad técnica, pero el PMV no expondrá estados ni detalles de entrega a administrador, entrenador o corredor. El procesamiento, las transiciones técnicas, la política de reintentos automáticos y el criterio de fallo definitivo se concretan en `ADR-0011` sin cambiar la relación inmutable entre solicitud, publicación y destinatario.
 
 El PMV no ofrecerá reintento manual a administrador ni entrenador. Un reintento automático entregará una solicitud existente y no constituirá una nueva publicación, republicación ni notificación lógica. Editar un borrador, consultar un plan, cambiar un grupo o ejecutar cualquier otra acción no creará solicitudes de correo de publicación.
 
-Todas las publicaciones y republicaciones conservarán su propia solicitud y ninguna sustituirá a otra pendiente. Para cada pareja plan-destinatario, las solicitudes se procesarán por número de versión: una versión posterior no comenzará sus intentos hasta que la anterior quede enviada o alcance el fallo definitivo definido por `ADR-0011`. Esta regla garantiza orden de procesamiento, no una entrega física que ningún proveedor puede asegurar.
+Todas las publicaciones y republicaciones conservarán su propia solicitud y ninguna sustituirá a otra pendiente. Para cada pareja plan-destinatario, las solicitudes se procesarán por número de versión: una versión posterior no comenzará sus intentos hasta que la anterior quede `aceptado-proveedor` o alcance `fallo-definitivo` según `ADR-0011`. Esta regla garantiza orden de procesamiento, no una entrega física que ningún proveedor puede asegurar.
 
 ## Alternativas consideradas
 
@@ -63,18 +63,18 @@ Se descarta porque cada publicación y republicación es un hecho exigido por `R
 
 ### Alternativa G: Exponer estados y reintentos manuales
 
-Se descarta para el PMV porque el registro de entrega es deseable, no imprescindible, y añadiría interfaz, permisos y operación manual. La trazabilidad técnica y los reintentos automáticos se resolverán en `ADR-0011`.
+Se descarta para el PMV porque el registro de entrega es deseable, no imprescindible, y añadiría interfaz, permisos y operación manual. La trazabilidad técnica y los reintentos automáticos se resuelven en `ADR-0011`.
 
 ## Consecuencias
 
 - No puede existir una publicación confirmada sin solicitudes persistidas para los destinatarios que deban ser notificados.
 - La publicación no espera al proveedor y conserva visibilidad inmediata aunque la entrega esté pendiente o falle.
 - Habrá un registro por versión y destinatario, con coste de almacenamiento aceptable para la escala del PMV.
-- La idempotencia lógica evita crear solicitudes duplicadas, pero `ADR-0011` deberá asumir que ningún proveedor garantiza exactamente una entrega física.
+- La idempotencia lógica evita crear solicitudes duplicadas, pero `ADR-0011` asume que ningún proveedor garantiza exactamente una entrega física.
 - El resumen se mantiene deliberadamente breve y excluye contenido detallado del entrenamiento para no convertir el correo en una copia del plan ni ampliar exposición de datos.
 - No existe operación manual ni visibilidad de entrega en el PMV; diagnosticar fallos dependerá de la observabilidad técnica de `ADR-0011`.
 - El orden por plan y destinatario puede retrasar una versión posterior mientras se resuelve la anterior, pero evita mensajes fuera de secuencia y no descarta ninguna publicación.
-- `ADR-0011` queda bloqueante para implementar el envío real, aunque este ADR puede cerrar antes la semántica y el modelo lógico.
+- `ADR-0011` aceptado permite implementar el envío real; sus bloqueos de dominio, privacidad y operación siguen impidiendo producción.
 
 ## Requisitos relacionados
 
@@ -102,4 +102,4 @@ Se descarta para el PMV porque el registro de entrega es deseable, no imprescind
 
 ## Decisiones pendientes
 
-- **Bloqueante para implementar correo:** `ADR-0011` debe decidir proveedor, ejecución asíncrona, reintentos automáticos, fallo definitivo, observabilidad y operación. Responsable: revisor de arquitectura. Tratamiento: aceptar antes de implementar cualquier envío, sin bloquear la aceptación de la semántica de este ADR.
+Ninguna.
