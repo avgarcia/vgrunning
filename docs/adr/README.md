@@ -44,6 +44,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0008](0008-transactional-publication-notifications.md) | Solicitud transaccional de notificaciones de publicación | Aceptado | `RF-15`, `RF-20` |
 | [ADR-0009](0009-training-feedback-history-review.md) | Seguimiento por entrenamiento, historial y revisión | Aceptado | `RF-17`, `RF-18`, `RF-19` |
 | [ADR-0010](0010-privacy-retention-rights-readiness.md) | Preparación para privacidad, retención y derechos | Propuesto | Todos los `RF`; requisito no funcional de datos y privacidad |
+| [ADR-0011](0011-transactional-email-delivery-strategy.md) | Entrega de correo transaccional | Aceptado | `RF-01`, `RF-15`, `RF-20` |
 
 ## Backlog inicial de Fase 2
 
@@ -51,4 +52,3 @@ Estos ADRs candidatos deben confirmarse, dividirse o descartarse durante el dise
 
 | Candidato | Decisión pendiente | Requisitos relacionados | Tratamiento |
 | --- | --- | --- | --- |
-| ADR-0011 | Estrategia de correo transaccional para acceso y publicación | `RF-01`, `RF-15`, `RF-20` | Resolver antes de implementar cualquier correo del PMV. |

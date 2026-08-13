@@ -51,8 +51,3 @@ El despliegue provisiona una única cuenta pendiente con rol administrador media
 - Medir en el entorno elegido el coste de Argon2id y no habilitar acceso si no cumple los parámetros mínimos.
 - Verificar atributos de cookie, protección anti-CSRF, ausencia de secretos en respuestas, URL de redirección, registros o analítica.
 - Revisar esta línea base cuando cambie la plataforma, antes de producción y ante un incidente de seguridad.
-
-## Pendientes fuera de esta línea base
-
-- `ADR-0004` definirá autorización por rol y aislamiento de datos.
-- `ADR-0011` debe decidir proveedor, entrega, reintentos y observabilidad del correo transaccional para acceso y publicación.

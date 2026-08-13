@@ -14,7 +14,7 @@ Este documento no decide todavía el stack técnico ni la arquitectura final. Su
 - Fase 1 está cerrada como fuente de requisitos funcionales imprescindibles `RF-01` a `RF-20`.
 - La [Matriz de decisiones de Fase 1](phase-1-decision-matrix.md) recoge decisiones funcionales que Fase 2 debe materializar técnicamente.
 - El PMV sigue limitado a un único club y a una aplicación web adaptable.
-- Todavía no hay runtime, framework, base de datos, proveedor de correo ni estrategia de despliegue seleccionados.
+- Al iniciar Fase 2 no había runtime, framework, base de datos, proveedor de correo ni estrategia de despliegue seleccionados; las decisiones posteriores se registran en el índice de ADRs.
 
 ## Regla de trabajo
 

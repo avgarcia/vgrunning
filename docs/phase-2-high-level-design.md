@@ -7,7 +7,7 @@
 
 Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazable. Este documento delimita los componentes lógicos, los flujos, los datos y las decisiones técnicas que deben resolverse antes de implementar el PMV.
 
-No selecciona framework, base de datos, proveedor de identidad, proveedor de correo ni estrategia de despliegue. Esas decisiones deben registrarse en ADRs antes de cerrar el diseño afectado.
+No selecciona framework, base de datos, proveedor de identidad ni estrategia de despliegue. La entrega de correo se concreta en `ADR-0011`; las decisiones todavía abiertas deben registrarse en ADRs antes de cerrar el diseño afectado.
 
 ## Alcance y restricciones heredadas
 
@@ -64,7 +64,7 @@ Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como
 1. Una publicación válida hace visible el plan completo a todos los destinatarios efectivos en una única operación lógica.
 2. La publicación conserva una versión y su conjunto de destinatarios.
 3. Cualquier cambio en contenido visible crea una nueva publicación del plan completo para los mismos destinatarios; cambios internos o de auditoría no obligan a republicar.
-4. La publicación o republicación crea transaccionalmente una solicitud individual para cada destinatario congelado. La entrega asíncrona, los reintentos automáticos y la observabilidad técnica quedan pendientes de `ADR-0011`.
+4. La publicación o republicación crea transaccionalmente una solicitud individual para cada destinatario congelado. `ADR-0011` define su entrega asíncrona mediante outbox, worker interno y Brevo, con reintentos y observabilidad técnica.
 
 ### Consulta, seguimiento y revisión
 
@@ -113,7 +113,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `RF-17` | Seguimiento y revisión | Registro único por corredor y entrenamiento, editable durante siete días desde su fecha; `realizado` exige esfuerzo y sensación, `no-realizado` los omite y el comentario admite hasta `1.000` caracteres. | `D-07` | `ADR-0004` (Aceptado), `ADR-0009` (Aceptado) | Criterios de `RF-17`; pruebas de valores, comentario, ventana, pertenencia, actualización y concurrencia. | Pendiente |
 | `RF-18` | Consulta del corredor y Seguimiento | Historial propio de todo entrenamiento publicado, incluidos `sin-seguimiento` y `retirado`, con versión de respuesta e aislamiento. | `D-07`, `D-08` | `ADR-0004` (Aceptado), `ADR-0009` (Aceptado) | Criterios de `RF-18`; pruebas de conjunto histórico, versiones, retirados y acceso indebido. | Pendiente |
 | `RF-19` | Seguimiento y revisión | Administrador y entrenador consultan globalmente seguimiento y ausencias por corredor, plan o entrenamiento, sin modificar ni revisar. | `D-07`, `D-08` | `ADR-0004` (Aceptado), `ADR-0009` (Aceptado) | Criterios de `RF-19`; pruebas de filtros, ausencias y permisos. | Pendiente |
-| `RF-20` | Publicación y notificación | Cada publicación confirmada genera una solicitud individual por destinatario, con semana, día, fecha y tipo de cada entrenamiento y enlace; las versiones se procesan en orden sin sustitución. | `D-06` | `ADR-0007` (Aceptado), `ADR-0008` (Aceptado), `ADR-0011` | Criterios de `RF-20`; pruebas de contenido, destinatario, atomicidad, orden y no emisión. | Pendiente |
+| `RF-20` | Publicación y notificación | Cada publicación confirmada genera una solicitud individual por destinatario, con semana, día, fecha y tipo de cada entrenamiento y enlace; las versiones se procesan en orden sin sustitución. | `D-06` | `ADR-0007` (Aceptado), `ADR-0008` (Aceptado), `ADR-0011` (Aceptado) | Criterios de `RF-20`; pruebas de contenido, destinatario, atomicidad, orden y no emisión. | Pendiente |
 
 ## Trazabilidad de decisiones de Fase 1
 
@@ -124,7 +124,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `D-03` | Límite de un único club en todos los componentes lógicos, materializado como una aplicación única modular. | `ADR-0002` (Aceptado) |
 | `D-04` | Ubicación libre por entrenamiento presencial. | `ADR-0006` (Aceptado) |
 | `D-05` | Gramática limitada de reglas de segmentos. | `ADR-0005` (Aceptado) |
-| `D-06` | Republicación atómica, versiones completas, destinatarios congelados y solicitud transaccional de correo. | `ADR-0007` (Aceptado), `ADR-0008` (Aceptado), `ADR-0011` |
+| `D-06` | Republicación atómica, versiones completas, destinatarios congelados y solicitud transaccional de correo. | `ADR-0007` (Aceptado), `ADR-0008` (Aceptado), `ADR-0011` (Aceptado) |
 | `D-07` | Seguimiento estructurado, historial y revisión global de solo lectura. | `ADR-0009` (Aceptado) |
 | `D-08` | Permisos globales de entrenador y aislamiento del corredor. | `ADR-0004` (Aceptado) |
 
@@ -140,7 +140,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `ADR-0008`: notificaciones de publicación | Solicitudes transaccionales, destinatarios, contenido, idempotencia lógica y orden. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con solicitud individual para todos los destinatarios, sin estado visible ni reintento manual. |
 | `ADR-0009`: seguimiento e historial | Identidad del registro, ventana de actualización, versiones, conjunto histórico y revisión global. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con siete días, versión fijada al responder, retirados históricos y lectura global sin flujo de revisión. |
 | `ADR-0010`: privacidad, retención y derechos | Responsable, bases, mayores de edad, conservación, derechos, encargados, riesgos y evidencias. | Salida a producción y cualquier cambio de alcance derivado. | Responsable del tratamiento con asesoramiento de privacidad | Propuesto con validación documental superada; aceptación bloqueada por identidad real, contacto, bases y revisión de retención, sin autorización de producción. |
-| `ADR-0011`: correo transaccional | Proveedor, entrega, reintentos y observabilidad de los correos de acceso y publicación. | Implementar cualquier correo del PMV. | Revisor de arquitectura | Proponer y aceptar antes de implementar correo. |
+| `ADR-0011`: correo transaccional | Brevo por API REST, outbox persistente, worker interno, reintentos por tipo, webhooks, supresión y observabilidad. | No bloquea implementación; decisión aceptada. Dominio, revisión de privacidad y alertas bloquean producción. | Revisor de arquitectura | Aceptado con reconciliación dentro del TTL, entrega posterior gestionada por Brevo y orden liberado al aceptar el proveedor. |
 
 ## Riesgos y mitigaciones
 
@@ -149,7 +149,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 - Convertir reglas de segmentos en un lenguaje genérico ampliaría el alcance. Mitigación: conservar la gramática de `D-05` y rechazar expresiones libres.
 - Un cambio de etiquetas, segmentos o excepciones podría situar a un corredor en dos grupos. Mitigación: validar todos los grupos afectados y rechazar la operación completa mostrando los conflictos.
 - Un cambio de grupo posterior a una publicación podría intentar incluir al corredor en otro plan de la misma semana. Mitigación: los planes ya publicados conservan destinatarios y la primera publicación de otro plan comprueba unicidad transaccional por corredor y semana.
-- Implementar parcialmente la semántica de republicación puede producir correos duplicados, omitidos o fuera de orden. Mitigación: aplicar `ADR-0007` y `ADR-0008` y resolver `ADR-0011` antes de implementar notificaciones.
+- Implementar parcialmente la semántica de republicación puede producir correos duplicados, omitidos o fuera de orden. Mitigación: aplicar conjuntamente `ADR-0007`, `ADR-0008` y `ADR-0011`.
 - El comentario libre puede contener datos de salud aunque el PMV no los solicite. Mitigación: mantener los campos acotados, no presentar el seguimiento como clínico y resolver base jurídica, información, retención y derechos en `ADR-0010` antes de producción.
 
 ## Criterios para avanzar

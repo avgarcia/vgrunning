@@ -10,7 +10,7 @@ El PMV necesita que el administrador invite corredores por correo, que estos act
 
 `ADR-0002` establece una aplicación web única con backend modular y una frontera transaccional común. La identidad debe aportar una persona autenticada y una sesión segura sin asumir qué operaciones permite cada rol; la autorización por rol y el aislamiento del corredor pertenecen a `ADR-0004`.
 
-El diseño no ha elegido framework, persistencia, proveedor de correo ni plataforma. La elección debe permitir gestionar credenciales y secretos de forma segura sin exponerlos al navegador ni almacenar contraseñas o tokens en texto claro.
+Este ADR no elige framework, persistencia, proveedor de correo ni plataforma. La entrega de los correos de acceso se rige por `ADR-0011`; el resto de elecciones debe permitir gestionar credenciales y secretos de forma segura sin exponerlos al navegador ni almacenar contraseñas o tokens en texto claro.
 
 ## Decisión
 
@@ -73,5 +73,4 @@ Se descarta para la primera aplicación web. Complica revocación, tratamiento a
 
 ## Decisiones pendientes
 
-- **Bloqueante para enviar correos de acceso:** `ADR-0011` debe decidir proveedor, entrega, reintentos y observabilidad del correo transaccional. Responsable: revisor de arquitectura. Tratamiento: proponerlo y aceptarlo antes de implementar invitación o recuperación por correo; no se reutiliza implícitamente `ADR-0008`, que cubre la semántica de correo de publicación.
 - **Pendiente, sin bloquear este ADR:** elegir framework, persistencia y plataforma de despliegue. Responsable: revisor de arquitectura. Tratamiento: mantener la decisión compatible con sesiones opacas, secretos verificables y cookies seguras.

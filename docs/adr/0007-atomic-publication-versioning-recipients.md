@@ -10,7 +10,7 @@ El PMV debe publicar un plan semanal completo para los miembros efectivos de su 
 
 `ADR-0002` establece una única frontera de datos transaccionales. `ADR-0004` permite al corredor leer una publicación solo si aparece en su instantánea de destinatarios. `ADR-0005` define segmentos dinámicos y `ADR-0006` grupos exclusivos, un plan por pareja grupo-semana y contenido editable separado de sus futuras versiones publicadas.
 
-Fase 1 exige publicación y republicación atómicas, impide cambios silenciosos y exige correo para destinatarios afectados. Este ADR decide la consistencia del dominio, las versiones y la visibilidad. `ADR-0008` define la solicitud transaccional de notificación y `ADR-0011` decidirá su entrega asíncrona; la entrega externa no formará parte de la transacción que hace visible el plan.
+Fase 1 exige publicación y republicación atómicas, impide cambios silenciosos y exige correo para destinatarios afectados. Este ADR decide la consistencia del dominio, las versiones y la visibilidad. `ADR-0008` define la solicitud transaccional de notificación y `ADR-0011` su entrega asíncrona; la entrega externa no forma parte de la transacción que hace visible el plan.
 
 ## Decisión
 
@@ -138,5 +138,4 @@ Se descarta para el PMV. La acción de publicar produce visibilidad inmediata y 
 
 ## Decisiones pendientes
 
-- **Bloqueante para implementar notificaciones:** `ADR-0011` debe decidir proveedor, ejecución asíncrona, reintentos automáticos, fallo definitivo y observabilidad. Responsable: revisor de arquitectura. Tratamiento: aceptar antes de implementar correo, sin bloquear la persistencia de versiones, destinatarios y solicitudes de `ADR-0008`.
 - **Pendiente, sin bloquear este ADR:** elegir persistencia, nivel de aislamiento, restricciones e índices concretos. Responsable: revisor de arquitectura. Tratamiento: documentarlo con el stack y demostrar las garantías lógicas de este ADR.
