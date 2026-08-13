@@ -7,7 +7,7 @@
 
 Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazable. Este documento delimita los componentes lógicos, los flujos, los datos y las decisiones técnicas que deben resolverse antes de implementar el PMV.
 
-No selecciona framework, proveedor de identidad ni estrategia de despliegue. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. Las decisiones todavía abiertas deben registrarse en ADRs antes de cerrar el diseño afectado.
+`ADR-0013` define runtime, framework, acceso JDBC, frontend conjunto y contrato API; `ADR-0014` concreta la estructura modular y `ADR-0015` el mecanismo técnico de autorización. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. La plataforma de despliegue y los ADRs aún propuestos deben resolverse antes de cerrar el diseño afectado.
 
 ## Alcance y restricciones heredadas
 
@@ -31,15 +31,16 @@ No selecciona framework, proveedor de identidad ni estrategia de despliegue. `AD
 
 | Componente | Responsabilidad | Requisitos principales | Datos lógicos que gobierna |
 | --- | --- | --- | --- |
-| Identidad y acceso | Invitación, activación, inicio, restablecimiento y autorización por rol. | `RF-01`, `RF-02`, `RF-16`, `RF-18`, `RF-19` | Usuario, rol, estado de activación y credenciales. |
-| Administración y taxonomías | Gestión de usuarios, definiciones de etiquetas y valores permitidos. | `RF-02`, `RF-03`, `RF-04` | Corredor, etiqueta, valor permitido y asignación de etiqueta. |
-| Segmentación | Reglas dinámicas y excepciones manuales que producen clasificaciones reutilizables y solapables. | `RF-03`, `RF-05`, `RF-06`, `RF-08` | Segmento, criterio de etiqueta, inclusión manual y exclusión manual. |
+| Identidad y acceso | Cuentas de administrador, entrenador y corredor; invitación, activación, inicio, restablecimiento y rol. | `RF-01`, `RF-02`, `RF-16`, `RF-18`, `RF-19` | Cuenta, rol, estado de activación, credencial y sesión. |
+| Gestión de corredores | Perfil y ciclo de vida operativo del corredor, sin credenciales, roles ni clasificación. | `RF-02`, `RF-03`, `RF-16` a `RF-19` | Corredor y su vínculo con la cuenta. |
+| Clasificación y segmentación | Taxonomías, asignaciones, reglas dinámicas y excepciones manuales que producen segmentos reutilizables y solapables. | `RF-02` a `RF-06`, `RF-08` | Etiqueta, valor permitido, asignación, segmento, criterio, inclusión y exclusión. |
 | Planificación | Gestión de grupos exclusivos, planes semanales, fases, bloques, catálogo, objetivos y lugar de encuentro. | `RF-04`, `RF-07`, `RF-08`, `RF-11`, `RF-12`, `RF-13`, `RF-14` | Grupo de planificación, excepción de grupo, plan semanal, entrenamiento, fase, bloque, tipo, objetivo y ubicación. |
-| Publicación y notificación | Captura de miembros del grupo, publicación y republicación atómicas, versiones y solicitud de correo. | `RF-08`, `RF-09`, `RF-10`, `RF-14`, `RF-15`, `RF-20` | Publicación, versión publicada, destinatario efectivo y notificación. |
-| Consulta del corredor | Consulta móvil de planes, entrenamientos, ubicación e historial propio. | `RF-16`, `RF-18` | Vista derivada de publicaciones y seguimiento del corredor autenticado. |
-| Seguimiento y revisión | Registro de ejecución y consulta por entrenador. | `RF-17`, `RF-18`, `RF-19` | Registro de seguimiento vinculado a entrenamiento y publicación. |
+| Publicación | Captura de miembros, publicación y republicación atómicas, versiones, destinatarios y visibilidad. | `RF-08`, `RF-09`, `RF-10`, `RF-14`, `RF-15`, `RF-16`, `RF-20` | Publicación, versión publicada y destinatario efectivo. |
+| Entrega de notificaciones | Outbox, entrega de correo, leases, reintentos, webhooks y supresión. | `RF-01`, `RF-15`, `RF-20` | Solicitud y eventos técnicos de notificación. |
+| Seguimiento y revisión | Registro de ejecución, historial de respuesta y consulta global por entrenador. | `RF-17`, `RF-18`, `RF-19` | Registro de seguimiento vinculado a corredor, entrenamiento y publicación. |
+| Portal del corredor | Fachada móvil de consulta de planes, entrenamientos, ubicación e historial propios. | `RF-16`, `RF-18` | Vista derivada sin datos propios inicialmente. |
 
-Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como módulos de una única aplicación desplegable, sin introducir multiclub fuera de alcance. Framework, runtime y plataforma de despliegue siguen pendientes; persistencia y transacciones se rigen por `ADR-0012` aceptado.
+Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como módulos de una única aplicación desplegable, sin introducir multiclub fuera de alcance. `ADR-0014` define ocho módulos, sus APIs y un esquema PostgreSQL por módulo con estado, conservando una única base y transacciones compartidas. `ADR-0013` define Spring MVC, JDBC, jOOQ y despliegue conjunto del frontend; persistencia y transacciones se rigen por `ADR-0012` aceptado. La plataforma de despliegue sigue pendiente.
 
 ## Flujos de alto nivel
 
@@ -47,8 +48,8 @@ Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como
 
 1. El administrador invita al corredor por correo.
 2. El corredor activa su cuenta, define contraseña y puede iniciar sesión o solicitar restablecimiento.
-3. El administrador crea o invita usuarios, asigna su rol inicial inmutable y administra taxonomías cerradas; además puede realizar las operaciones del entrenador.
-4. Identidad aporta el rol asignado y cada módulo aplica en el backend la capacidad y el alcance del recurso; la administración de taxonomías no se delega a entrenador ni corredor.
+3. El administrador crea o invita cuentas, incluidas las de entrenador, asigna su rol inicial inmutable y gestiona el perfil operativo de los corredores.
+4. El administrador mantiene las taxonomías cerradas; identidad aporta el rol asignado y cada módulo aplica en el backend la capacidad y el alcance del recurso.
 
 ### Segmentación y planificación
 
@@ -95,25 +96,25 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | Requisito | Flujo y componente | Modelo lógico o regla principal | Decisiones de Fase 1 | ADR relacionado o candidato | Validación prevista | Estado |
 | --- | --- | --- | --- | --- | --- | --- |
 | `RF-01` | Acceso; Identidad y acceso | Invitación, activación, credencial y restablecimiento sin revelar cuentas existentes. | — | `ADR-0003` | Criterios de `RF-01`; pruebas de token, caducidad y enumeración de cuentas. | Pendiente |
-| `RF-02` | Administración; Identidad y acceso | Rol inicial inmutable y taxonomías cerradas administrados solo por administrador; modificar roles queda descartado en Fase 2. | `D-01`, `D-08` | `ADR-0003`, `ADR-0004`, `ADR-0005` | Criterios de `RF-02`, ajustados para probar asignación inicial y rechazo de cambios; pruebas de autorización. | Pendiente |
-| `RF-03` | Segmentación; Administración y taxonomías | Etiquetas controladas alimentan segmentos dinámicos y solapables. | `D-01`, `D-02` | `ADR-0005` | Criterios de `RF-03`; pruebas de evaluación dinámica y solapamiento permitido. | Pendiente |
-| `RF-04` | Planificación; Administración y taxonomías | Modalidad como etiqueta y ubicación libre solo cuando corresponda. | `D-02`, `D-04` | `ADR-0005`, `ADR-0006` (Aceptado) | Criterios de `RF-04`; pruebas de valores permitidos y ubicación. | Pendiente |
-| `RF-05` | Segmentación | Semántica limitada a Y, varios valores por etiqueta y sin expresiones libres. | `D-05` | `ADR-0005` | Criterios de `RF-05`; pruebas de reglas aceptadas y rechazadas. | Pendiente |
-| `RF-06` | Segmentación | Excepciones manuales se aplican sobre el resultado dinámico antes de resolver destinatarios. | `D-01`, `D-05` | `ADR-0005` | Criterios de `RF-06`; pruebas de inclusión y exclusión. | Pendiente |
+| `RF-02` | Administración; Identidad, Gestión de corredores y Clasificación | Rol inicial inmutable, perfil de corredor y taxonomías cerradas administrados solo por administrador; modificar roles queda descartado en Fase 2. | `D-01`, `D-08` | `ADR-0003`, `ADR-0004`, `ADR-0005` | Criterios de `RF-02`, ajustados para probar asignación inicial y rechazo de cambios; pruebas de autorización. | Pendiente |
+| `RF-03` | Clasificación y segmentación | Etiquetas controladas asignadas a corredores alimentan segmentos dinámicos y solapables. | `D-01`, `D-02` | `ADR-0005` | Criterios de `RF-03`; pruebas de evaluación dinámica y solapamiento permitido. | Pendiente |
+| `RF-04` | Planificación; Clasificación y segmentación | Modalidad como etiqueta y ubicación libre solo cuando corresponda. | `D-02`, `D-04` | `ADR-0005`, `ADR-0006` (Aceptado) | Criterios de `RF-04`; pruebas de valores permitidos y ubicación. | Pendiente |
+| `RF-05` | Clasificación y segmentación | Semántica limitada a Y, varios valores por etiqueta y sin expresiones libres. | `D-05` | `ADR-0005` | Criterios de `RF-05`; pruebas de reglas aceptadas y rechazadas. | Pendiente |
+| `RF-06` | Clasificación y segmentación | Excepciones manuales se aplican sobre el resultado dinámico antes de resolver destinatarios. | `D-01`, `D-05` | `ADR-0005` | Criterios de `RF-06`; pruebas de inclusión y exclusión. | Pendiente |
 | `RF-07` | Planificación | Cada grupo tiene como máximo un plan por semana; el plan admite como máximo un entrenamiento por día de lunes a domingo. | — | `ADR-0006` (Aceptado) | Criterios de `RF-07`; pruebas de ciclo de vida, unicidad grupo-semana y unicidad diaria. | Pendiente |
-| `RF-08` | Segmentación y Planificación | Un grupo combina segmentos e inclusiones o exclusiones persistentes; la primera publicación congela sus miembros para todas las versiones del plan. | `D-01` | `ADR-0005` (Aceptado), `ADR-0006` (Aceptado), `ADR-0007` (Aceptado) | Criterios de `RF-08`; pruebas de fórmula del grupo, referencias, exclusividad y captura al publicar. | Pendiente |
-| `RF-09` | Publicación y notificación | Validar, versionar y activar plan y destinatarios dentro de una única transacción. | `D-01`, `D-06` | `ADR-0007` (Aceptado) | Criterios de `RF-09`; pruebas de fallo sin visibilidad parcial. | Pendiente |
-| `RF-10` | Publicación y notificación | Cada publicación conserva contenido inmutable y el conjunto de destinatarios congelado en la primera versión. | `D-01`, `D-06` | `ADR-0007` (Aceptado) | Criterios de `RF-10`; pruebas ante cambios posteriores del borrador o grupo. | Pendiente |
+| `RF-08` | Clasificación, Planificación y Publicación | Un grupo combina segmentos e inclusiones o exclusiones persistentes; la primera publicación congela sus miembros para todas las versiones del plan. | `D-01` | `ADR-0005` (Aceptado), `ADR-0006` (Aceptado), `ADR-0007` (Aceptado) | Criterios de `RF-08`; pruebas de fórmula del grupo, referencias, exclusividad y captura al publicar. | Pendiente |
+| `RF-09` | Publicación | Validar, versionar y activar plan y destinatarios dentro de una única transacción. | `D-01`, `D-06` | `ADR-0007` (Aceptado) | Criterios de `RF-09`; pruebas de fallo sin visibilidad parcial. | Pendiente |
+| `RF-10` | Publicación | Cada publicación conserva contenido inmutable y el conjunto de destinatarios congelado en la primera versión. | `D-01`, `D-06` | `ADR-0007` (Aceptado) | Criterios de `RF-10`; pruebas ante cambios posteriores del borrador o grupo. | Pendiente |
 | `RF-11` | Planificación | El tipo de la parte principal usa el catálogo cerrado; calentamiento y enfriamiento son siempre `rodaje`. | — | `ADR-0006` (Aceptado) | Criterios de `RF-11`; pruebas de catálogo y fases fijas. | Pendiente |
 | `RF-12` | Planificación | Los bloques principales tienen repeticiones, duración o distancia, objetivo y recuperación estructurada; calentamiento y enfriamiento solo tienen duración. | — | `ADR-0006` (Aceptado) | Criterios de `RF-12`; pruebas de bloques, objetivos y modalidades de recuperación. | Pendiente |
-| `RF-13` | Planificación y Consulta del corredor | Ubicación libre se conserva y se muestra para entrenamiento presencial cuando exista. | `D-04` | `ADR-0006` (Aceptado) | Criterios de `RF-13`; pruebas de captura y consulta. | Pendiente |
+| `RF-13` | Planificación y Portal del corredor | Ubicación libre se conserva y se muestra para entrenamiento presencial cuando exista. | `D-04` | `ADR-0006` (Aceptado) | Criterios de `RF-13`; pruebas de captura y consulta. | Pendiente |
 | `RF-14` | Planificación y Publicación | Estados visibles: borrador y publicado; editar el borrador no altera la versión activa ni crea un tercer estado. | `D-06` | `ADR-0006` (Aceptado), `ADR-0007` (Aceptado) | Criterios de `RF-14`; pruebas de transiciones y cambios pendientes. | Pendiente |
-| `RF-15` | Publicación y notificación | Todo cambio visible exige una republicación completa y solicitudes individuales para todos los destinatarios congelados del plan. | `D-06` | `ADR-0007` (Aceptado), `ADR-0008` (Aceptado) | Criterios de `RF-15`; pruebas de versión, cambios relevantes, atomicidad y notificación. | Pendiente |
-| `RF-16` | Consulta del corredor; Identidad y acceso | Vista móvil del único plan semanal propio, sus fases, bloques y ubicación, sin exponer datos ajenos. | `D-04`, `D-08` | `ADR-0002`, `ADR-0004`, `ADR-0006` (Aceptado) | Criterios de `RF-16`; pruebas adaptables, de estructura y aislamiento. | Pendiente |
+| `RF-15` | Publicación y Entrega de notificaciones | Todo cambio visible exige una republicación completa y solicitudes individuales para todos los destinatarios congelados del plan. | `D-06` | `ADR-0007` (Aceptado), `ADR-0008` (Aceptado) | Criterios de `RF-15`; pruebas de versión, cambios relevantes, atomicidad y notificación. | Pendiente |
+| `RF-16` | Portal del corredor; Identidad y acceso | Vista móvil del único plan semanal propio, sus fases, bloques y ubicación, sin exponer datos ajenos. | `D-04`, `D-08` | `ADR-0002`, `ADR-0004`, `ADR-0006` (Aceptado) | Criterios de `RF-16`; pruebas adaptables, de estructura y aislamiento. | Pendiente |
 | `RF-17` | Seguimiento y revisión | Registro único por corredor y entrenamiento, editable durante siete días desde su fecha; `realizado` exige esfuerzo y sensación, `no-realizado` los omite y el comentario admite hasta `1.000` caracteres. | `D-07` | `ADR-0004` (Aceptado), `ADR-0009` (Aceptado) | Criterios de `RF-17`; pruebas de valores, comentario, ventana, pertenencia, actualización y concurrencia. | Pendiente |
-| `RF-18` | Consulta del corredor y Seguimiento | Historial propio de todo entrenamiento publicado, incluidos `sin-seguimiento` y `retirado`, con versión de respuesta e aislamiento. | `D-07`, `D-08` | `ADR-0004` (Aceptado), `ADR-0009` (Aceptado) | Criterios de `RF-18`; pruebas de conjunto histórico, versiones, retirados y acceso indebido. | Pendiente |
+| `RF-18` | Portal del corredor y Seguimiento | Historial propio de todo entrenamiento publicado, incluidos `sin-seguimiento` y `retirado`, con versión de respuesta e aislamiento. | `D-07`, `D-08` | `ADR-0004` (Aceptado), `ADR-0009` (Aceptado) | Criterios de `RF-18`; pruebas de conjunto histórico, versiones, retirados y acceso indebido. | Pendiente |
 | `RF-19` | Seguimiento y revisión | Administrador y entrenador consultan globalmente seguimiento y ausencias por corredor, plan o entrenamiento, sin modificar ni revisar. | `D-07`, `D-08` | `ADR-0004` (Aceptado), `ADR-0009` (Aceptado) | Criterios de `RF-19`; pruebas de filtros, ausencias y permisos. | Pendiente |
-| `RF-20` | Publicación y notificación | Cada publicación confirmada genera una solicitud individual por destinatario, con semana, día, fecha y tipo de cada entrenamiento y enlace; las versiones se procesan en orden sin sustitución. | `D-06` | `ADR-0007` (Aceptado), `ADR-0008` (Aceptado), `ADR-0011` (Aceptado) | Criterios de `RF-20`; pruebas de contenido, destinatario, atomicidad, orden y no emisión. | Pendiente |
+| `RF-20` | Publicación y Entrega de notificaciones | Cada publicación confirmada genera una solicitud individual por destinatario, con semana, día, fecha y tipo de cada entrenamiento y enlace; las versiones se procesan en orden sin sustitución. | `D-06` | `ADR-0007` (Aceptado), `ADR-0008` (Aceptado), `ADR-0011` (Aceptado) | Criterios de `RF-20`; pruebas de contenido, destinatario, atomicidad, orden y no emisión. | Pendiente |
 
 ## Trazabilidad de decisiones de Fase 1
 
@@ -142,6 +143,9 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `ADR-0010`: privacidad, retención y derechos | Responsable, bases, mayores de edad, conservación, derechos, encargados, riesgos y evidencias. | Salida a producción y cualquier cambio de alcance derivado. | Responsable del tratamiento con asesoramiento de privacidad | Propuesto con validación documental superada; aceptación bloqueada por identidad real, contacto, bases y revisión de retención, sin autorización de producción. |
 | `ADR-0011`: correo transaccional | Brevo por API REST, outbox persistente, worker interno, reintentos por tipo, webhooks, supresión y observabilidad. | No bloquea implementación; decisión aceptada. Dominio, revisión de privacidad y alertas bloquean producción. | Revisor de arquitectura | Aceptado con reconciliación dentro del TTL, entrega posterior gestionada por Brevo y orden liberado al aceptar el proveedor. |
 | `ADR-0012`: persistencia y transacciones | PostgreSQL, restricciones, coordinación de planificación, publicación, outbox recuperable, índices, cursores y migraciones. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con PostgreSQL compartido, `READ COMMITTED`, bloqueos explícitos, restricciones físicas, outbox con lease, cursor y migraciones versionadas. |
+| `ADR-0013`: runtime y contrato API | Java, Spring MVC, JDBC, HikariCP, jOOQ, Flyway, frontend conjunto, OpenAPI y gates de calidad. | Implementación del runtime y de cualquier módulo. | Revisor de arquitectura | Aceptado; permanecen pendientes la plataforma y controles operativos previos a producción. |
+| `ADR-0014`: módulos, hexagonal y DDD | Límites de código y datos, dependencias, comunicación, puertos, esquemas y modelado de dominio. | Estructura inicial del backend y desarrollo de dominio. | Revisor de arquitectura | Aceptado; proyecto Gradle único, ocho módulos y aplicación selectiva de DDD y puertos. |
+| `ADR-0015`: autorización de aplicación | Propagación del actor, políticas de aplicación, alcance en consultas y pruebas. | Implementación de cualquier caso de uso protegido. | Revisor de arquitectura | Aceptado; actor explícito, políticas Java canónicas e identidad de sistema mínima. |
 
 ## Riesgos y mitigaciones
 

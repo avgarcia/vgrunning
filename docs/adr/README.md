@@ -46,6 +46,9 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0010](0010-privacy-retention-rights-readiness.md) | Preparación para privacidad, retención y derechos | Propuesto | Todos los `RF`; requisito no funcional de datos y privacidad |
 | [ADR-0011](0011-transactional-email-delivery-strategy.md) | Entrega de correo transaccional | Aceptado | `RF-01`, `RF-15`, `RF-20` |
 | [ADR-0012](0012-relational-persistence-transaction-strategy.md) | Persistencia relacional y estrategia transaccional | Aceptado | Todos los `RF`; especialmente `RF-03`, `RF-05` a `RF-10`, `RF-14`, `RF-15` y `RF-17` a `RF-20` |
+| [ADR-0013](0013-application-runtime-framework.md) | Runtime imperativo, framework de aplicación y contrato API | Aceptado | Todos los `RF` |
+| [ADR-0014](0014-modular-hexagonal-ddd-architecture.md) | Arquitectura modular, hexagonal y DDD selectivo | Aceptado | Todos los `RF` |
+| [ADR-0015](0015-application-authorization-enforcement.md) | Aplicación de autorización y alcance por recurso | Aceptado | `RF-02`, `RF-03`, `RF-05` a `RF-09`, `RF-14` y `RF-16` a `RF-19` |
 
 ## Backlog inicial de Fase 2
 

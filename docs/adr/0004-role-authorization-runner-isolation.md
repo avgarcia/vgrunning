@@ -121,6 +121,6 @@ Se descarta para el PMV. Aunque facilitaría promociones, correcciones y cambios
 
 ## Decisiones pendientes
 
-- **Pendiente, sin bloquear este ADR:** elegir el mecanismo concreto de políticas del framework. Responsable: revisor de arquitectura. Tratamiento: documentarlo al seleccionar el stack y conservar denegación por defecto, matriz y alcance por recurso.
+- **Resuelto por `ADR-0015` (Aceptado):** mecanismo de políticas, propagación explícita del actor y alcance por recurso.
 - **Resuelto por `ADR-0012`:** el PMV no usará PostgreSQL Row-Level Security y la autorización del backend seguirá siendo canónica y obligatoria.
 - **Bloqueante para producción, no para aceptar este ADR:** `ADR-0010` debe fijar retención y acceso al registro de asignaciones iniciales de rol. Responsable: responsable de privacidad o DPO. Tratamiento: resolverlo antes de producción.
