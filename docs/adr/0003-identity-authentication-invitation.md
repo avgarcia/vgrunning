@@ -73,5 +73,6 @@ Se descarta para la primera aplicación web. Complica revocación, tratamiento a
 
 ## Decisiones pendientes
 
-- **Pendiente, sin bloquear este ADR:** elegir framework, runtime y plataforma de despliegue. Responsable: revisor de arquitectura. Tratamiento: mantener la decisión compatible con sesiones opacas, secretos verificables y cookies seguras.
+- **Resuelto por `ADR-0013`:** framework y runtime compatibles con sesiones opacas, secretos verificables y cookies seguras.
+- **Tratado por `ADR-0016` (Propuesto), sin bloquear este ADR:** plataforma de despliegue, gestión de secretos y dominio. La decisión no se considera cerrada hasta aceptar ese ADR y completar sus evidencias previas a producción.
 - **Resuelto por `ADR-0012`:** sesiones y verificadores se persistirán en PostgreSQL bajo las restricciones y migraciones allí definidas.
