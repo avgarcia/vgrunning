@@ -126,4 +126,4 @@ Se descarta para el PMV. No existe una matriz dinámica que justifique otro leng
 - **Resuelto:** `ActorContext` será un parámetro explícito de los casos de uso y `SecurityContextHolder` quedará limitado a filtros y adaptación técnica.
 - **Resuelto:** `@PreAuthorize` y las reglas de ruta serán una defensa gruesa; las políticas Java de cada módulo serán canónicas.
 - **Resuelto:** worker y procesos internos usarán una identidad de sistema mínima, sin privilegios administrativos y limitada a capacidades técnicas explícitas.
-- **Bloqueante para producción, no para aceptar este ADR:** `ADR-0010` debe fijar retención y acceso a eventos de seguridad. Responsable: responsable de privacidad o DPO. Tratamiento: resolverlo antes de producción.
+- **Tratado por `ADR-0010` (Aceptado), bloqueante para producción:** los eventos de seguridad tendrán acceso restringido, `12` meses de conservación activa y posterior supresión o bloqueo restringido cuando proceda. Deberán completarse las evidencias de privacidad antes de datos reales.

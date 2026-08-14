@@ -43,7 +43,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0007](0007-atomic-publication-versioning-recipients.md) | Publicación atómica, versionado y destinatarios efectivos | Aceptado | `RF-08` a `RF-10`, `RF-14` a `RF-16`, `RF-20` |
 | [ADR-0008](0008-transactional-publication-notifications.md) | Solicitud transaccional de notificaciones de publicación | Aceptado | `RF-15`, `RF-20` |
 | [ADR-0009](0009-training-feedback-history-review.md) | Seguimiento por entrenamiento, historial y revisión | Aceptado | `RF-17`, `RF-18`, `RF-19` |
-| [ADR-0010](0010-privacy-retention-rights-readiness.md) | Preparación para privacidad, retención y derechos | Propuesto | Todos los `RF`; requisito no funcional de datos y privacidad |
+| [ADR-0010](0010-privacy-retention-rights-readiness.md) | Preparación para privacidad, retención y derechos | Aceptado | Todos los `RF`; requisito no funcional de datos y privacidad |
 | [ADR-0011](0011-transactional-email-delivery-strategy.md) | Entrega de correo transaccional | Aceptado | `RF-01`, `RF-15`, `RF-20` |
 | [ADR-0012](0012-relational-persistence-transaction-strategy.md) | Persistencia relacional y estrategia transaccional | Aceptado | Todos los `RF`; especialmente `RF-03`, `RF-05` a `RF-10`, `RF-14`, `RF-15` y `RF-17` a `RF-20` |
 | [ADR-0013](0013-application-runtime-framework.md) | Runtime imperativo, framework de aplicación y contrato API | Aceptado | Todos los `RF` |
