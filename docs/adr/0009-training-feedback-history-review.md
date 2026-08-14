@@ -10,7 +10,7 @@
 
 `ADR-0004` limita la escritura al corredor propietario y concede lectura global a entrenador y administrador. `ADR-0006` modela cada entrenamiento dentro de un plan semanal y `ADR-0007` conserva versiones publicadas inmutables. Falta decidir la identidad del registro, su relación con las versiones, las reglas de actualización y qué constituye un historial y una revisión mínimos.
 
-La información de seguimiento es dato personal declarado. El comentario libre puede contener información de salud aunque el producto no la solicite. `ADR-0010` deberá decidir base jurídica, transparencia, retención, acceso, rectificación y borrado antes de producción; este ADR no puede afirmar que el texto libre carece de datos sensibles.
+La información de seguimiento es dato personal declarado. El comentario libre puede contener información de salud aunque el producto no la solicite. `ADR-0010` define consentimiento explícito y separado, transparencia, retención, bloqueo, acceso, rectificación y supresión; este ADR no puede afirmar que el texto libre carece de datos sensibles.
 
 ## Decisión
 
@@ -86,7 +86,7 @@ Se descarta para el PMV porque `RF-19` exige consulta, no asignación, aprobaci�
 - El límite de `1.000` caracteres mantiene el comentario acotado y verificable; los textos mayores se rechazan completos para evitar pérdida silenciosa.
 - Entrenadores y administrador pueden revisar globalmente sin alterar declaraciones del corredor.
 - No existe flujo operativo para marcar registros como revisados ni responder al corredor; esa limitación es deliberada.
-- El comentario libre introduce riesgo real de recibir datos de salud no solicitados y bloquea producción hasta resolver `ADR-0010`.
+- El comentario libre introduce riesgo real de recibir datos de salud y bloquea producción hasta completar la revisión especializada y la EIPD exigidas por `ADR-0010`.
 - La consulta global requerirá índices y paginación, aunque su tecnología concreta no se decide aquí.
 
 ## Requisitos relacionados
@@ -106,6 +106,7 @@ Se descarta para el PMV porque `RF-19` exige consulta, no asignación, aprobaci�
 - Probar los valores permitidos y que una entrada inválida no sustituye el registro válido existente.
 - Probar que `sin seguimiento` se deriva de la ausencia y se diferencia de `no-realizado`.
 - Probar que `realizado` exige esfuerzo y sensación y que `no-realizado` los rechaza, manteniendo comentario opcional en ambos casos.
+- Probar que el comentario está deshabilitado sin el consentimiento explícito de `ADR-0010`, que rechazarlo no impide registrar seguimiento estructurado y que retirarlo impide nuevos comentarios sin afectar al resto del servicio.
 - Probar que el comentario acepta exactamente `1.000` caracteres, rechaza `1.001` sin truncar ni sustituir un registro válido y conserva saltos de línea tras eliminar espacios exteriores.
 - Probar que no se responde antes de la fecha, que la fecha cuenta como primer día y que creación y edición se cierran al terminar el sexto día posterior en la zona horaria configurada.
 - Probar que solo el corredor propietario crea o actualiza y que entrenador y administrador solo leen.
@@ -121,5 +122,5 @@ Se descarta para el PMV porque `RF-19` exige consulta, no asignación, aprobaci�
 
 ## Decisiones pendientes
 
-- **Bloqueante para producción, no para aceptar este ADR:** `ADR-0010` debe decidir base jurídica, información al corredor, retención, derechos y tratamiento de texto libre que pueda contener datos de salud. Responsable: responsable de privacidad o DPO. Tratamiento: aceptar antes de producción.
+- **Tratado por `ADR-0010` (Aceptado), bloqueante para producción:** el comentario requiere consentimiento explícito y separado, retirada sin pérdida del servicio, retención y ejercicio de derechos. Responsable: responsable del tratamiento con asesoramiento de privacidad. Tratamiento: revisar la base y completar la EIPD antes de datos reales.
 - **Resuelto por `ADR-0012`:** PostgreSQL será la persistencia, los recorridos cronológicos usarán cursor estable y los índices se validarán con planes de consulta.

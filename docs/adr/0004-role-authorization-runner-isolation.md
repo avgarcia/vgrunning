@@ -123,4 +123,4 @@ Se descarta para el PMV. Aunque facilitaría promociones, correcciones y cambios
 
 - **Resuelto por `ADR-0015` (Aceptado):** mecanismo de políticas, propagación explícita del actor y alcance por recurso.
 - **Resuelto por `ADR-0012`:** el PMV no usará PostgreSQL Row-Level Security y la autorización del backend seguirá siendo canónica y obligatoria.
-- **Bloqueante para producción, no para aceptar este ADR:** `ADR-0010` debe fijar retención y acceso al registro de asignaciones iniciales de rol. Responsable: responsable de privacidad o DPO. Tratamiento: resolverlo antes de producción.
+- **Tratado por `ADR-0010` (Aceptado), bloqueante para producción:** las asignaciones iniciales de rol se consideran auditoría de seguridad, con `12` meses de conservación activa y posterior supresión o bloqueo restringido cuando proceda. Deberán completarse las evidencias de privacidad antes de datos reales.
