@@ -155,4 +155,4 @@ Se descarta. Generar OpenAPI desde controladores convierte la implementación en
 
 - **Resuelto por `ADR-0014` (Aceptado):** módulos, dependencias permitidas, arquitectura hexagonal y uso táctico selectivo de DDD.
 - **Resuelto por `ADR-0015` (Aceptado):** propagación del actor, políticas de aplicación y pruebas del alcance por recurso.
-- **Bloqueante para producción, no para aceptar este ADR:** seleccionar plataforma de despliegue, operación de PostgreSQL, secretos, copias de seguridad, alertas y observabilidad. Responsable: revisor de arquitectura y persona operadora. Tratamiento: ADR de despliegue y runbooks antes de producción.
+- **Tratado por `ADR-0016` (Aceptado), bloqueante para producción:** plataforma de despliegue, operación de PostgreSQL, secretos, copias, alertas y observabilidad. Las evidencias operativas indicadas por `ADR-0016` deberán completarse antes de producción.

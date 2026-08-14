@@ -21,7 +21,7 @@ El PMV usará **PostgreSQL como única base de datos primaria de producción**. 
 
 PostgreSQL será la fuente de verdad para datos de negocio, sesiones, secretos verificables, versiones publicadas, destinatarios, seguimiento y outbox. El PMV no incorporará Redis, caché distribuida, réplicas de lectura, motor de búsqueda externo ni broker de mensajes. Una caché futura será siempre derivada, deberá demostrar invalidación equivalente a la regla canónica y solo se añadirá ante un problema medido mediante una decisión posterior.
 
-El proveedor de PostgreSQL y su operación se decidirán con la plataforma de despliegue. Esa elección no podrá reducir las garantías transaccionales, de bloqueo, restricciones, migraciones o recuperación definidas aquí.
+`ADR-0016` define el proveedor de PostgreSQL y su operación junto con la plataforma de despliegue. Esa elección no podrá reducir las garantías transaccionales, de bloqueo, restricciones, migraciones o recuperación definidas aquí.
 
 ### Integridad y autorización
 
@@ -117,7 +117,7 @@ Se descarta porque introduciría otra fuente operativa, despliegue, credenciales
 - No usar RLS concentra la autorización en el backend y sus pruebas; una omisión en un caso de uso no tendrá una segunda barrera por fila en la base de datos.
 - No incorporar caché ni servicios auxiliares reduce complejidad operativa, pero exige vigilar planes de consulta e índices antes de escalar.
 - Las migraciones pasan a ser parte obligatoria y revisable de cada cambio de modelo.
-- El proveedor, la versión principal concreta, el pool de conexiones, el driver y la herramienta de migraciones deberán ser compatibles con esta decisión, pero se elegirán con runtime y despliegue.
+- `ADR-0013` concreta driver, pool y migraciones; `ADR-0016` define proveedor, versión principal y operación. Todos deberán conservar las garantías de esta decisión.
 
 ## Requisitos relacionados
 
@@ -150,8 +150,8 @@ Se descarta porque introduciría otra fuente operativa, despliegue, credenciales
 
 No quedan decisiones arquitectónicas pendientes para aceptar este ADR.
 
-- **Aplazado deliberadamente, sin bloquear este ADR:** seleccionar driver, pool, herramienta de migraciones, proceso del worker y configuración de reintentos transaccionales. Responsable: revisor de arquitectura. Tratamiento: decidirlo en el ADR de runtime y framework sin modificar las garantías anteriores.
-- **Aplazado deliberadamente, sin bloquear este ADR:** seleccionar versión principal soportada, proveedor de PostgreSQL y configuración operativa. Responsable: revisor de arquitectura y persona operadora. Tratamiento: decidirlo en el ADR de despliegue, junto con copias, recuperación y observabilidad, sin modificar las garantías anteriores.
+- **Resuelto por `ADR-0013` (Aceptado):** driver JDBC, HikariCP, Flyway, proceso imperativo del worker y reintentos transaccionales sin modificar las garantías anteriores.
+- **Tratado por `ADR-0016` (Aceptado), sin bloquear este ADR:** PostgreSQL `18` administrado mediante Azure Database for PostgreSQL Flexible Server en `West Europe`, junto con su configuración operativa, copias, recuperación y observabilidad. Las garantías anteriores permanecen vigentes.
 
 ## Referencias
 
