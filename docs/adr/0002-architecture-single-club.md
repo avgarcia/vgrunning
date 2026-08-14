@@ -88,5 +88,5 @@ Se descarta porque mezclaría permisos, segmentación, publicación y seguimient
 
 - **Resuelto por `ADR-0013` (Aceptado):** runtime, framework, acceso a datos, frontend y contrato API.
 - **Resuelto por `ADR-0014` (Aceptado):** materialización de módulos, arquitectura hexagonal y DDD selectivo.
-- **Tratado por `ADR-0016` (Propuesto), sin bloquear este ADR:** plataforma de despliegue y operación. La decisión no se considera cerrada hasta aceptar ese ADR y completar sus evidencias previas a producción.
+- **Tratado por `ADR-0016` (Aceptado), sin bloquear este ADR:** plataforma de despliegue y operación. Las evidencias operativas indicadas por `ADR-0016` siguen siendo obligatorias antes de producción.
 - **Resuelto por `ADR-0012`:** PostgreSQL será la persistencia primaria compartida por los módulos.

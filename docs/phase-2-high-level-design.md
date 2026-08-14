@@ -7,7 +7,7 @@
 
 Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazable. Este documento delimita los componentes lógicos, los flujos, los datos y las decisiones técnicas que deben resolverse antes de implementar el PMV.
 
-`ADR-0013` define runtime, framework, acceso JDBC, frontend conjunto y contrato API; `ADR-0014` concreta la estructura modular y `ADR-0015` el mecanismo técnico de autorización. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. `ADR-0016` propone Render Frankfurt para despliegue y operación. Los ADRs aún propuestos deben resolverse antes de cerrar el diseño afectado.
+`ADR-0013` define runtime, framework, acceso JDBC, frontend conjunto y contrato API; `ADR-0014` concreta la estructura modular y `ADR-0015` el mecanismo técnico de autorización. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. `ADR-0016` define Microsoft Azure `West Europe` para despliegue y operación. Los ADRs aún propuestos deben resolverse antes de cerrar el diseño afectado.
 
 ## Alcance y restricciones heredadas
 
@@ -40,7 +40,7 @@ Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazab
 | Seguimiento y revisión | Registro de ejecución, historial de respuesta y consulta global por entrenador. | `RF-17`, `RF-18`, `RF-19` | Registro de seguimiento vinculado a corredor, entrenamiento y publicación. |
 | Portal del corredor | Fachada móvil de consulta de planes, entrenamientos, ubicación e historial propios. | `RF-16`, `RF-18` | Vista derivada sin datos propios inicialmente. |
 
-Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como módulos de una única aplicación desplegable, sin introducir multiclub fuera de alcance. `ADR-0014` define ocho módulos, sus APIs y un esquema PostgreSQL por módulo con estado, conservando una única base y transacciones compartidas. `ADR-0013` define Spring MVC, JDBC, jOOQ y despliegue conjunto del frontend; persistencia y transacciones se rigen por `ADR-0012` aceptado. `ADR-0016` propone la plataforma y mantiene explícitas las decisiones operativas pendientes.
+Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como módulos de una única aplicación desplegable, sin introducir multiclub fuera de alcance. `ADR-0014` define ocho módulos, sus APIs y un esquema PostgreSQL por módulo con estado, conservando una única base y transacciones compartidas. `ADR-0013` define Spring MVC, JDBC, jOOQ y despliegue conjunto del frontend; persistencia y transacciones se rigen por `ADR-0012` aceptado. `ADR-0016` define la plataforma y mantiene explícitos los bloqueantes operativos previos a producción.
 
 ## Flujos de alto nivel
 
@@ -143,10 +143,10 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `ADR-0010`: privacidad, retención y derechos | Responsable, bases, mayores de edad, conservación, derechos, encargados, riesgos y evidencias. | Salida a producción y cualquier cambio de alcance derivado. | Responsable del tratamiento con asesoramiento de privacidad | Propuesto con validación documental superada; aceptación bloqueada por identidad real, contacto, bases y revisión de retención, sin autorización de producción. |
 | `ADR-0011`: correo transaccional | Brevo por API REST, outbox persistente, worker interno, reintentos por tipo, webhooks, supresión y observabilidad. | No bloquea implementación; decisión aceptada. Dominio, revisión de privacidad y alertas bloquean producción. | Revisor de arquitectura | Aceptado con reconciliación dentro del TTL, entrega posterior gestionada por Brevo y orden liberado al aceptar el proveedor. |
 | `ADR-0012`: persistencia y transacciones | PostgreSQL, restricciones, coordinación de planificación, publicación, outbox recuperable, índices, cursores y migraciones. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con PostgreSQL compartido, `READ COMMITTED`, bloqueos explícitos, restricciones físicas, outbox con lease, cursor y migraciones versionadas. |
-| `ADR-0013`: runtime y contrato API | Java, Spring MVC, JDBC, HikariCP, jOOQ, Flyway, frontend conjunto, OpenAPI y gates de calidad. | Implementación del runtime y de cualquier módulo. | Revisor de arquitectura | Aceptado; permanecen pendientes la plataforma y controles operativos previos a producción. |
+| `ADR-0013`: runtime y contrato API | Java, Spring MVC, JDBC, HikariCP, jOOQ, Flyway, frontend conjunto, OpenAPI y gates de calidad. | Implementación del runtime y de cualquier módulo. | Revisor de arquitectura | Aceptado; permanecen pendientes los controles operativos previos a producción. |
 | `ADR-0014`: módulos, hexagonal y DDD | Límites de código y datos, dependencias, comunicación, puertos, esquemas y modelado de dominio. | Estructura inicial del backend y desarrollo de dominio. | Revisor de arquitectura | Aceptado; proyecto Gradle único, ocho módulos y aplicación selectiva de DDD y puertos. |
 | `ADR-0015`: autorización de aplicación | Propagación del actor, políticas de aplicación, alcance en consultas y pruebas. | Implementación de cualquier caso de uso protegido. | Revisor de arquitectura | Aceptado; actor explícito, políticas Java canónicas e identidad de sistema mínima. |
-| `ADR-0016`: despliegue y operación | Render Frankfurt, artefactos, promoción, PostgreSQL, copias, observabilidad, secretos y recuperación. | Despliegue de staging y producción. | Revisor de arquitectura y persona operadora | Propuesto; confirmar plataforma, coste, entornos, SLO, recuperación, observabilidad y operación. |
+| `ADR-0016`: despliegue y operación | Microsoft Azure `West Europe`, artefactos, promoción, PostgreSQL, copias, observabilidad, secretos y recuperación. | Despliegue de staging y producción. | Revisor de arquitectura y persona operadora | Aceptado; completar evidencias previas a producción. |
 
 ## Riesgos y mitigaciones
 

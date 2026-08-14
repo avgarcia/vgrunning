@@ -11,7 +11,7 @@ El PMV necesita correo transaccional para invitación, recuperación de acceso y
 
 `ADR-0003` define los secretos de acceso y sus caducidades: `72` horas para activación y una hora para recuperación. `ADR-0007` y `ADR-0008` hacen visible la publicación sin esperar al proveedor, crean una solicitud individual por versión y destinatario dentro de la transacción y exigen procesar las versiones en orden. Este ADR no modifica esas semánticas; decide cómo entregar todas las solicitudes de correo después de confirmarlas.
 
-`ADR-0013` define el runtime imperativo y los parámetros iniciales del worker, mientras `ADR-0016` propone la plataforma y operación. `ADR-0012` define PostgreSQL como persistencia y concreta la reclamación recuperable de la outbox. Tampoco existe un dominio propio de envío. `ADR-0010` exige revisar encargados, subencargados, regiones, contrato, retención y transferencias antes de habilitar un proveedor con datos reales.
+`ADR-0013` define el runtime imperativo y los parámetros iniciales del worker, mientras `ADR-0016` define la plataforma y operación. `ADR-0012` define PostgreSQL como persistencia y concreta la reclamación recuperable de la outbox. Tampoco existe un dominio propio de envío. `ADR-0010` exige revisar encargados, subencargados, regiones, contrato, retención y transferencias antes de habilitar un proveedor con datos reales.
 
 La escala prevista, superior a `500` corredores pero limitada a un único club, no justifica introducir un broker distribuido solo para correo. Sí exige recuperar trabajo después de caídas, evitar duplicados lógicos, distinguir aceptación del proveedor de entrega y operar rebotes o fallos globales sin depender de estados visibles en el producto.
 
@@ -98,7 +98,7 @@ Los registros de notificación aplicarán la retención de `90` días desde su e
 
 ### Alternativa A: Amazon SES
 
-Se descarta para el PMV porque `ADR-0016` propone Render y su coste unitario bajo no compensa integrar AWS solo para correo. Exigiría más piezas para eventos, credenciales, supresiones y operación sin resolver una necesidad del producto.
+Se descarta para el PMV porque `ADR-0016` define Microsoft Azure y el coste unitario de SES no compensa integrar AWS solo para correo. Exigiría más piezas para eventos, credenciales, supresiones y operación sin resolver una necesidad del producto.
 
 ### Alternativa B: Postmark, Mailgun o Resend
 
@@ -176,7 +176,7 @@ Se descarta porque trasladaría reputación, entregabilidad, seguridad, rebotes,
 
 - **Bloqueante para producción:** adquirir y controlar un dominio, definir remitente y autenticarlo con Brevo. Responsable: propietario del servicio. Tratamiento: completar DNS y pruebas de entrega antes del primer envío real.
 - **Bloqueante para producción:** revisar y aprobar Brevo como encargado bajo `ADR-0010`, incluidos DPA, subencargados, ubicaciones, retención y cualquier transferencia. Responsable: responsable del tratamiento con asesoramiento de privacidad. Tratamiento: no contratar ni enviar datos reales hasta aportar la evidencia.
-- **Tratado por `ADR-0016` (Propuesto), bloqueante para producción:** canal, destinatario, umbrales y runbooks de alertas del worker. La decisión no se considera cerrada hasta aceptar ese ADR y probar las alertas antes de habilitar el worker.
+- **Tratado por `ADR-0016` (Aceptado), bloqueante para producción:** canal, destinatario, umbrales y runbooks de alertas del worker. Las alertas deberán probarse antes de habilitar el worker en producción.
 - **Resuelto por `ADR-0013` (Aceptado):** proceso imperativo con ejecutor dedicado, frecuencia, concurrencia, timeouts, lease y tamaño de lote iniciales del worker.
 - **Resuelto por `ADR-0012`:** PostgreSQL reclamará lotes con `FOR UPDATE SKIP LOCKED`, lease persistente y token frente a workers obsoletos.
 

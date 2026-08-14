@@ -74,5 +74,5 @@ Se descarta para la primera aplicación web. Complica revocación, tratamiento a
 ## Decisiones pendientes
 
 - **Resuelto por `ADR-0013`:** framework y runtime compatibles con sesiones opacas, secretos verificables y cookies seguras.
-- **Tratado por `ADR-0016` (Propuesto), sin bloquear este ADR:** plataforma de despliegue, gestión de secretos y dominio. La decisión no se considera cerrada hasta aceptar ese ADR y completar sus evidencias previas a producción.
+- **Tratado por `ADR-0016` (Aceptado), sin bloquear este ADR:** plataforma de despliegue, gestión de secretos y dominio. Las evidencias operativas indicadas por `ADR-0016` siguen siendo obligatorias antes de producción.
 - **Resuelto por `ADR-0012`:** sesiones y verificadores se persistirán en PostgreSQL bajo las restricciones y migraciones allí definidas.

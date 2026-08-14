@@ -64,5 +64,5 @@ Al cerrar Fase 2 se debe comprobar que:
 ## Decisiones pendientes
 
 - **Resuelto por `ADR-0013`:** framework y runtime de aplicación.
-- **Tratado por `ADR-0016` (Propuesto):** plataforma de despliegue y operación. La decisión no se considera cerrada hasta aceptar ese ADR.
+- **Tratado por `ADR-0016` (Aceptado):** plataforma de despliegue y operación.
 - **Resuelto por `ADR-0012`:** PostgreSQL como persistencia primaria y estrategia transaccional del PMV.
