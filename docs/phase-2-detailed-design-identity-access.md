@@ -157,28 +157,36 @@ Las respuestas de acceso y recuperación no revelan si una cuenta existe, su est
 
 La tabla define la semántica que deberá materializar OpenAPI `3.1`. No sustituye el contrato contract-first ni autoriza implementar controladores antes de aprobarlo.
 
+La API será REST y seguirá estas reglas:
+
+- las rutas representan recursos mediante nombres en plural y no contienen verbos ni nombres de acciones;
+- `GET` consulta sin cambiar estado, `POST` crea un recurso o proceso subordinado, `PATCH` modifica parcialmente un recurso y `DELETE` elimina la sesión actual;
+- las transiciones de cuenta se expresan modificando su `status`, no invocando endpoints de cancelación, desactivación o reactivación;
+- solo identificadores estables aparecen en la ruta; contraseñas, secretos y tokens se envían exclusivamente en el cuerpo;
+- el contrato define representaciones, cabeceras, estados HTTP, idempotencia observable y Problem Details de cada operación.
+
 | Actor | Operación | Propósito |
 | --- | --- | --- |
-| Anónimo | `GET /api/auth/csrf` | Obtener protección CSRF para el mismo origen. |
+| Anónimo | `GET /api/auth/csrf-tokens/current` | Obtener la representación del token CSRF del contexto actual. |
 | Anónimo | `POST /api/auth/sessions` | Iniciar sesión con respuesta genérica ante credenciales o estado inválidos. |
-| Anónimo | `POST /api/auth/activations` | Consumir invitación, declarar mayoría de edad y fijar contraseña. |
-| Anónimo | `POST /api/auth/password-recovery-requests` | Solicitar recuperación; responde `202` de forma indistinguible. |
-| Anónimo | `POST /api/auth/password-recoveries` | Consumir desafío y fijar contraseña nueva. |
-| Anónimo | `POST /api/auth/email-changes` | Confirmar el correo nuevo mediante desafío. |
-| Autenticado | `GET /api/auth/session` | Consultar identidad, rol y estado de la sesión actual. |
-| Autenticado | `DELETE /api/auth/session` | Revocar la sesión actual. |
-| Autenticado | `PUT /api/auth/password` | Cambiar contraseña presentando la actual. |
+| Anónimo | `POST /api/auth/account-activations` | Crear una activación consumiendo la invitación, la declaración de mayoría de edad y la contraseña. |
+| Anónimo | `POST /api/auth/password-reset-requests` | Crear una solicitud de restablecimiento; responde `202` de forma indistinguible. |
+| Anónimo | `POST /api/auth/password-resets` | Crear un restablecimiento consumiendo el desafío y la contraseña nueva. |
+| Anónimo | `POST /api/auth/email-change-confirmations` | Crear la confirmación que aplica el correo nuevo mediante el desafío. |
+| Autenticado | `GET /api/auth/sessions/current` | Consultar identidad, rol y estado de la sesión actual. |
+| Autenticado | `DELETE /api/auth/sessions/current` | Revocar la sesión actual. |
+| Autenticado | `PATCH /api/auth/credentials/current` | Sustituir la contraseña presentando la actual. Solo admite los campos definidos para ese cambio. |
 | Autenticado | `POST /api/auth/email-change-requests` | Reservar y solicitar verificación de un correo nuevo. |
 | Administrador | `GET /api/admin/accounts` | Buscar cuentas mediante paginación por cursor y filtros acotados. |
 | Administrador | `GET /api/admin/accounts/{accountId}` | Consultar estado, rol y metadatos administrativos. |
 | Administrador | `POST /api/admin/accounts` | Invitar solo cuentas `administrador` o `entrenador`. |
-| Administrador | `POST /api/admin/accounts/{accountId}/invitation-resends` | Reemitir una invitación pendiente. |
-| Administrador | `POST /api/admin/accounts/{accountId}/cancellations` | Cancelar una invitación pendiente. |
-| Administrador | `POST /api/admin/accounts/{accountId}/deactivations` | Desactivar una cuenta activa. |
-| Administrador | `POST /api/admin/accounts/{accountId}/reactivations` | Iniciar reactivación con una invitación nueva. |
+| Administrador | `POST /api/admin/accounts/{accountId}/invitations` | Crear una nueva invitación para una cuenta pendiente e invalidar la anterior. |
+| Administrador | `PATCH /api/admin/accounts/{accountId}` | Modificar exclusivamente `status`: cancelar una cuenta pendiente, desactivar una activa o iniciar la reactivación de una desactivada. |
 | Administrador | `POST /api/admin/accounts/{accountId}/email-change-requests` | Iniciar cambio verificable de correo para otra cuenta. |
 
 La cuenta de corredor se crea únicamente mediante el futuro caso de uso de alta de corredor de `runner-management`, que llama a la API Java de identidad dentro de su transacción. Exponer su creación directa en `/api/admin/accounts` permitiría cuentas de corredor huérfanas y queda prohibido.
+
+El `PATCH` administrativo no es una operación genérica ni permite modificar rol, correo u otros atributos. OpenAPI define un cuerpo cerrado con `status`, el servidor valida la transición contra el estado actual y una repetición que ya alcanzó el estado solicitado no vuelve a emitir desafíos ni notificaciones.
 
 No existen endpoints para cambiar rol, establecer contraseñas ajenas, solicitar una baja desde el producto, eliminar la propia cuenta, limitar sesiones ni ejecutar recuperación operativa.
 
