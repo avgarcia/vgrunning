@@ -10,7 +10,7 @@
 
 El PMV prevé más de `500` corredores y picos iniciales inferiores a `100` usuarios concurrentes. Su carga está dominada por casos de uso transaccionales, consultas relacionales y un volumen moderado de llamadas externas. No existe una necesidad medida de streaming, composición masiva de I/O ni concurrencia que justifique asumir la complejidad de un flujo reactivo de extremo a extremo.
 
-Este ADR elige runtime, framework, acceso a datos, migraciones, frontend, contrato API y controles mínimos del build. `ADR-0014` concreta los módulos, la arquitectura hexagonal y el uso de DDD. `ADR-0015` concreta el mecanismo técnico de autorización sin cambiar la política funcional de `ADR-0004`.
+Este ADR elige runtime, framework, acceso a datos, migraciones, frontend, contrato API y controles mínimos del build. `ADR-0014` concreta los módulos, la arquitectura hexagonal y el uso de DDD. `ADR-0015` concreta el mecanismo técnico de autorización sin cambiar la política funcional de `ADR-0004`. `ADR-0017` complementa el contrato OpenAPI con las convenciones HTTP orientadas a recursos.
 
 ## Decisión
 

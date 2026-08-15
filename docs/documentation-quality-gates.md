@@ -1,7 +1,7 @@
 # Controles de calidad documental
 
 **Estado:** Vigente
-**Fecha:** 2026-08-10
+**Fecha:** 2026-08-15
 
 ## Objetivo
 
@@ -19,6 +19,7 @@ Definir las validaciones mínimas para que la documentación de producto y dise�
 | Criterios de aceptación por requisito imprescindible | Al cerrar una fase que defina requisitos funcionales | Cada requisito imprescindible tiene escenarios de éxito y error que permitan comprobarlo durante implementación y pruebas. |
 | Control de cambios de alcance | En toda PR documental que modifique alcance | La descripción de la PR declara los cambios en supuestos, riesgos, decisiones o límites del PMV. |
 | Validación de privacidad previa a producción | Antes de liberar a producción | Se documentan responsable, base legal, retención, acceso, borrado y tratamiento de la información de seguimiento declarada. |
+| Diseño de API HTTP | En toda PR que cree o modifique una operación HTTP propia | Cada operación identifica un recurso real y cumple `ADR-0017`, la guía de API, OpenAPI contract-first y los controles de compatibilidad. |
 
 ## Controles obligatorios para cierre de fase
 
@@ -37,6 +38,7 @@ No se debe declarar una fase cerrada si falta evidencia de alguno de estos contr
 - Los criterios de aceptación son obligatorios cuando se definen requisitos funcionales imprescindibles.
 - El control de cambios de alcance es obligatorio en cualquier PR documental que cambie alcance, supuestos, riesgos o decisiones.
 - La validación de privacidad es condición de salida a producción; no bloquea las fases de descubrimiento o diseño salvo que su ausencia impida decidir el alcance.
+- El diseño de API HTTP es obligatorio cuando una PR crea, cambia o elimina rutas, representaciones, métodos, estados o errores del contrato.
 
 ## Criterios de revisión
 
@@ -46,13 +48,14 @@ Durante la revisión de una PR documental se debe confirmar lo siguiente:
 - No hay contradicciones entre problema, requisitos, decisiones, supuestos y riesgos.
 - Los requisitos imprescindibles no dependen de decisiones no documentadas.
 - Las exclusiones de alcance son explícitas y no se presentan como comportamiento futuro garantizado.
+- Las operaciones HTTP no son acciones nominalizadas, no codifican roles en sus rutas y justifican recurso, método, estado, seguridad e idempotencia.
 - Se ha ejecutado `git diff --check`.
 
 ## Ejecución con Skills y revisión humana
 
-Las Skills del complemento `documentation-quality-review` preparan evidencia y hallazgos para los ocho controles. Una Skill nunca aprueba una PR ni sustituye a un responsable humano.
+Las Skills del complemento `documentation-quality-review` preparan evidencia y hallazgos para los ocho controles documentales generales. El control de API HTTP usa Spectral, `oasdiff`, generación de contrato y la revisión semántica humana definida en la guía de API. Ninguna herramienta aprueba una PR ni sustituye a un responsable humano.
 
-| Control | Skill de Codex | Rol revisor responsable |
+| Control | Skill o herramienta | Rol revisor responsable |
 | --- | --- | --- |
 | Trazabilidad entre fases | `validate-phase-traceability` | Revisor de arquitectura |
 | Requisitos verificables | `validate-verifiable-requirements` | Revisor de producto |
@@ -62,6 +65,7 @@ Las Skills del complemento `documentation-quality-review` preparan evidencia y h
 | Criterios de aceptación | `validate-acceptance-criteria` | Revisores de producto y arquitectura |
 | Control de cambios de alcance | `validate-scope-changes` | Revisor de la PR |
 | Validación de privacidad | `validate-privacy-readiness` | Responsable de privacidad o DPO |
+| Diseño de API HTTP | Spectral, `oasdiff` y revisión de API HTTP | Revisor de arquitectura |
 
 Cuando haya una persona revisora independiente disponible, el autor ejecuta las Skills aplicables y adjunta los informes a la PR. El responsable humano asignado revisa la evidencia, resuelve o escala los hallazgos y registra la aprobación o solicitud de cambios. Antes de abrir una PR se debe asignar una persona concreta a cada rol de revisión aplicable.
 

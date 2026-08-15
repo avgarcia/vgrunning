@@ -1,7 +1,7 @@
 # Diseño detallado de identidad y acceso - Fase 2
 
 **Estado:** Propuesto
-**Fecha:** 2026-08-14
+**Fecha:** 2026-08-15
 **Responsable de revisión:** Revisor de arquitectura
 
 ## Propósito
@@ -23,6 +23,8 @@ Este diseño cubre completamente `RF-01` y la parte de cuentas y roles de `RF-02
 - `ADR-0014`: módulos, esquemas, APIs Java y arquitectura hexagonal.
 - `ADR-0015`: aplicación de autorización y `ActorContext` explícito.
 - `ADR-0016`: secretos, observabilidad, copias y operación en Azure.
+- `ADR-0017`: API HTTP orientada a recursos y semántica REST.
+- [Guía de diseño de API HTTP](api-design-guidelines.md).
 
 Si este documento contradice una fuente aceptada, prevalece el ADR o la línea base y deberá corregirse el diseño antes de implementar.
 
@@ -348,6 +350,7 @@ Las retenciones y supresiones siguen `ADR-0010`. Las tareas de limpieza eliminan
 ### Contrato
 
 - Crear y aprobar OpenAPI `3.1` antes de implementar las operaciones de esta sección.
+- Revisar recursos, rutas, métodos y transiciones contra `ADR-0017` y la guía de API HTTP.
 - Validar con Spectral, generar servidor y cliente, y probar Problem Details, CSRF, estados y ejemplos.
 - Ejecutar pruebas de contrato con MockMvc, pruebas negativas con Schemathesis y `oasdiff` frente a `main`.
 - Trazar cada operación y prueba a los criterios de `RF-01` y a la parte de cuentas y roles de `RF-02`.
@@ -377,6 +380,7 @@ No quedan decisiones funcionales o arquitectónicas pendientes dentro del alcanc
 
 Antes de implementar todavía deben producirse y revisarse los siguientes artefactos, cuyos criterios ya están decididos:
 
+- aceptación de `ADR-0017` y de la guía operativa de API HTTP;
 - contrato OpenAPI inicial de las operaciones previstas;
 - migraciones Flyway e índices concretos;
 - catálogo versionado de Problem Details y eventos de seguridad;

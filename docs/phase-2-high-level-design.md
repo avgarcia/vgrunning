@@ -1,13 +1,13 @@
 # Diseño funcional y técnico de alto nivel — Fase 2
 
 **Estado:** Propuesto
-**Fecha:** 2026-08-13
+**Fecha:** 2026-08-15
 
 ## Propósito
 
 Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazable. Este documento delimita los componentes lógicos, los flujos, los datos y las decisiones técnicas que deben resolverse antes de implementar el PMV.
 
-`ADR-0013` define runtime, framework, acceso JDBC, frontend conjunto y contrato API; `ADR-0014` concreta la estructura modular y `ADR-0015` el mecanismo técnico de autorización. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. `ADR-0016` define Microsoft Azure `West Europe` para despliegue y operación. Los ADRs aún propuestos deben resolverse antes de cerrar el diseño afectado.
+`ADR-0013` define runtime, framework, acceso JDBC, frontend conjunto y contrato API; `ADR-0017` propone las convenciones HTTP orientadas a recursos. `ADR-0014` concreta la estructura modular y `ADR-0015` el mecanismo técnico de autorización. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. `ADR-0016` define Microsoft Azure `West Europe` para despliegue y operación. Los ADRs aún propuestos deben resolverse antes de cerrar el diseño afectado.
 
 ## Alcance y restricciones heredadas
 
@@ -147,6 +147,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `ADR-0014`: módulos, hexagonal y DDD | Límites de código y datos, dependencias, comunicación, puertos, esquemas y modelado de dominio. | Estructura inicial del backend y desarrollo de dominio. | Revisor de arquitectura | Aceptado; proyecto Gradle único, ocho módulos y aplicación selectiva de DDD y puertos. |
 | `ADR-0015`: autorización de aplicación | Propagación del actor, políticas de aplicación, alcance en consultas y pruebas. | Implementación de cualquier caso de uso protegido. | Revisor de arquitectura | Aceptado; actor explícito, políticas Java canónicas e identidad de sistema mínima. |
 | `ADR-0016`: despliegue y operación | Microsoft Azure `West Europe`, artefactos, promoción, PostgreSQL, copias, observabilidad, secretos y recuperación. | Despliegue de staging y producción. | Revisor de arquitectura y persona operadora | Aceptado; completar evidencias previas a producción. |
+| `ADR-0017`: API HTTP orientada a recursos | Recursos, rutas, métodos, transiciones, seguridad y controles del contrato HTTP. | Contrato OpenAPI e implementación de cualquier operación HTTP propia hasta su aceptación. | Revisor de arquitectura | Propuesto; nivel 2 de Richardson sin HATEOAS obligatorio y con revisión semántica humana. |
 
 ## Riesgos y mitigaciones
 
