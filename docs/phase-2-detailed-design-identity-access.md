@@ -159,34 +159,39 @@ La tabla define la semántica que deberá materializar OpenAPI `3.1`. No sustitu
 
 La API será REST y seguirá estas reglas:
 
-- las rutas representan recursos mediante nombres en plural y no contienen verbos ni nombres de acciones;
-- `GET` consulta sin cambiar estado, `POST` crea un recurso o proceso subordinado, `PATCH` modifica parcialmente un recurso y `DELETE` elimina la sesión actual;
-- las transiciones de cuenta se expresan modificando su `status`, no invocando endpoints de cancelación, desactivación o reactivación;
+- las rutas representan cuentas, sesiones, invitaciones, credenciales, direcciones de correo, desafíos de acceso y tokens CSRF mediante nombres en plural;
+- las rutas no contienen verbos, nombres de acciones, roles ni mecanismos de autenticación como `/admin` o `/auth`;
+- `GET` consulta sin cambiar estado, `POST` crea un recurso subordinado, `PATCH` modifica parcialmente un recurso y `DELETE` elimina la sesión actual;
+- las transiciones se expresan modificando el estado del recurso correspondiente, no creando recursos nominales de activación, restablecimiento o confirmación;
 - solo identificadores estables aparecen en la ruta; contraseñas, secretos y tokens se envían exclusivamente en el cuerpo;
 - el contrato define representaciones, cabeceras, estados HTTP, idempotencia observable y Problem Details de cada operación.
 
 | Actor | Operación | Propósito |
 | --- | --- | --- |
-| Anónimo | `GET /api/auth/csrf-tokens/current` | Obtener la representación del token CSRF del contexto actual. |
-| Anónimo | `POST /api/auth/sessions` | Iniciar sesión con respuesta genérica ante credenciales o estado inválidos. |
-| Anónimo | `POST /api/auth/account-activations` | Crear una activación consumiendo la invitación, la declaración de mayoría de edad y la contraseña. |
-| Anónimo | `POST /api/auth/password-reset-requests` | Crear una solicitud de restablecimiento; responde `202` de forma indistinguible. |
-| Anónimo | `POST /api/auth/password-resets` | Crear un restablecimiento consumiendo el desafío y la contraseña nueva. |
-| Anónimo | `POST /api/auth/email-change-confirmations` | Crear la confirmación que aplica el correo nuevo mediante el desafío. |
-| Autenticado | `GET /api/auth/sessions/current` | Consultar identidad, rol y estado de la sesión actual. |
-| Autenticado | `DELETE /api/auth/sessions/current` | Revocar la sesión actual. |
-| Autenticado | `PATCH /api/auth/credentials/current` | Sustituir la contraseña presentando la actual. Solo admite los campos definidos para ese cambio. |
-| Autenticado | `POST /api/auth/email-change-requests` | Reservar y solicitar verificación de un correo nuevo. |
-| Administrador | `GET /api/admin/accounts` | Buscar cuentas mediante paginación por cursor y filtros acotados. |
-| Administrador | `GET /api/admin/accounts/{accountId}` | Consultar estado, rol y metadatos administrativos. |
-| Administrador | `POST /api/admin/accounts` | Invitar solo cuentas `administrador` o `entrenador`. |
-| Administrador | `POST /api/admin/accounts/{accountId}/invitations` | Crear una nueva invitación para una cuenta pendiente e invalidar la anterior. |
-| Administrador | `PATCH /api/admin/accounts/{accountId}` | Modificar exclusivamente `status`: cancelar una cuenta pendiente, desactivar una activa o iniciar la reactivación de una desactivada. |
-| Administrador | `POST /api/admin/accounts/{accountId}/email-change-requests` | Iniciar cambio verificable de correo para otra cuenta. |
+| Anónimo | `GET /api/csrf-tokens/current` | Obtener la representación del token CSRF del contexto actual. |
+| Anónimo | `POST /api/sessions` | Crear una sesión con respuesta genérica ante credenciales o estado inválidos. |
+| Anónimo | `PATCH /api/invitations/{invitationId}` | Cambiar la invitación a `accepted` consumiendo el secreto, la declaración de mayoría de edad y la contraseña; cubre activación y reactivación. |
+| Anónimo | `POST /api/access-challenges` | Crear un desafío con `purpose: password_reset`; responde `202` de forma indistinguible. |
+| Anónimo | `PATCH /api/accounts/{accountId}/credentials/current` | Sustituir la contraseña mediante el identificador y secreto del desafío de recuperación. |
+| Anónimo | `PATCH /api/accounts/{accountId}/email-addresses/{emailAddressId}` | Cambiar la dirección pendiente a `verified` mediante su secreto y convertirla en la dirección actual. |
+| Autenticado | `GET /api/sessions/current` | Consultar identidad, rol y estado de la sesión actual. |
+| Autenticado | `DELETE /api/sessions/current` | Revocar la sesión actual. |
+| Autenticado | `PATCH /api/accounts/me/credentials/current` | Sustituir la contraseña presentando la actual. Solo admite los campos definidos para ese cambio. |
+| Autenticado | `POST /api/accounts/me/email-addresses` | Crear una dirección pendiente y solicitar su verificación. |
+| Administrador | `GET /api/accounts` | Buscar cuentas mediante paginación por cursor y filtros acotados. |
+| Administrador | `GET /api/accounts/{accountId}` | Consultar estado, rol y metadatos administrativos. |
+| Administrador | `POST /api/accounts` | Crear una cuenta pendiente solo con rol `administrador` o `entrenador`. |
+| Administrador | `POST /api/accounts/{accountId}/invitations` | Crear una nueva invitación para una cuenta pendiente e invalidar la anterior. |
+| Administrador | `PATCH /api/accounts/{accountId}` | Modificar exclusivamente `status`: cancelar una cuenta pendiente, desactivar una activa o iniciar la reactivación de una desactivada. |
+| Administrador | `POST /api/accounts/{accountId}/email-addresses` | Crear una dirección pendiente para otra cuenta y solicitar su verificación. |
 
-La cuenta de corredor se crea únicamente mediante el futuro caso de uso de alta de corredor de `runner-management`, que llama a la API Java de identidad dentro de su transacción. Exponer su creación directa en `/api/admin/accounts` permitiría cuentas de corredor huérfanas y queda prohibido.
+`me` es un alias estable de la cuenta del actor autenticado y se resuelve en el backend; no acepta ni confía en un identificador enviado por el cliente. Las rutas no conceden permisos: cada operación aplica las capacidades del actor y el alcance del recurso conforme a `ADR-0004` y `ADR-0015`.
 
-El `PATCH` administrativo no es una operación genérica ni permite modificar rol, correo u otros atributos. OpenAPI define un cuerpo cerrado con `status`, el servidor valida la transición contra el estado actual y una repetición que ya alcanzó el estado solicitado no vuelve a emitir desafíos ni notificaciones.
+La cuenta de corredor se crea únicamente mediante el futuro caso de uso de alta de corredor de `runner-management`, que llama a la API Java de identidad dentro de su transacción. Permitir crearla directamente mediante `POST /api/accounts` produciría cuentas de corredor huérfanas y queda prohibido.
+
+El `PATCH /api/accounts/{accountId}` no es una modificación genérica ni permite cambiar rol, correo u otros atributos. OpenAPI define un cuerpo cerrado con `status`, el servidor valida la transición contra el estado actual y una repetición que ya alcanzó el estado solicitado no vuelve a emitir desafíos ni notificaciones.
+
+`Invitation`, `Credential`, `EmailAddress` y `AccessChallenge` son recursos del contrato, no nombres alternativos de comandos. Una representación REST no tiene que corresponder uno a uno con una tabla: una invitación se materializa mediante la cuenta pendiente y su desafío de acceso vigente. Sus representaciones exponen estado, vigencia y enlaces permitidos sin incluir hashes, secretos ni datos de otras cuentas. Los UUID de cuenta, invitación y dirección no conceden acceso; el servidor valida además el secreto de un solo uso y responde de forma indistinguible cuando corresponda.
 
 No existen endpoints para cambiar rol, establecer contraseñas ajenas, solicitar una baja desde el producto, eliminar la propia cuenta, limitar sesiones ni ejecutar recuperación operativa.
 
@@ -237,7 +242,7 @@ Todas las tablas pertenecen al esquema `identity_access` y solo su adaptador jOO
 | --- | --- |
 | `account` | UUID, rol inmutable, estado, hash y parámetros Argon2id, instantes, versión optimista. Check de rol y estado; no contiene datos de corredor. |
 | `account_email` | Cuenta, correo de presentación, forma canónica, uso `current`, `pending_change` o `released`, confirmación y caducidad. Unicidad parcial global de forma canónica solo para `current` y `pending_change`, y una fila reservada de cada uso por cuenta. |
-| `credential_challenge` | Cuenta, propósito, generación, verificador SHA-256, caducidad, consumo y reemplazo. Índice único parcial para una generación vigente por cuenta y propósito. |
+| `access_challenge` | Cuenta, propósito, generación, verificador SHA-256, caducidad, consumo y reemplazo. Índice único parcial para una generación vigente por cuenta y propósito. |
 | `access_session` | Verificador SHA-256, cuenta, creación, último uso, caducidad absoluta, revocación y motivo. Índices por verificador y por cuenta activa. |
 | `adult_declaration` | Cuenta, actor, origen, instante y versión de texto. Unicidad por cuenta y origen de declaración. |
 | `security_event` | Actor, cuenta afectada, tipo, resultado, instante, correlación y metadatos mínimos no secretos. |
