@@ -1,6 +1,6 @@
 # Diseño detallado de identidad y acceso - Fase 2
 
-**Estado:** Propuesto
+**Estado:** Validado
 **Fecha:** 2026-08-15
 **Responsable de revisión:** Revisor de arquitectura
 
@@ -380,7 +380,6 @@ No quedan decisiones funcionales o arquitectónicas pendientes dentro del alcanc
 
 Antes de implementar todavía deben producirse y revisarse los siguientes artefactos, cuyos criterios ya están decididos:
 
-- aceptación de `ADR-0017` y de la guía operativa de API HTTP;
 - contrato OpenAPI inicial de las operaciones previstas;
 - migraciones Flyway e índices concretos;
 - catálogo versionado de Problem Details y eventos de seguridad;

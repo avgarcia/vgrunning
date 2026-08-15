@@ -1,6 +1,6 @@
 # Guía de diseño de API HTTP
 
-**Estado:** Propuesto
+**Estado:** Vigente
 **Fecha:** 2026-08-15
 
 ## Propósito

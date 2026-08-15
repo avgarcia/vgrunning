@@ -1,6 +1,6 @@
 # ADR-0017: API HTTP orientada a recursos y semántica REST
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-15
 **Responsable de revisión:** Revisor de arquitectura
 

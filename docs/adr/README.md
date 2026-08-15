@@ -50,7 +50,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0014](0014-modular-hexagonal-ddd-architecture.md) | Arquitectura modular, hexagonal y DDD selectivo | Aceptado | Todos los `RF` |
 | [ADR-0015](0015-application-authorization-enforcement.md) | Aplicación de autorización y alcance por recurso | Aceptado | `RF-02`, `RF-03`, `RF-05` a `RF-09`, `RF-14` y `RF-16` a `RF-19` |
 | [ADR-0016](0016-deployment-platform-operations.md) | Plataforma de despliegue y operación | Aceptado | Todos los `RF`; requisito no funcional de datos y privacidad |
-| [ADR-0017](0017-resource-oriented-http-api.md) | API HTTP orientada a recursos y semántica REST | Propuesto | Todos los `RF` expuestos mediante HTTP |
+| [ADR-0017](0017-resource-oriented-http-api.md) | API HTTP orientada a recursos y semántica REST | Aceptado | Todos los `RF` expuestos mediante HTTP |
 
 ## Backlog inicial de Fase 2
 
