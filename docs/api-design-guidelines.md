@@ -36,6 +36,8 @@ Un proceso solo es recurso cuando tiene identidad, estado y ciclo de vida reales
 - No incluir detalles de módulos, tablas, proveedores o tecnología en la URL.
 - No incluir contraseñas, secretos o tokens en path o query.
 
+La API inicial no incluye `/v1` ni otro segmento de versión. Una incompatibilidad futura se bloquea con `oasdiff` hasta que un ADR defina transición, coexistencia y retirada; no se introduce un prefijo de versión de forma preventiva ni silenciosa.
+
 ### Ejemplos
 
 | Evitar | Usar | Motivo |
@@ -64,7 +66,7 @@ La creación devuelve una representación cuando el cliente la necesita. Una res
 - Las transiciones se expresan con propiedades como `status`, no con rutas nuevas.
 - OpenAPI enumera estados aceptados y el servidor rechaza transiciones inválidas con `409 Conflict`.
 - Repetir el estado ya alcanzado no crea otra notificación, desafío o publicación.
-- Una modificación sensible a concurrencia expone `ETag` y exige `If-Match`, o documenta otra precondición equivalente.
+- Una modificación donde la concurrencia pueda provocar pérdida de actualizaciones expone `ETag` y exige `If-Match`.
 - `POST` con riesgo de duplicado lógico define clave idempotente, unicidad natural o tratamiento explícito de repetición.
 - Los efectos externos se coordinan mediante las transacciones y outbox aceptadas, no mediante promesas de exactamente una vez en HTTP.
 

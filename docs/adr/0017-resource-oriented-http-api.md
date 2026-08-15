@@ -51,7 +51,7 @@ Los recursos no tienen que corresponder uno a uno con tablas ni agregados. La re
 - `PATCH` modifica parcialmente un recurso o solicita una transición mediante su estado. El cuerpo será cerrado y solo admitirá propiedades documentadas.
 - `DELETE` elimina o revoca el recurso dirigido y se comporta de forma idempotente desde la perspectiva del cliente.
 
-Las transiciones se validan contra el estado actual y sus invariantes. Repetir una petición que ya alcanzó el estado solicitado no vuelve a emitir desafíos, notificaciones ni otros efectos externos. Cuando una operación concurrente pueda invalidar la representación, el contrato usará versión, `ETag` e `If-Match` o una precondición equivalente.
+Las transiciones se validan contra el estado actual y sus invariantes. Repetir una petición que ya alcanzó el estado solicitado no vuelve a emitir desafíos, notificaciones ni otros efectos externos. Cuando una modificación concurrente pueda provocar pérdida de actualizaciones, el contrato expondrá `ETag` y exigirá `If-Match`.
 
 ### Seguridad y privacidad
 
@@ -85,6 +85,10 @@ Cuando se cree `api/openapi/`, el mismo cambio incorporará Spectral y sus regla
 Spectral no puede decidir de forma fiable si un nombre es una acción nominalizada o si existe un recurso real. Esa comprobación seguirá siendo un gate humano obligatorio. `oasdiff`, generación de cliente y pruebas de contrato completarán los controles de `ADR-0013`.
 
 Una excepción a esta guía deberá explicar por qué el caso no puede modelarse sin distorsionar un recurso y necesitará un ADR nuevo o la sustitución explícita de este.
+
+### Versionado inicial
+
+La primera versión no incluirá un segmento como `/v1`: todas las operaciones propias partirán de `/api`. Frontend y backend se despliegan juntos y `oasdiff` bloqueará incompatibilidades accidentales. Cuando aparezca una necesidad real de mantener clientes incompatibles, otro ADR deberá definir transición, coexistencia, retirada y estrategia de versionado antes de publicar la ruptura.
 
 ## Alternativas consideradas
 
@@ -145,4 +149,8 @@ Se descarta porque una única API pública no debe reflejar fronteras internas m
 
 No quedan decisiones pendientes dentro del alcance de este ADR.
 
-La estrategia de versionado de una futura ruptura no se anticipa sin un cambio real. Cuando aparezca, deberá decidir transición, compatibilidad y retirada sin introducir silenciosamente un prefijo de versión.
+- **Resuelto:** las rutas usan nombres en inglés, plural y `kebab-case`; `/me` y `/current` son identificadores contextuales permitidos.
+- **Resuelto:** la API inicial usa `/api` sin `/v1`; una ruptura real exigirá decidir explícitamente su estrategia de versionado.
+- **Resuelto:** `ETag` e `If-Match` se exigen solo cuando una modificación concurrente pueda provocar pérdida de actualizaciones.
+- **Resuelto:** webhooks impuestos por proveedores, endpoints técnicos, recursos estáticos y comandos operativos quedan fuera del ámbito, sin permitir RPC para casos de uso de producto.
+- **Resuelto:** repetir una transición hacia un estado ya alcanzado no vuelve a producir notificaciones, desafíos ni otros efectos externos.
