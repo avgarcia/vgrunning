@@ -1,13 +1,13 @@
 # Diseño funcional y técnico de alto nivel — Fase 2
 
 **Estado:** Propuesto
-**Fecha:** 2026-08-13
+**Fecha:** 2026-08-15
 
 ## Propósito
 
 Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazable. Este documento delimita los componentes lógicos, los flujos, los datos y las decisiones técnicas que deben resolverse antes de implementar el PMV.
 
-`ADR-0013` define runtime, framework, acceso JDBC, frontend conjunto y contrato API; `ADR-0014` concreta la estructura modular y `ADR-0015` el mecanismo técnico de autorización. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. `ADR-0016` define Microsoft Azure `West Europe` para despliegue y operación. Los ADRs aún propuestos deben resolverse antes de cerrar el diseño afectado.
+`ADR-0013` define runtime, framework, acceso JDBC, frontend conjunto y contrato API; `ADR-0017` define las convenciones HTTP orientadas a recursos. `ADR-0014` concreta la estructura modular y `ADR-0015` el mecanismo técnico de autorización. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. `ADR-0016` define Microsoft Azure `West Europe` para despliegue y operación. Los ADRs aún propuestos deben resolverse antes de cerrar el diseño afectado.
 
 ## Alcance y restricciones heredadas
 
@@ -95,8 +95,8 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 
 | Requisito | Flujo y componente | Modelo lógico o regla principal | Decisiones de Fase 1 | ADR relacionado o candidato | Validación prevista | Estado |
 | --- | --- | --- | --- | --- | --- | --- |
-| `RF-01` | Acceso; Identidad y acceso | Invitación, activación, credencial y restablecimiento sin revelar cuentas existentes. | — | `ADR-0003` | Criterios de `RF-01`; pruebas de token, caducidad y enumeración de cuentas. | Pendiente |
-| `RF-02` | Administración; Identidad, Gestión de corredores y Clasificación | Rol inicial inmutable, perfil de corredor y taxonomías cerradas administrados solo por administrador; modificar roles queda descartado en Fase 2. | `D-01`, `D-08` | `ADR-0003`, `ADR-0004`, `ADR-0005` | Criterios de `RF-02`, ajustados para probar asignación inicial y rechazo de cambios; pruebas de autorización. | Pendiente |
+| `RF-01` | Acceso; Identidad y acceso | Invitación, activación, reactivación, credencial, sesiones, cambio de correo y restablecimiento sin revelar cuentas existentes. | — | `ADR-0003`, `ADR-0010` a `ADR-0017` | Criterios de `RF-01`; pruebas de estado, secretos, caducidad, revocación, concurrencia y enumeración de cuentas. | Diseñado y validado en [Diseño detallado de identidad y acceso](phase-2-detailed-design-identity-access.md) |
+| `RF-02` | Administración; Identidad, Gestión de corredores y Clasificación | Rol inicial inmutable, perfil de corredor y taxonomías cerradas administrados solo por administrador; modificar roles queda descartado en Fase 2. | `D-01`, `D-08` | `ADR-0003`, `ADR-0004`, `ADR-0005`, `ADR-0014`, `ADR-0015`, `ADR-0017` | Criterios de `RF-02`, ajustados para probar asignación inicial y rechazo de cambios; pruebas de autorización. | Identidad y roles validados en [Diseño detallado de identidad y acceso](phase-2-detailed-design-identity-access.md); perfil y taxonomías pendientes |
 | `RF-03` | Clasificación y segmentación | Etiquetas controladas asignadas a corredores alimentan segmentos dinámicos y solapables. | `D-01`, `D-02` | `ADR-0005` | Criterios de `RF-03`; pruebas de evaluación dinámica y solapamiento permitido. | Pendiente |
 | `RF-04` | Planificación; Clasificación y segmentación | Modalidad como etiqueta y ubicación libre solo cuando corresponda. | `D-02`, `D-04` | `ADR-0005`, `ADR-0006` (Aceptado) | Criterios de `RF-04`; pruebas de valores permitidos y ubicación. | Pendiente |
 | `RF-05` | Clasificación y segmentación | Semántica limitada a Y, varios valores por etiqueta y sin expresiones libres. | `D-05` | `ADR-0005` | Criterios de `RF-05`; pruebas de reglas aceptadas y rechazadas. | Pendiente |
@@ -147,6 +147,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `ADR-0014`: módulos, hexagonal y DDD | Límites de código y datos, dependencias, comunicación, puertos, esquemas y modelado de dominio. | Estructura inicial del backend y desarrollo de dominio. | Revisor de arquitectura | Aceptado; proyecto Gradle único, ocho módulos y aplicación selectiva de DDD y puertos. |
 | `ADR-0015`: autorización de aplicación | Propagación del actor, políticas de aplicación, alcance en consultas y pruebas. | Implementación de cualquier caso de uso protegido. | Revisor de arquitectura | Aceptado; actor explícito, políticas Java canónicas e identidad de sistema mínima. |
 | `ADR-0016`: despliegue y operación | Microsoft Azure `West Europe`, artefactos, promoción, PostgreSQL, copias, observabilidad, secretos y recuperación. | Despliegue de staging y producción. | Revisor de arquitectura y persona operadora | Aceptado; completar evidencias previas a producción. |
+| `ADR-0017`: API HTTP orientada a recursos | Recursos, rutas, métodos, transiciones, seguridad y controles del contrato HTTP. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado; nivel 2 de Richardson sin HATEOAS obligatorio y con revisión semántica humana. |
 
 ## Riesgos y mitigaciones
 

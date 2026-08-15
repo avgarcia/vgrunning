@@ -12,6 +12,10 @@ Redacta los documentos de producto y técnicos en Markdown y en castellano. Cons
 
 Mantén la distinción entre decisiones, supuestos, preguntas abiertas y riesgos. Actualiza el enunciado del problema solo si cambia el entendimiento del producto; crea un documento nuevo para trabajo de diseño posterior, en lugar de reescribir el contexto histórico.
 
+## Convenciones de API HTTP
+
+Toda operación HTTP pública debe diseñarse contract-first con OpenAPI y cumplir `docs/adr/0017-resource-oriented-http-api.md` y `docs/api-design-guidelines.md`. Antes de implementar o revisar una operación, identifica el recurso, representación, método, estado HTTP, seguridad, idempotencia y compatibilidad. No introduzcas verbos, acciones nominalizadas, prefijos por rol o secretos en rutas o parámetros de consulta. Una excepción requiere una decisión arquitectónica explícita.
+
 ## Comandos de compilación, pruebas y desarrollo
 
 Todavía no hay runtime de aplicación, gestor de paquetes, linter, formateador ni framework de pruebas configurados. No añadas comandos a esta guía hasta que exista la herramienta correspondiente. Para el repositorio actual, solo de documentación, usa:
