@@ -20,6 +20,8 @@ Cada cuenta tendrá un correo comparado sin distinción de mayúsculas, único d
 
 Una invitación crea o reutiliza una cuenta pendiente de activación y envía un enlace con un secreto aleatorio de un solo uso. La activación válida el secreto, permite fijar la contraseña y activa la cuenta. Reenviar una invitación invalida el secreto de activación anterior. No se crearán cuentas duplicadas para un correo ya activo.
 
+`ADR-0018` aceptado establece para las cuentas de corredor un máximo absoluto de `30` días desde el alta inicial, aunque se reenvíe la invitación, y su cancelación coordinada con el perfil. Esa decisión reemplaza para dichas cuentas cualquier interpretación incompatible de este ciclo de invitación.
+
 La recuperación de contraseña usa un secreto separado, aleatorio y de un solo uso. La solicitud responde de forma indistinguible para correos existentes o inexistentes y no revela si una cuenta está registrada. Una solicitud nueva invalida el secreto de recuperación anterior de esa cuenta.
 
 Los secretos de activación y recuperación solo se enviarán al correo del usuario y se almacenarán como verificadores `SHA-256` no reversibles, con propósito, fecha de expiración y estado de uso. Los valores se generan con el CSPRNG del sistema operativo y nunca se persisten en claro. Las contraseñas se almacenarán con Argon2id. La política de contraseñas, los plazos de expiración, los límites de intentos y los parámetros mínimos de coste se fijan en la [Línea base de seguridad de acceso — Fase 2](../phase-2-access-security-baseline.md).

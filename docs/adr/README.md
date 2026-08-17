@@ -51,6 +51,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0015](0015-application-authorization-enforcement.md) | Aplicación de autorización y alcance por recurso | Aceptado | `RF-02`, `RF-03`, `RF-05` a `RF-09`, `RF-14` y `RF-16` a `RF-19` |
 | [ADR-0016](0016-deployment-platform-operations.md) | Plataforma de despliegue y operación | Aceptado | Todos los `RF`; requisito no funcional de datos y privacidad |
 | [ADR-0017](0017-resource-oriented-http-api.md) | API HTTP orientada a recursos y semántica REST | Aceptado | Todos los `RF` expuestos mediante HTTP |
+| [ADR-0018](0018-runner-lifecycle-inactivity-reactivation.md) | Ciclo de vida, inactividad y reactivación del corredor | Aceptado | `RF-01`, `RF-02`, `RF-03`, `RF-16` a `RF-19`; datos y privacidad |
 
 ## Backlog inicial de Fase 2
 

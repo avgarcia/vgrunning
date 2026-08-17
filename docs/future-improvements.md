@@ -100,3 +100,31 @@ La revisión deberá definir límite por cuenta, tratamiento de empates y concur
 
 - `RF-01`
 - `ADR-0003`, `ADR-0010`, `ADR-0012`, `ADR-0013`
+
+## MF-004: Búsqueda de corredores por etiquetas y grupos
+
+**Estado:** Aplazada fuera del PMV
+
+### Problema
+
+La búsqueda mínima de corredores del PMV usa nombre, apellidos y estado visible. Administrador y entrenador podrían necesitar posteriormente localizar corredores por valores de etiquetas, pertenencia efectiva a segmentos o grupo de planificación.
+
+### Decisión actual
+
+`runner-management` no incorporará filtros por etiquetas, segmentos o grupos. Esos datos pertenecen respectivamente a `classification-segmentation` y `planning`; añadir filtros mediante joins cruzados o duplicar su estado rompería los límites definidos por `ADR-0014`.
+
+### Criterios para reabrir la decisión
+
+- La búsqueda nominal no permite completar una tarea operativa frecuente o medible.
+- El volumen de corredores, etiquetas o grupos hace inviable la selección actual.
+- Existe el diseño detallado de los módulos propietarios y puede definirse una composición sin ciclos ni acceso SQL cruzado.
+
+### Condiciones para incorporarla
+
+La revisión deberá definir actor, filtros, semántica de pertenencia actual o histórica, paginación, consistencia, autorización y rendimiento. La solución compondrá APIs publicadas o una proyección explícita con propietario y actualización documentados; no trasladará taxonomías ni grupos a `runner-management`.
+
+### Trazabilidad
+
+- `RF-02`, `RF-03`, `RF-05`, `RF-06`, `RF-08`
+- `ADR-0005`, `ADR-0006`, `ADR-0014`, `ADR-0015`
+- [Diseño detallado de gestión de corredores](phase-2-detailed-design-runner-management.md)
