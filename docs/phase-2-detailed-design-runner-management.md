@@ -1,8 +1,9 @@
 # Diseño detallado de gestión de corredores — Fase 2
 
-**Estado:** Propuesto; bloqueado por `ADR-0018`
+**Estado:** Validado para diseño y desarrollo con datos sintéticos
 **Fecha:** 2026-08-17
 **Responsable de revisión:** Revisor de arquitectura
+**Restricción:** Prohibido tratar datos personales reales hasta completar la revisión especializada de privacidad exigida por `ADR-0010` y `ADR-0018`
 
 ## Propósito y alcance
 
@@ -26,16 +27,16 @@ Este diseño aplica:
 
 - [Requisitos de Fase 1](phase-1-requirements.md), [criterios de aceptación](phase-1-acceptance-criteria.md) y [matriz de decisiones](phase-1-decision-matrix.md), especialmente `RF-02`, `D-01` y `D-08`;
 - `ADR-0003`: identidad, invitación, activación y recuperación;
-- `ADR-0004`: autorización por roles, salvo la precisión de permisos propuesta en `ADR-0018`;
-- `ADR-0010`: privacidad y retención, salvo el cambio de plazo propuesto en `ADR-0018`;
+- `ADR-0004`: autorización por roles, con la precisión de permisos aceptada en `ADR-0018`;
+- `ADR-0010`: privacidad y retención, con el cambio arquitectónico de plazo aceptado en `ADR-0018` y todavía bloqueado para datos reales;
 - `ADR-0012`: PostgreSQL, transacciones, bloqueos, índices y migraciones;
 - `ADR-0013`: Java, Spring MVC, JDBC, jOOQ, Flyway y OpenAPI contract-first;
 - `ADR-0014`: límites modulares, dependencia hacia `identity-access` y esquema propio;
 - `ADR-0015`: actor explícito y resolución del corredor desde la cuenta autenticada;
 - `ADR-0017`: recursos y semántica de la API HTTP;
-- `ADR-0018` propuesto: perfil mínimo, ciclo de vida, permisos, inactividad y reactivación.
+- `ADR-0018` aceptado: perfil mínimo, ciclo de vida, permisos, inactividad y reactivación.
 
-`ADR-0018` cambia decisiones aceptadas sobre permisos y conservación. Mientras siga `Propuesto`, este documento no puede pasar a `Validado` ni autoriza implementar la retención de `24` meses. Si la revisión de privacidad rechaza esa conservación automática, deberán corregirse conjuntamente el ADR, este diseño y la trazabilidad de Fase 2.
+`ADR-0018` cambia decisiones aceptadas sobre permisos y conservación. Su aceptación permite validar e implementar este diseño exclusivamente con datos ficticios, sintéticos o anonimizados de forma irreversible. No autoriza tratar datos de corredores reales ni salir a producción: si la revisión de privacidad rechaza la conservación automática, deberán reemplazarse conjuntamente el ADR, este diseño y la trazabilidad de Fase 2 antes de levantar esa restricción.
 
 ## Decisiones confirmadas
 
@@ -60,7 +61,7 @@ Este diseño aplica:
 | Activar identidad sin reflejar todavía la elegibilidad | Retraso en acceso operativo. | Proyección segura por defecto, evento confirmado idempotente y reconciliación; el retraso produce exclusión, nunca acceso prematuro. |
 | Mantener elegible a un corredor dado de baja | Nuevos planes, correos o exposición indebida. | Baja síncrona con identidad y API canónica de elegibilidad consultada por consumidores. |
 | Restaurar etiquetas o grupos obsoletos | Asignación incorrecta y posibles planes no deseados. | Revisión administrativa y ausencia de restauración automática del grupo. |
-| Conservar datos durante `24` meses sin fundamento suficiente | Incumplimiento y exposición innecesaria. | `ADR-0018` no se acepta sin revisión especializada; acceso restringido, plazo no renovable y supresión anticipada. |
+| Conservar datos reales durante `24` meses sin fundamento suficiente | Incumplimiento y exposición innecesaria. | Desarrollo limitado a datos sintéticos; revisión especializada obligatoria antes de datos reales, acceso restringido, plazo no renovable y supresión anticipada. |
 | Buscar inactivos desde un rol entrenador | Exposición de datos fuera de la operación. | Política por rol y estado aplicada en consulta, no filtrado posterior. |
 | Borrar el perfil rompiendo historia o claves foráneas | Pérdida de trazabilidad o fallos de integridad. | Anonimización irreversible del vínculo identificable y limpieza idempotente por módulos propietarios. |
 | Dos transiciones concurrentes de baja o reactivación | Estados divergentes y efectos duplicados. | Bloqueo de fila, versión optimista, transición cerrada e idempotencia observable. |
@@ -255,7 +256,7 @@ Métricas agregadas:
 
 Alertas: acumulación de pendientes vencidos, discrepancias persistentes con identidad, supresiones fuera de plazo y fallos sostenidos del consumidor de eventos.
 
-Producción permanece bloqueada hasta que `ADR-0018` se acepte con revisión especializada y se actualicen inventario, base jurídica, información al interesado, registro de actividades, EIPD, automatización y pruebas.
+El tratamiento de datos personales reales y la producción permanecen bloqueados hasta obtener la revisión especializada de `ADR-0018` y actualizar inventario, base jurídica, información al interesado, registro de actividades, EIPD, automatización y pruebas. Los entornos de desarrollo y prueba no podrán importar ni copiar información de corredores reales.
 
 ## Búsqueda y evolución
 
@@ -299,7 +300,8 @@ Buscar corredores por etiquetas o grupos requiere componer información de `clas
 
 ### Privacidad
 
-- Obtener revisión humana especializada de la conservación automática antes de aceptar `ADR-0018`.
+- Impedir y probar importaciones o copias de datos personales reales en desarrollo y pruebas mientras permanezca el bloqueo.
+- Obtener revisión humana especializada de la conservación automática antes de tratar datos personales reales.
 - Probar que únicamente el administrador accede a inactivos y que cada acceso queda auditado.
 - Probar información versionada de retención al alta y comunicación de la baja.
 - Probar derechos, supresión anticipada, vencimiento automático y ausencia de datos identificativos en logs y métricas.
@@ -324,11 +326,11 @@ Buscar corredores por etiquetas o grupos requiere componer información de `clas
 - Separar elegibilidad de la existencia física permite conservar datos restringidos sin incluirlos en el trabajo diario.
 - La búsqueda mínima es viable para más de `500` corredores sin introducir filtros cruzados ni infraestructura adicional.
 - La reactivación preserva información útil, pero exige trabajo administrativo y puede encontrar historia ya vencida.
-- La retención de `24` meses es una ampliación material de tratamiento y mantiene bloqueado el diseño hasta su revisión especializada.
+- La retención de `24` meses es una ampliación material de tratamiento: no bloquea el diseño con datos sintéticos, pero bloquea cualquier dato personal real hasta su revisión especializada.
 - La implementación necesitará coordinación idempotente de eventos y retención entre módulos, además de pruebas temporales y de concurrencia.
 
 ## Decisiones pendientes
 
-- **Bloqueante para validar este diseño:** aceptar o descartar `ADR-0018` después de revisar la finalidad, base jurídica, necesidad y proporcionalidad de la conservación automática durante `24` meses. Responsable: responsable del tratamiento con Revisor de privacidad o DPO. Tratamiento: obtener revisión especializada y corregir ADR, diseño y trazabilidad si no confirma la política.
-- No quedan decisiones de producto pendientes dentro de `runner-management`; las decisiones sobre búsqueda por etiquetas o grupos están aplazadas explícitamente a `MF-004`.
+- No quedan decisiones de producto o arquitectura pendientes dentro de `runner-management`; las decisiones sobre búsqueda por etiquetas o grupos están aplazadas explícitamente a `MF-004`.
+- **Bloqueante antes de tratar datos personales reales y para producción:** revisar la finalidad, base jurídica, necesidad y proporcionalidad de la conservación automática durante `24` meses. Responsable: responsable del tratamiento con Revisor de privacidad o DPO. Tratamiento: usar exclusivamente datos ficticios, sintéticos o anonimizados de forma irreversible hasta obtener la revisión y corregir ADR, diseño y trazabilidad si no confirma la política.
 - Antes de implementar deben producirse OpenAPI, migraciones Flyway, índices medidos, catálogo de Problem Details, eventos publicados, textos de información y tareas verificables de retención.

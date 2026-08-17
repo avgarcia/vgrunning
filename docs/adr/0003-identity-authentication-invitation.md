@@ -20,7 +20,7 @@ Cada cuenta tendrá un correo comparado sin distinción de mayúsculas, único d
 
 Una invitación crea o reutiliza una cuenta pendiente de activación y envía un enlace con un secreto aleatorio de un solo uso. La activación válida el secreto, permite fijar la contraseña y activa la cuenta. Reenviar una invitación invalida el secreto de activación anterior. No se crearán cuentas duplicadas para un correo ya activo.
 
-`ADR-0018` propone para las cuentas de corredor un máximo absoluto de `30` días desde el alta inicial, aunque se reenvíe la invitación, y su cancelación coordinada con el perfil. Hasta que ese ADR se acepte, esta propuesta no reemplaza el ciclo de invitación vigente.
+`ADR-0018` aceptado establece para las cuentas de corredor un máximo absoluto de `30` días desde el alta inicial, aunque se reenvíe la invitación, y su cancelación coordinada con el perfil. Esa decisión reemplaza para dichas cuentas cualquier interpretación incompatible de este ciclo de invitación.
 
 La recuperación de contraseña usa un secreto separado, aleatorio y de un solo uso. La solicitud responde de forma indistinguible para correos existentes o inexistentes y no revela si una cuenta está registrada. Una solicitud nueva invalida el secreto de recuperación anterior de esa cuenta.
 

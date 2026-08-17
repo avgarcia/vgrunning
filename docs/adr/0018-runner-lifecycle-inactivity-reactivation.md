@@ -1,8 +1,9 @@
 # ADR-0018: Ciclo de vida, inactividad y reactivación del corredor
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-17
-**Responsable de revisión:** Revisor de arquitectura y Revisor de privacidad o DPO
+**Responsable de revisión:** Revisor de arquitectura
+**Validación documental:** Aceptado explícitamente por el responsable el 2026-08-17; revisión especializada y tratamiento de datos reales pendientes
 
 ## Contexto
 
@@ -74,7 +75,9 @@ La reactivación exigirá que el administrador revise nombre, apellidos, etiquet
 
 Al vencer los `24` meses, la política ejecutará supresión o anonimización irreversible por categoría y reaplicará las supresiones tras cualquier restauración de copia. Un regreso posterior será un alta nueva. El tratamiento automático de reactivación deberá aparecer en la información de privacidad desde el alta y comunicarse al dar de baja.
 
-La conservación de `24` meses introduce una finalidad posterior al fin de la relación: facilitar una reactivación durante dos temporadas. Antes de aceptar este ADR, una revisión especializada deberá confirmar su base jurídica, necesidad, proporcionalidad, información, derecho de oposición o supresión y acceso restringido. La conveniencia operativa no constituye por sí sola esa validación.
+La conservación de `24` meses introduce una finalidad posterior al fin de la relación: facilitar una reactivación durante dos temporadas. Antes de tratar datos personales reales, una revisión especializada deberá confirmar su base jurídica, necesidad, proporcionalidad, información, derecho de oposición o supresión y acceso restringido. La conveniencia operativa no constituye por sí sola esa validación.
+
+La aceptación de este ADR valida una decisión de arquitectura, no su conformidad jurídica ni su uso con personas reales. Hasta completar esa revisión, todos los entornos y pruebas usarán exclusivamente datos ficticios, sintéticos o anonimizados de forma irreversible; queda prohibido introducir, importar o copiar datos de corredores reales. Si la revisión no confirma la política, se mantendrán los `30` días vigentes en `ADR-0010` o se reemplazará este ADR antes de cualquier tratamiento real.
 
 ## Alternativas consideradas
 
@@ -88,7 +91,7 @@ Se descarta como decisión de producto. Añade un flujo, comunicación y registr
 
 ### Alternativa C: Conservar automáticamente durante 24 meses
 
-Es la alternativa elegida, condicionada a validación especializada antes de aceptar este ADR. Restringe acceso y uso, conserva solo las categorías necesarias para reactivación, mantiene plazos históricos independientes y permite supresión anticipada.
+Es la alternativa elegida como decisión de arquitectura. Restringe acceso y uso, conserva solo las categorías necesarias para reactivación, mantiene plazos históricos independientes y permite supresión anticipada. Su aplicación a datos personales reales queda condicionada a validación especializada.
 
 ### Alternativa D: Conservar indefinidamente a los corredores inactivos
 
@@ -104,7 +107,8 @@ Se descarta. La creación necesita una cuenta reservada al administrador y la ba
 - Solo los corredores con cuenta activada participan en la operación, por lo que no reciben planes que todavía no pueden consultar.
 - La vuelta dentro de `24` meses recupera datos administrativos sin restaurar configuraciones potencialmente obsoletas de forma automática.
 - La búsqueda ordinaria y los módulos consumidores deben excluir todos los estados distintos de `active` por construcción, no mediante filtrado posterior en memoria.
-- La conservación automática incrementa exposición y coste de cumplimiento frente a `30` días; producción y aceptación del ADR quedan bloqueadas hasta validar el fundamento y actualizar las evidencias de privacidad.
+- La conservación automática incrementa exposición y coste de cumplimiento frente a `30` días; el tratamiento de datos personales reales y la producción quedan bloqueados hasta validar el fundamento y actualizar las evidencias de privacidad.
+- El desarrollo puede materializar y probar el diseño únicamente con datos ficticios, sintéticos o anonimizados de forma irreversible mientras permanezca ese bloqueo.
 - La precisión de permisos reduce privilegios del entrenador respecto a la lectura literal de `ADR-0004`, aunque conserva sus capacidades deportivas globales sobre corredores activos.
 - Las tareas de caducidad deberán coordinar varios módulos sin acceso SQL cruzado y ser idempotentes, auditables y seguras ante reintentos.
 - El historial puede haber vencido parcialmente cuando el corredor vuelva; reactivar no recupera datos ya suprimidos ni prolonga retroactivamente su retención.
@@ -135,12 +139,16 @@ Se descarta. La creación necesita una cuenta reservada al administrador y la ba
 - Probar acceso exclusivo y auditado del administrador a inactivos, incluidas listas, búsquedas y acceso directo por identificador.
 - Probar revisión administrativa obligatoria y ausencia de restauración automática de grupos al reactivar.
 - Probar el vencimiento de `24` meses, supresión anticipada, plazos históricos independientes, idempotencia y reaplicación tras restaurar copias.
-- Revisar finalidad, base jurídica, proporcionalidad, información y derechos con Revisor de privacidad o DPO antes de aceptar el ADR.
-- Actualizar el inventario, registro de actividades, información de privacidad, EIPD y pruebas de retención antes de producción.
+- Probar con datos sintéticos que ningún entorno de desarrollo o prueba admite importaciones o copias de datos personales reales mientras permanezca el bloqueo.
+- Revisar finalidad, base jurídica, proporcionalidad, información y derechos con Revisor de privacidad o DPO antes de tratar datos personales reales.
+- Actualizar el inventario, registro de actividades, información de privacidad, EIPD y pruebas de retención antes de tratar datos personales reales o salir a producción.
 
 ## Decisiones pendientes
 
-- **Bloqueante para aceptar el ADR y para producción:** confirmar mediante revisión especializada una base jurídica defendible y la necesidad y proporcionalidad de conservar automáticamente cuenta, perfil y clasificación durante `24` meses tras finalizar la relación. Responsable: responsable del tratamiento con Revisor de privacidad o DPO. Tratamiento: documentar la evaluación y aceptar este ADR solo si confirma la alternativa elegida; en caso contrario, mantener los `30` días vigentes o rediseñar el flujo.
+No quedan decisiones pendientes para aceptar este ADR. Permanecen estas condiciones y evidencias obligatorias:
+
+- **Bloqueante antes de tratar datos personales reales y para producción:** confirmar mediante revisión especializada una base jurídica defendible y la necesidad y proporcionalidad de conservar automáticamente cuenta, perfil y clasificación durante `24` meses tras finalizar la relación. Responsable: responsable del tratamiento con Revisor de privacidad o DPO. Tratamiento: documentar la evaluación y aplicar esta política a datos reales solo si la confirma; en caso contrario, mantener los `30` días vigentes o reemplazar este ADR.
+- **Restricción vigente mientras permanezca el bloqueo:** usar exclusivamente datos ficticios, sintéticos o anonimizados de forma irreversible en desarrollo y pruebas. Responsable: Revisor de arquitectura. Tratamiento: impedir importaciones y copias de datos de corredores reales y conservar esta restricción como criterio de revisión.
 - **Resuelta por el responsable de producto:** la conservación será automática, no exigirá confirmación del corredor, tendrá un máximo no renovable de `24` meses y permitirá supresión anticipada.
 - **Resuelta por el responsable de producto:** la reactivación exigirá revisión administrativa y no restaurará automáticamente el grupo anterior.
 - **Resuelta por el responsable de producto:** nombre y apellidos estarán separados y no se almacenarán referencias deportivas personales.

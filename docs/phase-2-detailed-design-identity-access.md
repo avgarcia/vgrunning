@@ -8,7 +8,7 @@
 
 Definir el comportamiento, los límites modulares, el modelo de datos, las transacciones, la API y las pruebas de identidad y acceso antes de crear el contrato OpenAPI y comenzar la implementación.
 
-Este diseño cubre completamente `RF-01` y la parte de cuentas y roles de `RF-02`. También concreta la autenticación y autorización necesarias para `RF-16`, `RF-18` y `RF-19`. No diseña el perfil operativo del corredor, las taxonomías ni su asignación: esos conceptos pertenecen respectivamente a `runner-management` y `classification-segmentation`. El perfil se concreta en el [Diseño detallado de gestión de corredores](phase-2-detailed-design-runner-management.md), todavía propuesto y bloqueado por `ADR-0018`; clasificación necesita su diseño detallado propio.
+Este diseño cubre completamente `RF-01` y la parte de cuentas y roles de `RF-02`. También concreta la autenticación y autorización necesarias para `RF-16`, `RF-18` y `RF-19`. No diseña el perfil operativo del corredor, las taxonomías ni su asignación: esos conceptos pertenecen respectivamente a `runner-management` y `classification-segmentation`. El perfil se concreta en el [Diseño detallado de gestión de corredores](phase-2-detailed-design-runner-management.md), validado con la restricción de usar solo datos sintéticos mientras permanezca pendiente la revisión de privacidad; clasificación necesita su diseño detallado propio.
 
 ## Fuentes normativas
 
@@ -24,7 +24,7 @@ Este diseño cubre completamente `RF-01` y la parte de cuentas y roles de `RF-02
 - `ADR-0015`: aplicación de autorización y `ActorContext` explícito.
 - `ADR-0016`: secretos, observabilidad, copias y operación en Azure.
 - `ADR-0017`: API HTTP orientada a recursos y semántica REST.
-- `ADR-0018` (Propuesto): ciclo de vida del perfil, caducidad total del alta de corredor, inactividad, reactivación y retención posterior.
+- `ADR-0018` (Aceptado): ciclo de vida del perfil, caducidad total del alta de corredor, inactividad, reactivación y retención posterior.
 - [Guía de diseño de API HTTP](api-design-guidelines.md).
 
 Si este documento contradice una fuente aceptada, prevalece el ADR o la línea base y deberá corregirse el diseño antes de implementar.
@@ -379,7 +379,7 @@ Las retenciones y supresiones siguen `ADR-0010`. Las tareas de limpieza eliminan
 
 No quedan decisiones funcionales o arquitectónicas pendientes dentro del alcance de identidad y acceso de este documento.
 
-`ADR-0018` propone cambios posteriores que afectan a cuentas de corredor: cancelación total del alta a los `30` días, coordinación de baja y reactivación y conservación restringida durante `24` meses. No reemplaza este diseño mientras siga `Propuesto`; si se acepta, deberán actualizarse conjuntamente los contratos internos, las pruebas y esta sección antes de implementar esos flujos.
+`ADR-0018` aceptado introduce cambios que afectan a cuentas de corredor: cancelación total del alta a los `30` días, coordinación de baja y reactivación y conservación restringida durante `24` meses. Los contratos internos y las pruebas deberán materializarlos conjuntamente. Hasta completar la revisión especializada de privacidad, solo podrán desarrollarse y probarse con datos ficticios, sintéticos o anonimizados de forma irreversible.
 
 Antes de implementar todavía deben producirse y revisarse los siguientes artefactos, cuyos criterios ya están decididos:
 
