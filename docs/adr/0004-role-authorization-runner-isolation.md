@@ -31,6 +31,8 @@ La matriz mínima de capacidades será la siguiente:
 | Publicación y republicación | Gestión global | Gestión global | Lectura solo de publicaciones propias |
 | Seguimiento e historial | Lectura global | Lectura global para revisión | Lectura y escritura solo propias |
 
+`ADR-0018` propone precisar la fila de corredores: el administrador gobernaría perfil y ciclo de vida, mientras el entrenador conservaría consulta y operación deportiva global solo sobre corredores activos. Hasta que ese ADR se acepte, esta matriz continúa siendo la decisión vigente y el diseño detallado de `runner-management` permanece bloqueado.
+
 El rol administrador heredará todas las capacidades del entrenador y añadirá la gestión de cuentas, invitaciones, roles iniciales, definiciones de etiquetas y valores permitidos. Esta jerarquía evita que una misma persona necesite dos cuentas para administrar y entrenar. El entrenador no hereda capacidades administrativas y el corredor no hereda capacidades de los otros roles.
 
 Identidad y acceso será responsable de resolver la cuenta autenticada, su rol inmutable y su estado de activación. La sesión identificará la cuenta y cada operación obtendrá de ella el rol asignado; no se aceptará un rol enviado por el cliente ni una operación para modificarlo.

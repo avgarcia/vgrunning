@@ -79,6 +79,8 @@ La matriz mínima de conservación activa será:
 | Auditoría y seguridad | Fecha del evento | `12` meses | Finalizar acceso operativo y suprimir o bloquear por incidente o responsabilidad documentada. |
 | Copias de respaldo | Creación de la copia | Máximo `35` días | Destruir la copia completa mediante rotación verificable y reaplicar supresiones pendientes tras cualquier restauración. |
 
+`ADR-0018` propone reemplazar el plazo de `30` días de cuenta, perfil y clasificación por una conservación automática restringida de `24` meses para facilitar reactivación. Hasta que una revisión especializada confirme su base, necesidad y proporcionalidad y el ADR se acepte, la fila de `30` días continúa siendo la decisión vigente.
+
 La arquitectura distinguirá conservación activa, bloqueo restringido, anonimización irreversible y destrucción definitiva. El bloqueo impedirá uso ordinario y visualización, limitará el acceso a la puesta a disposición legalmente exigible, registrará motivo e inicio y terminará en destrucción al prescribir la responsabilidad aplicable. No se asignará automáticamente un plazo genérico de cinco años a todas las categorías: cada bloqueo deberá enlazar la obligación o responsabilidad y su plazo revisado.
 
 Al terminar la relación se desactivará inmediatamente el acceso. Durante los `30` días siguientes el interesado podrá solicitar su exportación; al vencer se ejecutarán las acciones de cuenta, perfil y clasificación, y el resto seguirá su plazo propio. Cualquier conservación identificable posterior deberá estar respaldada por la finalidad y base aprobadas y tendrá acceso restringido.
