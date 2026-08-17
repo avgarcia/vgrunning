@@ -71,7 +71,7 @@ Cuenta, perfil, vínculo, asignaciones de etiquetas y excepciones manuales de se
 
 Planes publicados y seguimiento conservarán sus propios plazos desde la fecha de cada entrenamiento. La baja o reactivación no reiniciará esos plazos. El último grupo podrá conservarse únicamente como referencia administrativa durante su retención, nunca como pertenencia operativa restaurable.
 
-La reactivación exigirá que el administrador revise nombre, apellidos, etiquetas, excepciones y compatibilidad con los grupos actuales. Los datos conservados serán un punto de partida, no una afirmación de vigencia. Tras la revisión, el perfil pasará a `pending_reactivation`; solo la activación correcta de la cuenta permitirá recuperar `active`. No se restaurará automáticamente una pertenencia antigua a grupo.
+La reactivación exigirá que el administrador revise nombre, apellidos, etiquetas, excepciones y compatibilidad con los grupos actuales. Los datos conservados serán un punto de partida, no una afirmación de vigencia. Conforme a `ADR-0019`, `planning` evaluará el reingreso hipotético con la clasificación conservada y rechazará atómicamente cualquier conflicto antes de solicitar la transición. Mientras la invitación esté pendiente, el corredor reservará su pertenencia hipotética para las validaciones de exclusividad sin aparecer en resultados efectivos. Solo después de la validación el perfil pasará a `pending_reactivation`; la activación correcta de la cuenta permitirá recuperar `active`. No se restaurará automáticamente una pertenencia antigua a grupo.
 
 Al vencer los `24` meses, la política ejecutará supresión o anonimización irreversible por categoría y reaplicará las supresiones tras cualquier restauración de copia. Un regreso posterior será un alta nueva. El tratamiento automático de reactivación deberá aparecer en la información de privacidad desde el alta y comunicarse al dar de baja.
 
@@ -137,7 +137,7 @@ Se descarta. La creación necesita una cuenta reservada al administrador y la ba
 - Probar cancelación manual, caducidad absoluta de `pending_activation` a los `30` días y que los reenvíos no prolongan el máximo.
 - Probar baja inmediata de acceso, exclusión operativa y conservación histórica sin reescribir publicaciones.
 - Probar acceso exclusivo y auditado del administrador a inactivos, incluidas listas, búsquedas y acceso directo por identificador.
-- Probar revisión administrativa obligatoria y ausencia de restauración automática de grupos al reactivar.
+- Probar revisión administrativa obligatoria, reserva hipotética durante `pending_reactivation`, validación coordinada del reingreso conforme a `ADR-0019` y ausencia de restauración automática de grupos al reactivar.
 - Probar el vencimiento de `24` meses, supresión anticipada, plazos históricos independientes, idempotencia y reaplicación tras restaurar copias.
 - Probar con datos sintéticos que ningún entorno de desarrollo o prueba admite importaciones o copias de datos personales reales mientras permanezca el bloqueo.
 - Revisar finalidad, base jurídica, proporcionalidad, información y derechos con Revisor de privacidad o DPO antes de tratar datos personales reales.

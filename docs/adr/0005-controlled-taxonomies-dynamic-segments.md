@@ -120,3 +120,4 @@ Se descarta porque produciría resultados obsoletos tras cambiar etiquetas o exc
 ## Decisiones pendientes
 
 - **Resuelto por `ADR-0012`:** PostgreSQL evaluará la regla canónica con índices justificados por consulta y sin caché en el PMV.
+- **Resuelto por `ADR-0019`:** `planning` coordinará las mutaciones con impacto en grupos; los segmentos tendrán ciclo `active` o `inactive`; existirán lotes atómicos, impacto explicado, evaluación completa, historial inmutable y reservas hipotéticas durante `pending_reactivation`.

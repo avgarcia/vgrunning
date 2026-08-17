@@ -231,3 +231,4 @@ Se descarta porque combina ciclo de vida, clasificación administrativa y compos
 - **Resuelto:** se confirman los ocho módulos, sus responsabilidades, comunicación síncrona o por eventos y dependencias permitidas.
 - **Resuelto:** se confirma una base PostgreSQL, un esquema por módulo con estado, un único `DataSource`, usuario técnico e historial Flyway, y `runner-portal` sin esquema inicial.
 - **Resuelto:** se permiten claves foráneas entre esquemas según dependencias declaradas y se prohíben acceso SQL directo y joins entre módulos.
+- **Resuelto por `ADR-0019`:** los adaptadores de clasificación y corredores dependerán de puertos de coordinación definidos por sus módulos propietarios e implementados por `planning`; así se conserva la dirección de dependencias sin permitir atajos locales.
