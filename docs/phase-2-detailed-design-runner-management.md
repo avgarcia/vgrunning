@@ -34,7 +34,8 @@ Este diseño aplica:
 - `ADR-0014`: límites modulares, dependencia hacia `identity-access` y esquema propio;
 - `ADR-0015`: actor explícito y resolución del corredor desde la cuenta autenticada;
 - `ADR-0017`: recursos y semántica de la API HTTP;
-- `ADR-0018` aceptado: perfil mínimo, ciclo de vida, permisos, inactividad y reactivación.
+- `ADR-0018` aceptado: perfil mínimo, ciclo de vida, permisos, inactividad y reactivación;
+- `ADR-0019` aceptado: coordinación desde `planning`, validación de la clasificación conservada y reserva hipotética durante `pending_reactivation`.
 
 `ADR-0018` cambia decisiones aceptadas sobre permisos y conservación. Su aceptación permite validar e implementar este diseño exclusivamente con datos ficticios, sintéticos o anonimizados de forma irreversible. No autoriza tratar datos de corredores reales ni salir a producción: si la revisión de privacidad rechaza la conservación automática, deberán reemplazarse conjuntamente el ADR, este diseño y la trazabilidad de Fase 2 antes de levantar esa restricción.
 
@@ -60,7 +61,7 @@ Este diseño aplica:
 | Crear cuenta sin perfil o perfil sin cuenta | Identidad huérfana e invariantes rotas. | Un único caso de uso coordinador y una transacción compartida. |
 | Activar identidad sin reflejar todavía la elegibilidad | Retraso en acceso operativo. | Proyección segura por defecto, evento confirmado idempotente y reconciliación; el retraso produce exclusión, nunca acceso prematuro. |
 | Mantener elegible a un corredor dado de baja | Nuevos planes, correos o exposición indebida. | Baja síncrona con identidad y API canónica de elegibilidad consultada por consumidores. |
-| Restaurar etiquetas o grupos obsoletos | Asignación incorrecta y posibles planes no deseados. | Revisión administrativa y ausencia de restauración automática del grupo. |
+| Restaurar etiquetas o grupos obsoletos | Asignación incorrecta, conflicto entre grupos y posibles planes no deseados. | Revisión administrativa, validación hipotética coordinada por `planning` y ausencia de restauración automática del grupo. |
 | Conservar datos reales durante `24` meses sin fundamento suficiente | Incumplimiento y exposición innecesaria. | Desarrollo limitado a datos sintéticos; revisión especializada obligatoria antes de datos reales, acceso restringido, plazo no renovable y supresión anticipada. |
 | Buscar inactivos desde un rol entrenador | Exposición de datos fuera de la operación. | Política por rol y estado aplicada en consulta, no filtrado posterior. |
 | Borrar el perfil rompiendo historia o claves foráneas | Pérdida de trazabilidad o fallos de integridad. | Anonimización irreversible del vínculo identificable y limpieza idempotente por módulos propietarios. |
@@ -160,7 +161,11 @@ No se modifican físicamente etiquetas, excepciones, grupos, publicaciones ni se
 
 El administrador consulta el perfil inactivo y, mediante las APIs propietarias y la interfaz compuesta, revisa nombre, apellidos, etiquetas, excepciones y grupo de referencia. `runner-management` registra actor y fecha de revisión sin copiar el contenido gobernado por otros módulos.
 
-Solo una revisión vigente del ciclo actual permite solicitar `pending_reactivation`. La transición llama a identidad para emitir el desafío de reactivación. Aceptarlo publica el hecho que devuelve el perfil a `active`. Si el desafío caduca o el administrador cancela, vuelve a `inactive` sin ampliar `retention_until`.
+Solo una revisión vigente del ciclo actual permite solicitar `pending_reactivation`. El adaptador de corredores invoca el puerto de coordinación definido por `runner-management`; la implementación de `planning` adquiere el bloqueo global y la revisión de clasificación del corredor, evalúa la clasificación conservada como si estuviera activo y rechaza la operación completa si aparecería en varios grupos. Cuando el resultado es válido, esa misma transacción llama a la API publicada por `runner-management`, que vuelve a autorizar la transición y solicita a identidad el desafío de reactivación. Aceptarlo publica el hecho que devuelve el perfil a `active`. Si el desafío caduca o el administrador cancela, vuelve a `inactive` sin ampliar `retention_until`.
+
+`runner-management` no importa `planning`: conoce únicamente su puerto. La aplicación deberá fallar al arrancar si no existe exactamente una implementación coordinada, y las pruebas de arquitectura impedirán una implementación local que omita la validación de grupos.
+
+Mientras el perfil permanezca en `pending_reactivation`, `planning` lo incluye como reserva hipotética en toda validación de exclusividad. La reserva se deriva del estado publicado por este módulo, no convierte al corredor en miembro efectivo ni congela su grupo y termina cuando la invitación se acepta, cancela o caduca. Así, cambios posteriores solo se confirman si la futura activación seguiría siendo válida.
 
 Reactivar antes del vencimiento cancela la tarea de supresión y elimina `retention_until`. Una baja posterior inicia un periodo nuevo de `24` meses. No se pueden reactivar perfiles ya anonimizados o suprimidos.
 
@@ -206,10 +211,14 @@ Estos contratos amplían la API de identidad en el mismo commit de implementaci�
 Los demás módulos podrán:
 
 - resolver el `runnerId` asociado a la cuenta del actor, como exige `ADR-0015`;
-- consultar si uno o varios identificadores son `active` mediante una operación por lotes;
+- consultar si uno o varios identificadores son `active` mediante una operación por lotes y, solo para coordinación autorizada de `planning`, obtener los `pending_reactivation` que deben tratarse como reservas;
 - obtener presentación mínima de corredores activos para interfaces autorizadas;
 - obtener, solo para administración, la presentación de un inactivo durante revisión;
 - consumir hechos de baja, reactivación y supresión para actualizar datos derivados o ejecutar retención.
+
+Para iniciar una reactivación, `runner-management` publicará además el caso de uso interno que valida la revisión vigente y realiza la transición. Solo la implementación del puerto coordinador en `planning` lo invocará desde el adaptador HTTP; ningún controlador podrá usarlo directamente como atajo.
+
+La consulta interna de reservas no tendrá adaptador HTTP y devolverá a `planning` únicamente UUID opacos y estado, nunca nombre ni apellidos. Su resultado sirve para proteger la invariante y no amplía lo que el actor puede recibir en la respuesta.
 
 La presentación mínima contiene identificador, nombre y apellidos; nunca correo, motivo de baja o metadatos de privacidad. Clasificación, planificación y seguimiento no duplican esa presentación como fuente de verdad.
 
@@ -226,7 +235,7 @@ El contrato OpenAPI `3.1` deberá modelar como mínimo:
 
 La representación expone `id`, `givenName`, `familyName`, estado visible, versión y enlaces o propiedades permitidas. No expone `accountId`, correo, fechas internas de retención a entrenadores ni motivos de privacidad.
 
-El `PATCH` usa un cuerpo cerrado. Una transición repetida que ya alcanzó el estado no vuelve a emitir invitaciones ni prolonga retención. Si la revisión de reactivación necesita representación propia durante OpenAPI, deberá superar el test de recurso de `ADR-0017`; no se añadirá una ruta nominalizada como `/reactivate`.
+El `PATCH` usa un cuerpo cerrado. La solicitud de `pending_reactivation` atraviesa el puerto coordinado de `ADR-0019`; una transición repetida que ya alcanzó el estado no vuelve a emitir invitaciones ni prolonga retención. Si la revisión de reactivación necesita representación propia durante OpenAPI, deberá superar el test de recurso de `ADR-0017`; no se añadirá una ruta nominalizada como `/reactivate`.
 
 La búsqueda `q` acepta texto de nombre, no secretos ni identificadores de identidad. `status` solo está disponible para administrador. El cursor es opaco, ligado a los filtros y con límite máximo documentado. Los errores usan `application/problem+json` y distinguen validación, autenticación, capacidad, no encontrado indistinguible, conflicto de estado o versión y límite de solicitudes.
 
@@ -287,7 +296,8 @@ Buscar corredores por etiquetas o grupos requiere componer información de `clas
 - Probar deshabilitación de acceso y baja dentro de una transacción, incluidas carreras con publicación.
 - Probar que todos los módulos excluyen estados no activos de conjuntos efectivos y nuevas publicaciones.
 - Probar acceso administrativo auditado y supresión anticipada mediante decisión aprobada.
-- Probar revisión obligatoria, no restauración automática de grupo y vencimiento de desafíos sin ampliar retención.
+- Probar revisión obligatoria, rechazo atómico del reingreso que produciría varios grupos, reserva durante `pending_reactivation`, ausencia de restauración automática de grupo y vencimiento de desafíos sin ampliar retención.
+- Ejecutar carreras entre aceptación, cancelación, caducidad y cambios de clasificación o grupos, sin revelar reservas al entrenador.
 - Probar `24` meses exactos desde cada baja, nuevo periodo tras una reactivación real y ausencia de renovación por consultas.
 - Probar anonimización o supresión coordinada, reintentos, copias restauradas e independencia de los plazos históricos.
 
@@ -326,6 +336,7 @@ Buscar corredores por etiquetas o grupos requiere componer información de `clas
 - Separar elegibilidad de la existencia física permite conservar datos restringidos sin incluirlos en el trabajo diario.
 - La búsqueda mínima es viable para más de `500` corredores sin introducir filtros cruzados ni infraestructura adicional.
 - La reactivación preserva información útil, pero exige trabajo administrativo y puede encontrar historia ya vencida.
+- Una reactivación pendiente puede bloquear cambios posteriores que crearían un conflicto, aunque el corredor todavía no aparezca en resultados efectivos.
 - La retención de `24` meses es una ampliación material de tratamiento: no bloquea el diseño con datos sintéticos, pero bloquea cualquier dato personal real hasta su revisión especializada.
 - La implementación necesitará coordinación idempotente de eventos y retención entre módulos, además de pruebas temporales y de concurrencia.
 
