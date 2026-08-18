@@ -13,6 +13,7 @@ Repositorio de descubrimiento, diseño y futura implementación del PMV de Runni
 - [Diseño detallado de identidad y acceso — Fase 2](docs/phase-2-detailed-design-identity-access.md)
 - [Diseño detallado de gestión de corredores — Fase 2](docs/phase-2-detailed-design-runner-management.md)
 - [Diseño detallado de clasificación y segmentación — Fase 2](docs/phase-2-detailed-design-classification-segmentation.md)
+- [Diseño detallado de planificación — Fase 2](docs/phase-2-detailed-design-planning.md)
 - [Guía de diseño de API HTTP](docs/api-design-guidelines.md)
 - [Architecture Decision Records](docs/adr/README.md)
 - [Mejoras futuras](docs/future-improvements.md)

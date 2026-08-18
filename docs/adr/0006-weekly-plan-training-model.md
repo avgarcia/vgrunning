@@ -14,6 +14,8 @@ Fase 1 define el plan semanal como agrupación de entrenamientos fechados, con e
 
 Este ADR decide el modelo editable de planificación antes de publicar. Refina `RF-08`: la asignación por segmentos y corredores se configura una vez en el grupo, en lugar de repetirse en cada plan, pero conserva el mismo resultado observable. `ADR-0007` define la transacción de publicación, el versionado, los destinatarios efectivos, los cambios relevantes y la relación entre borrador y versiones publicadas.
 
+`ADR-0020` propuesto concreta el ciclo de vida, la reconfiguración, los objetivos y el historial. Refina dos puntos deliberadamente abiertos o demasiado amplios de este ADR: un grupo `inactive` podrá no tener segmentos mientras se prepara, aunque `active` seguirá exigiendo al menos uno; y cada entrenamiento declarará modalidad propia `presencial` o `en-linea`.
+
 ## Decisión
 
 El modelo distinguirá ocho conceptos:
@@ -180,3 +182,4 @@ Se descarta para el PMV porque no existe un caso operativo que justifique cambia
 ## Decisiones pendientes
 
 - **Resuelto por `ADR-0012`:** PostgreSQL reforzará las invariantes locales, coordinará transaccionalmente la pertenencia de grupos e incorporará índices justificados.
+- **Tratado por `ADR-0020` (Propuesto):** ciclo de vida de grupos, reconfiguración multigrupo, modalidad del entrenamiento, escalas de objetivos, concurrencia del borrador, historial y retención. Su aceptación será necesaria antes de implementar `planning`.
