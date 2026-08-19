@@ -1,9 +1,10 @@
 # Diseño detallado de planificación — Fase 2
 
-**Estado:** Propuesto para validación
+**Estado:** Validado
 **Fecha:** 2026-08-18
 **Responsable de revisión:** Revisor de arquitectura
 **Restricción:** Prohibido tratar datos personales reales hasta completar la revisión especializada de privacidad exigida por `ADR-0010`, `ADR-0018`, `ADR-0019` y `ADR-0020`
+**Validación documental:** Decisiones de planificación aceptadas explícitamente por el responsable el 2026-08-19
 
 ## Propósito y alcance
 

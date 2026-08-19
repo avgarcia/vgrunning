@@ -1,8 +1,9 @@
 # ADR-0020: Ciclo de vida, objetivos e historial de planificación
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-18
 **Responsable de revisión:** Revisor de arquitectura
+**Validación documental:** Decisiones de planificación aceptadas explícitamente por el responsable el 2026-08-19
 
 ## Contexto
 
