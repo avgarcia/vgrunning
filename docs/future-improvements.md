@@ -128,3 +128,31 @@ La revisión deberá definir actor, filtros, semántica de pertenencia actual o 
 - `RF-02`, `RF-03`, `RF-05`, `RF-06`, `RF-08`
 - `ADR-0005`, `ADR-0006`, `ADR-0014`, `ADR-0015`
 - [Diseño detallado de gestión de corredores](phase-2-detailed-design-runner-management.md)
+
+## MF-005: Duplicación de planes y plantillas reutilizables
+
+**Estado:** Aplazada fuera del PMV
+
+### Problema
+
+Administrador y entrenador podrían querer reutilizar una semana anterior como punto de partida o mantener plantillas independientes del calendario. Fase 1 clasifica la duplicación de planes como opcional y no existe un requisito imprescindible que obligue a incorporarla ahora.
+
+### Decisión actual
+
+El PMV no duplicará planes ni administrará plantillas. Cada plan se crea para un grupo y una semana concretos y se edita como borrador independiente. Esta exclusión evita decidir silenciosamente qué grupo, semana, modalidad, ubicación, objetivos o identidad de entrenamientos debe copiarse.
+
+### Criterios para reabrir la decisión
+
+- Crear manualmente semanas similares se convierte en una tarea frecuente y medible.
+- El tiempo de preparación semanal justifica una operación adicional.
+- Se necesita una biblioteca independiente de planes para estandarizar trabajo entre entrenadores.
+
+### Condiciones para incorporarla
+
+La revisión deberá decidir si se copia desde un borrador o publicación, grupo y semana de destino, tratamiento de fechas y ubicaciones, identidad nueva de planes y entrenamientos, adaptación de objetivos, concurrencia, permisos, historial, retención e idempotencia. Una plantilla con identidad y ciclo de vida propios requerirá un ADR y no se representará como un plan sin semana.
+
+### Trazabilidad
+
+- `RF-07`, `RF-11`, `RF-12`, `RF-14`
+- `ADR-0006`, `ADR-0017`, `ADR-0020`
+- [Diseño detallado de planificación](phase-2-detailed-design-planning.md)

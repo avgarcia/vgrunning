@@ -53,6 +53,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0017](0017-resource-oriented-http-api.md) | API HTTP orientada a recursos y semántica REST | Aceptado | Todos los `RF` expuestos mediante HTTP |
 | [ADR-0018](0018-runner-lifecycle-inactivity-reactivation.md) | Ciclo de vida, inactividad y reactivación del corredor | Aceptado | `RF-01`, `RF-02`, `RF-03`, `RF-16` a `RF-19`; datos y privacidad |
 | [ADR-0019](0019-classification-coordination-lifecycle-history.md) | Coordinación, ciclo de vida e historial de clasificación | Aceptado | `RF-02` a `RF-06`, `RF-08` a `RF-10`; datos y privacidad |
+| [ADR-0020](0020-planning-lifecycle-objectives-history.md) | Ciclo de vida, objetivos e historial de planificación | Aceptado | `RF-04`, `RF-07` a `RF-16`; especialmente `RF-08`, `RF-12`, `RF-14`; datos y privacidad |
 
 ## Backlog inicial de Fase 2
 
