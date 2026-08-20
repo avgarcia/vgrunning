@@ -39,6 +39,8 @@ Taxonomías y segmentación forman una única capacidad de clasificación: los s
 
 `runner-portal` permanece separado de `runner-management` porque es una fachada de consulta que compone datos de publicación y seguimiento. No gobierna el corredor ni adquiere propiedad sobre datos ajenos. Unirlos convertiría el módulo de perfiles en consumidor de varias capacidades y facilitaría ciclos con clasificación, planificación y seguimiento.
 
+> **Evolución propuesta:** `ADR-0021` mantiene este mapa de dependencias mediante un puerto de elegibilidad definido por `notification-delivery` e implementado por `publication`, que consulta `runner-management` antes de un intento de correo. No se añade una dependencia desde entrega hacia módulos de negocio.
+
 ### APIs y dependencias permitidas
 
 Cada módulo tendrá un paquete raíz bajo el paquete base de la aplicación. Su API pública se declarará mediante `@NamedInterface`; el resto será interno. `@ApplicationModule(allowedDependencies = ...)` o configuración equivalente expresará dependencias permitidas y `ApplicationModules.verify()` rechazará ciclos, accesos a internos y dependencias no declaradas.
