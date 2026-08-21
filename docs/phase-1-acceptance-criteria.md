@@ -2,6 +2,7 @@
 
 **Estado:** Validado — Fase 1 cerrada
 **Fecha:** 2026-08-10
+**Última actualización:** 2026-08-21 — refinamiento de `RF-15` y `RF-20` conforme a `ADR-0021`
 
 ## Propósito
 
@@ -81,8 +82,8 @@ Definir criterios mínimos y observables de éxito y error para los requisitos i
 
 ### RF-15 — Republicación de cambios relevantes
 
-- **Éxito:** dado un plan publicado y un cambio relevante, al republicarlo se genera una nueva publicación atómica y se envía correo a todos los destinatarios efectivos afectados.
-- **Error o límite:** un cambio relevante no puede hacerse visible de forma silenciosa; un intento de exponerlo sin republicar se rechaza o conserva la versión publicada anterior.
+- **Éxito:** dado un administrador o entrenador, un plan publicado y cambios relevantes en uno o varios días futuros, al confirmarlos se genera una única publicación atómica y una solicitud de notificación para cada destinatario efectivo congelado; los intentos de entrega aplican la elegibilidad vigente de `RF-20`.
+- **Error o límite:** si la propuesta modifica hoy o un día anterior, toda la operación se rechaza, permanece visible la versión publicada anterior y no se crean versión ni solicitudes. Ningún cambio relevante puede hacerse visible de forma silenciosa.
 
 ### RF-16 — Consulta móvil del corredor
 
@@ -106,8 +107,8 @@ Definir criterios mínimos y observables de éxito y error para los requisitos i
 
 ### RF-20 — Correo de publicación
 
-- **Éxito:** al publicar o republicar un plan semanal, cada destinatario efectivo afectado recibe un correo con la semana del plan, un resumen de entrenamientos y un enlace al plan publicado.
-- **Error o límite:** acciones distintas de publicar o republicar un plan semanal no generan ese correo de notificación.
+- **Éxito:** cuando administrador o entrenador confirma la publicación o republicación de un plan semanal, se crea una solicitud por cada destinatario efectivo congelado; si el corredor continúa `active` justo antes del intento, se contacta con el proveedor para enviar un correo con la semana del plan, un resumen de entrenamientos y un enlace al plan publicado. Un corredor reactivado vuelve a ser elegible para solicitudes de versiones futuras.
+- **Error o límite:** si el corredor no está `active` antes del intento, no se contacta con el proveedor y la solicitud termina como `omitido-inactivo`, sin reintento ni reapertura al reactivarlo. Una baja posterior al inicio de la llamada no garantiza cancelar el correo en curso. Acciones distintas de publicar o republicar no crean solicitudes de esta notificación.
 
 ## Uso en Fase 2
 

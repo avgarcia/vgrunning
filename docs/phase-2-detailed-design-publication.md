@@ -55,6 +55,7 @@ Quedan fuera del PMV:
 | Publicación actual | Recurso estable que representa la única versión activa de un plan publicado. |
 | Versión publicada | Instantánea completa e inmutable creada por la primera publicación o por un guardado posterior confirmado. |
 | Destinatario efectivo | Corredor `active` incluido en la primera publicación y cuyo identificador queda congelado históricamente en todas las versiones del plan. |
+| Destinatario elegible para envío | Destinatario efectivo que continúa `active` inmediatamente antes de un intento concreto contra el proveedor. |
 | Sesión de edición | Copia local y temporal de la publicación actual; no es un estado de dominio ni un recurso del servidor. |
 | Republicación | Sustitución confirmada de la publicación actual que crea una nueva versión completa; se presenta al corredor como actualización del plan. |
 | Día modificable | Día de una semana futura o, en la semana actual, día estrictamente posterior a la fecha local del servidor. |
@@ -77,6 +78,7 @@ Se usarán `publication`, `published version`, `recipient` y `notification reque
 - La concurrencia es optimista y global por plan; no existe mezcla automática.
 - Las versiones históricas son internas. Solo se exponen creador y última modificación a administrador y entrenador.
 - La baja no reescribe destinatarios ni planes de la semana; bloquea intentos de correo posteriores mientras el corredor permanezca inactivo.
+- La reactivación no reabre solicitudes omitidas, pero permite enviar solicitudes nuevas de versiones futuras mientras el corredor continúe activo.
 - Un correo ya en curso puede llegar después de una baja y ese riesgo se acepta.
 
 ### Supuestos de implementación
@@ -288,6 +290,8 @@ Después de reclamar una solicitud y antes de iniciar cada llamada a Brevo, `not
 
 Cada reintento vuelve a consultar. Reactivar al corredor no reabre solicitudes ya omitidas. Una baja posterior al comienzo de la llamada no cancela el mensaje en curso.
 
+Si después de reactivarse se confirma otra versión del mismo plan, el corredor continúa dentro del conjunto congelado, recibe una solicitud nueva y puede volver a ser elegible para su envío. No se recuperan ni regeneran correos correspondientes a versiones omitidas durante la inactividad.
+
 ## Notificaciones
 
 Cada solicitud conserva versión, plan, destinatario, destino usado, tipo, contenido mínimo, clave idempotente y correlación. El destino no se vuelve a resolver durante reintentos.
@@ -494,6 +498,7 @@ Alertas:
 - Dar de baja después de publicar y comprobar que el destinatario histórico permanece, pero un intento posterior termina `omitido-inactivo`.
 - Publicar por primera vez un plan posterior a la baja y comprobar que el corredor queda excluido.
 - Reactivar y demostrar que no se recalculan publicaciones ni se reabren solicitudes omitidas.
+- Confirmar otra versión después de reactivar y comprobar que crea una solicitud nueva que puede enviarse mientras el corredor continúe `active`.
 - Cambiar estado entre intentos y repetir la comprobación antes de cada llamada.
 - Simular fallo de elegibilidad y comprobar que no se llama a Brevo ni se pierde la solicitud.
 - Simular baja después de la comprobación y aceptar que el mensaje en vuelo puede llegar.

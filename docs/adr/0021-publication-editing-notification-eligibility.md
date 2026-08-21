@@ -59,6 +59,8 @@ Las versiones anteriores se conservarán internamente para integridad, seguimien
 
 La primera publicación resolverá exclusivamente corredores `active` y congelará sus identificadores. Una baja posterior no reescribirá la publicación ni retirará al corredor de ese conjunto histórico. Los planes de semanas posteriores cuya primera publicación ocurra después de la baja no lo incluirán. Una reactivación tampoco recalculará destinatarios de planes ya publicados.
 
+A los efectos de `RF-15`, `RF-20` y `D-06`, **destinatario efectivo** designa la pertenencia histórica congelada, mientras **destinatario elegible para envío** designa un destinatario efectivo que continúa `active` inmediatamente antes del intento. Crear una solicitud para el primero no garantiza contactar con el proveedor: esa acción exige además la segunda condición.
+
 Cada versión seguirá creando, en su misma transacción, una solicitud lógica para cada destinatario efectivo congelado y conservará el destino de correo usado al crearla. Inmediatamente antes de cada intento real contra el proveedor, el worker comprobará mediante `runner-management` que el destinatario continúa `active`:
 
 - si está activo, podrá comenzar el intento normal definido por `ADR-0011`;
@@ -66,6 +68,8 @@ Cada versión seguirá creando, en su misma transacción, una solicitud lógica 
 - si no puede determinarse el estado, no se contactará con el proveedor y la solicitud seguirá recuperable como fallo técnico anterior al envío.
 
 `notification-delivery` no importará `runner-management` ni `publication`. Definirá un puerto de elegibilidad previo al intento; `publication`, que ya puede consumir ambas APIs, implementará la política para las notificaciones de planes y consultará el estado actual del corredor. La solicitud continuará autocontenida para destino, contenido e idempotencia. Esta inversión mantiene las dependencias de `ADR-0014` y evita el ciclo `notification-delivery -> runner-management -> identity-access -> notification-delivery`.
+
+Si el corredor se reactiva, las solicitudes que ya terminaron como `omitido-inactivo` permanecerán cerradas. Una versión del mismo plan confirmada después de la reactivación sí creará otra solicitud y podrá enviarse mientras el corredor continúe `active`, porque la reactivación recupera elegibilidad actual sin alterar el conjunto histórico.
 
 Existe una carrera inevitable entre la comprobación y la llamada externa. Si el corredor pasa a inactivo después de comprobarlo y la petición ya está en curso o ha sido aceptada por el proveedor, el mensaje todavía puede llegar. El PMV acepta expresamente ese riesgo extremo y no promete cancelar un correo en vuelo.
 
@@ -138,7 +142,7 @@ Se descartan. Un bloqueo puede quedar abandonado y exige caducidad; mezclar día
 ## Decisiones de Fase 1 relacionadas
 
 - `D-01`: la primera publicación conserva versión y destinatarios efectivos.
-- `D-06`: los cambios visibles se confirman mediante republicación atómica y notificación.
+- `D-06`: los cambios visibles se confirman mediante republicación atómica, solicitud para cada destinatario congelado y entrega condicionada a elegibilidad `active` en cada intento.
 - `D-08`: administrador y entrenador operan globalmente; el corredor solo consulta su publicación.
 
 ## Validación prevista
@@ -155,6 +159,7 @@ Se descartan. Un bloqueo puede quedar abandonado y exige caducidad; mezclar día
 - Probar ausencia de API e interfaz para historial, comparación, restauración y cambios pendientes; comprobar autoría solo para administrador y entrenador.
 - Probar que una baja no modifica destinatarios efectivos ni publicaciones y que primeras publicaciones posteriores excluyen al inactivo.
 - Probar la comprobación `active` antes de cada intento y reintento, el estado `omitido-inactivo`, su terminalidad y la liberación del orden.
+- Probar que una reactivación no reabre solicitudes omitidas y que una versión posterior sí crea una solicitud nueva y enviable mientras el corredor continúe `active`.
 - Simular indisponibilidad al consultar elegibilidad y comprobar que no se llama al proveedor ni se pierde la solicitud.
 - Simular una baja después de la comprobación y documentar que un mensaje en vuelo puede ser aceptado o entregado.
 - Probar un único correo por destinatario y versión, resumen semanal completo, resaltado de todos los días cambiados y enlace a la versión activa.

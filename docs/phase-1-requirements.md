@@ -2,6 +2,7 @@
 
 **Estado:** Validado — Fase 1 cerrada
 **Fecha:** 2026-08-10
+**Última actualización:** 2026-08-21 — refinamiento de `RF-15` y `RF-20` conforme a `ADR-0021`
 
 ## Actores y permisos
 
@@ -31,12 +32,12 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 - **RF-12.** Objetivos por frecuencia cardiaca o ritmo relativo al corredor, según el tipo de entrenamiento, y texto libre de aclaraciones.
 - **RF-13.** Lugar de encuentro en entrenamientos presenciales cuando aplique.
 - **RF-14.** Estados del plan: borrador y publicado.
-- **RF-15.** Edición de un plan publicado mediante republicación atómica y correo electrónico a todos los corredores afectados.
+- **RF-15.** Administrador o entrenador puede editar uno o varios entrenamientos futuros de un plan publicado mediante una única republicación atómica; el entrenamiento de hoy y los anteriores permanecen inmutables. Cada nueva versión crea una solicitud de notificación para cada destinatario efectivo congelado y la entrega aplica la elegibilidad vigente definida en `RF-20`.
 - **RF-16.** Consulta adaptable a dispositivos móviles de planes, entrenamientos y lugar de encuentro por el corredor.
 - **RF-17.** Registro por entrenamiento: realizado/no realizado, esfuerzo percibido (1–10), sensación general con valores bien/normal/mal y comentario opcional.
 - **RF-18.** Historial básico de entrenamientos e información de seguimiento del corredor.
 - **RF-19.** Vista de entrenadores para revisar información de seguimiento por corredor, plan semanal y entrenamiento, con visibilidad de estado realizado/no realizado, esfuerzo, sensación y comentario.
-- **RF-20.** Correo electrónico al publicar o republicar un plan semanal. El correo debe enviarse a todos los destinatarios efectivos afectados e incluir semana del plan, resumen de entrenamientos y enlace al plan publicado. No se incluyen otros eventos de notificación.
+- **RF-20.** Cuando administrador o entrenador confirma la publicación o republicación de un plan semanal, el sistema crea una solicitud para cada destinatario efectivo congelado. Inmediatamente antes de cada intento se contacta con el proveedor solo si el corredor continúa `active`; si no, la solicitud termina como `omitido-inactivo`, sin reintento ni reapertura retroactiva. Una reactivación permite notificar versiones futuras mientras el corredor permanezca activo, pero no recupera solicitudes ya omitidas. El correo incluye semana del plan, resumen de entrenamientos y enlace al plan publicado. No se incluyen otros eventos de notificación.
 
 ### Deseable
 
