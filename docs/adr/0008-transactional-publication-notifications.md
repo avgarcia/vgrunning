@@ -12,6 +12,8 @@
 
 Este ADR decide la semántica de las notificaciones de publicación y su vínculo con la versión publicada. `ADR-0011` define la infraestructura común de correo transaccional para acceso y publicación: proveedor, procesamiento asíncrono, política temporal de reintentos, credenciales, observabilidad técnica y operación del canal.
 
+> **Refinamiento aceptado:** `ADR-0021` conserva una solicitud por versión y destinatario congelado, pero introduce la omisión terminal del intento cuando el corredor no está `active` justo antes del proveedor. La baja no reescribe el destinatario histórico.
+
 ## Decisión
 
 El modelo distingue dos hechos:

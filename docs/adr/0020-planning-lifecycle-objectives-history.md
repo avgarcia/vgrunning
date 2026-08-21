@@ -18,6 +18,8 @@ Hay además dos precisiones necesarias sobre `ADR-0006`:
 
 Resolver estas reglas durante la implementación ocultaría decisiones que afectan modelo de datos, permisos, transacciones, API, privacidad y pruebas. Este ADR mantiene la propiedad modular aceptada: `planning` gobierna grupos y borradores; `publication` consume su API y gobierna versiones, destinatarios y visibilidad.
 
+> **Refinamiento aceptado:** `ADR-0021` reemplaza únicamente, para planes publicados, la mutabilidad del nombre, el borrador persistente, los cambios pendientes, la restauración y la consulta de historial del plan como capacidad de producto. Las demás decisiones de planificación de este ADR continúan vigentes.
+
 ## Decisión
 
 ### Ciclo de vida de grupos
@@ -210,6 +212,6 @@ Se descarta del alcance actual porque Fase 1 las clasifica como opcionales y exi
 
 No quedan decisiones de producto o arquitectura pendientes dentro del diseño detallado de `planning`.
 
-- El diseño detallado de `publication` deberá concretar las reglas temporales de primera publicación durante una semana ya comenzada y el recurso HTTP que coordina la restauración desde la versión activa. Responsable: Revisor de producto y Revisor de arquitectura. Tratamiento: resolver antes de implementar publicación, sin invertir la dependencia modular.
+- **Resuelto por `ADR-0021` aceptado:** el diseño de `publication` concreta la regla temporal y reemplaza la restauración por una sustitución atómica sin borrador persistente.
 - Antes de implementar deberán producirse OpenAPI, migraciones Flyway, tipos jOOQ, catálogo de Problem Details, límites de página y reconfiguración medidos, y pruebas transaccionales con PostgreSQL.
 - El tratamiento de datos personales reales y la producción continúan bloqueados hasta completar las evidencias de privacidad aplicables.

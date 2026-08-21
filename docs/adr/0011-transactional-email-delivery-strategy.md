@@ -15,6 +15,8 @@ El PMV necesita correo transaccional para invitación, recuperación de acceso y
 
 La escala prevista, superior a `500` corredores pero limitada a un único club, no justifica introducir un broker distribuido solo para correo. Sí exige recuperar trabajo después de caídas, evitar duplicados lógicos, distinguir aceptación del proveedor de entrega y operar rebotes o fallos globales sin depender de estados visibles en el producto.
 
+> **Refinamiento aceptado:** `ADR-0021` añade para notificaciones de publicación una comprobación `active` inmediatamente anterior a cada intento y el estado terminal `omitido-inactivo`. No cambia proveedor, outbox, destino conservado, idempotencia, supresiones ni política de reintentos cuando el destinatario es elegible.
+
 ## Decisión
 
 El PMV usará **Brevo mediante su API REST de correo transaccional**. No usará el relay SMTP, plantillas editables exclusivamente en el proveedor ni funciones de campañas o gestión de contactos. La contratación y habilitación de Brevo quedan condicionadas a la revisión de privacidad y encargos exigida por `ADR-0010`.

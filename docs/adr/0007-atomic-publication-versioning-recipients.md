@@ -12,6 +12,8 @@ El PMV debe publicar un plan semanal completo para los miembros efectivos de su 
 
 Fase 1 exige publicación y republicación atómicas, impide cambios silenciosos y exige correo para destinatarios afectados. Este ADR decide la consistencia del dominio, las versiones y la visibilidad. `ADR-0008` define la solicitud transaccional de notificación y `ADR-0011` su entrega asíncrona; la entrega externa no forma parte de la transacción que hace visible el plan.
 
+> **Refinamiento aceptado:** `ADR-0021` reemplaza el borrador persistente y los cambios pendientes después de publicar por una sesión local que sustituye contenido y versión activa en una única transacción. Las instantáneas completas, destinatarios congelados y demás garantías de este ADR permanecen vigentes.
+
 ## Decisión
 
 El modelo distinguirá tres conceptos:
