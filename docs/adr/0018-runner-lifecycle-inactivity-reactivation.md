@@ -67,7 +67,7 @@ El administrador creará perfil y cuenta de corredor dentro de una única transa
 
 La baja administrativa deshabilitará inmediatamente el acceso, revocará sesiones y desafíos y cambiará el perfil a `inactive` dentro de una coordinación transaccional. Los demás módulos excluirán al corredor inactivo de sus conjuntos efectivos sin reescribir publicaciones ni seguimiento históricos.
 
-> **Evolución propuesta:** `ADR-0021` precisa que una publicación ya confirmada conserva al corredor como destinatario histórico. Las nuevas primeras publicaciones lo excluyen y cada intento posterior de correo de una versión existente comprueba `active` antes de contactar con el proveedor.
+> **Refinamiento aceptado:** `ADR-0021` precisa que una publicación ya confirmada conserva al corredor como destinatario histórico. Las nuevas primeras publicaciones lo excluyen y cada intento posterior de correo de una versión existente comprueba `active` antes de contactar con el proveedor.
 
 Cuenta, perfil, vínculo, asignaciones de etiquetas y excepciones manuales de segmentos se conservarán automáticamente durante un máximo de `24` meses desde la baja. Solo el administrador podrá localizar y consultar el perfil inactivo. El corredor podrá solicitar supresión anticipada mediante el canal de privacidad. El plazo no se renovará por consultas, cambios técnicos ni actividad administrativa.
 

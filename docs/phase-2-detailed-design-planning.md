@@ -1,8 +1,8 @@
 # Diseño detallado de planificación — Fase 2
 
-**Estado:** Validado; refinado por el diseño propuesto de publicación
+**Estado:** Validado; refinado por el diseño validado de publicación
 **Fecha:** 2026-08-18
-**Última actualización:** 2026-08-20
+**Última actualización:** 2026-08-21
 **Responsable de revisión:** Revisor de arquitectura
 **Restricción:** Prohibido tratar datos personales reales hasta completar la revisión especializada de privacidad exigida por `ADR-0010`, `ADR-0018`, `ADR-0019` y `ADR-0020`
 **Validación documental:** Decisiones de planificación aceptadas explícitamente por el responsable el 2026-08-19
@@ -42,7 +42,7 @@ Este diseño aplica:
 - `ADR-0018`: estados y elegibilidad del corredor, grupo anterior no restaurable y retención;
 - `ADR-0019`: coordinación desde `planning`, segmentos inactivos y reservas de reactivación;
 - `ADR-0020`: ciclo de vida, reconfiguración, objetivos, historial y retención de planificación;
-- `ADR-0021` propuesto: elimina el borrador persistente después de publicar, fija nombre, grupo y semana, y traslada toda edición publicada a una sustitución atómica coordinada por `publication`;
+- `ADR-0021` aceptado: elimina el borrador persistente después de publicar, fija nombre, grupo y semana, y traslada toda edición publicada a una sustitución atómica coordinada por `publication`;
 - [Guía de diseño de API HTTP](api-design-guidelines.md).
 
 Si este documento contradice una fuente aceptada, prevalece el ADR y deberá corregirse el diseño antes de implementar.
@@ -63,7 +63,7 @@ Si este documento contradice una fuente aceptada, prevalece el ADR y deberá cor
 12. Cada entrenamiento guardado es completo; el plan sí puede estar vacío durante su preparación.
 13. Un entrenamiento solo se mueve entre planes nunca publicados y el traslado es atómico.
 14. Todo el plan comparte una única revisión optimista.
-15. Según el refinamiento propuesto en `ADR-0021`, un plan publicado no conserva cambios pendientes: cualquier edición confirmada sustituye atómicamente contenido vigente y publicación activa.
+15. Según el refinamiento aceptado en `ADR-0021`, un plan publicado no conserva cambios pendientes: cualquier edición confirmada sustituye atómicamente contenido vigente y publicación activa.
 16. Cada entrenamiento declara `presencial` o `en-linea`; el lugar solo se admite en `presencial` y puede faltar.
 17. Duraciones y distancias conservan presentación humana y tienen valores canónicos exactos y límites cerrados.
 18. La recuperación configurada se ejecuta después de cada repetición, incluida la última.
@@ -523,7 +523,7 @@ Las etiquetas no incluirán nombres, UUID de corredor, ubicaciones, aclaraciones
 
 No quedan decisiones de producto o arquitectura pendientes dentro de `planning`.
 
-- El [diseño detallado de publicación](phase-2-detailed-design-publication.md) y `ADR-0021` propuesto resuelven la regla temporal de primera publicación y reemplazan la restauración por una sustitución atómica sin borrador persistente.
+- El [diseño detallado de publicación](phase-2-detailed-design-publication.md) validado y `ADR-0021` aceptado resuelven la regla temporal de primera publicación y reemplazan la restauración por una sustitución atómica sin borrador persistente.
 - Antes de implementar deberán producirse OpenAPI, migraciones Flyway, tipos jOOQ, límites medidos, catálogo de Problem Details y pruebas transaccionales.
 - La búsqueda global de corredores por etiquetas, segmentos o grupos continúa aplazada a `MF-004`.
 - La duplicación de planes y las plantillas continúan aplazadas a `MF-005`.

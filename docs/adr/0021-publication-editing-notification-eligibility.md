@@ -1,8 +1,10 @@
 # ADR-0021: Edición de publicaciones y elegibilidad de notificaciones
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-20
+**Fecha de aceptación:** 2026-08-21
 **Responsable de revisión:** Revisor de arquitectura
+**Validación documental:** Decisiones de publicación aceptadas explícitamente por el responsable el 2026-08-21
 
 ## Contexto
 
@@ -77,7 +79,7 @@ El correo de primera publicación conservará el resumen semanal de `ADR-0008`. 
 
 ### Refinamientos de decisiones anteriores
 
-Al aceptarse este ADR quedarán reemplazadas únicamente estas decisiones incompatibles:
+Con la aceptación de este ADR quedan reemplazadas únicamente estas decisiones incompatibles:
 
 - de `ADR-0007`, el borrador de trabajo persistente después de publicar y el indicador de cambios pendientes;
 - de `ADR-0008`, la interpretación de que una solicitud para un destinatario efectivo implica necesariamente iniciar su envío aunque esté inactivo;

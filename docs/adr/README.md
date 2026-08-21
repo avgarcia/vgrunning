@@ -1,7 +1,7 @@
 # Architecture Decision Records
 
 **Estado:** Vigente
-**Fecha:** 2026-08-20
+**Fecha:** 2026-08-21
 
 ## Propósito
 
@@ -54,7 +54,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0018](0018-runner-lifecycle-inactivity-reactivation.md) | Ciclo de vida, inactividad y reactivación del corredor | Aceptado | `RF-01`, `RF-02`, `RF-03`, `RF-16` a `RF-19`; datos y privacidad |
 | [ADR-0019](0019-classification-coordination-lifecycle-history.md) | Coordinación, ciclo de vida e historial de clasificación | Aceptado | `RF-02` a `RF-06`, `RF-08` a `RF-10`; datos y privacidad |
 | [ADR-0020](0020-planning-lifecycle-objectives-history.md) | Ciclo de vida, objetivos e historial de planificación | Aceptado | `RF-04`, `RF-07` a `RF-16`; especialmente `RF-08`, `RF-12`, `RF-14`; datos y privacidad |
-| [ADR-0021](0021-publication-editing-notification-eligibility.md) | Edición de publicaciones y elegibilidad de notificaciones | Propuesto | `RF-07`, `RF-09`, `RF-10`, `RF-14` a `RF-16`, `RF-20` |
+| [ADR-0021](0021-publication-editing-notification-eligibility.md) | Edición de publicaciones y elegibilidad de notificaciones | Aceptado | `RF-07`, `RF-09`, `RF-10`, `RF-14` a `RF-16`, `RF-20` |
 
 ## Backlog inicial de Fase 2
 

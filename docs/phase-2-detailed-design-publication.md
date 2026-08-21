@@ -1,14 +1,18 @@
 # Diseño detallado de publicación — Fase 2
 
-**Estado:** Borrador para validación
+**Estado:** Validado para diseño y desarrollo con datos sintéticos
 **Fecha:** 2026-08-20
+**Última actualización:** 2026-08-21
+**Responsable de revisión:** Revisor de arquitectura
+**Restricción:** Prohibido tratar datos personales reales o habilitar el proveedor de correo hasta completar las evidencias de privacidad y operación exigidas por `ADR-0010`, `ADR-0011`, `ADR-0016` y `ADR-0018`
+**Validación documental:** Diseño de publicación y decisiones de `ADR-0021` aceptados explícitamente por el responsable el 2026-08-21
 **Ámbito:** `publication` y su coordinación con `planning`, `runner-management`, `notification-delivery` y `runner-portal`
 
 ## Propósito
 
 Materializar `RF-09`, `RF-10`, `RF-14`, `RF-15` y `RF-20`, y la contribución de publicación a `RF-07`, `RF-08` y `RF-16`, para que una semana se publique y actualice como una unidad coherente, conserve destinatarios efectivos y genere notificaciones sin exponer cambios parciales ni depender del proveedor de correo.
 
-Este diseño aplica `ADR-0007`, `ADR-0008`, `ADR-0011`, `ADR-0012`, `ADR-0014`, `ADR-0015`, `ADR-0017`, `ADR-0018`, `ADR-0020` y el refinamiento propuesto en `ADR-0021`. Mientras `ADR-0021` siga propuesto, las diferencias respecto a decisiones aceptadas deben revisarse expresamente antes de implementar.
+Este diseño aplica `ADR-0007`, `ADR-0008`, `ADR-0011`, `ADR-0012`, `ADR-0014`, `ADR-0015`, `ADR-0017`, `ADR-0018`, `ADR-0020` y el refinamiento aceptado en `ADR-0021`.
 
 ## Resultado funcional
 
@@ -542,7 +546,6 @@ Riesgos aceptados:
 
 No quedan decisiones de producto o arquitectura pendientes dentro del diseño detallado de `publication`.
 
-- `ADR-0021` debe recibir validación humana explícita antes de considerarse aceptado y antes de sustituir normativamente las decisiones incompatibles.
 - Antes de implementar deberán producirse OpenAPI, migraciones Flyway, tipos jOOQ, catálogo común de Problem Details, límites de página medidos y pruebas transaccionales con PostgreSQL.
 - El diseño detallado de `runner-portal` deberá materializar la representación móvil del corredor sin exponer metadatos administrativos ni versiones históricas.
 - Los datos personales reales, el proveedor de correo y la producción continúan bloqueados hasta completar las evidencias de privacidad y operación aplicables.
