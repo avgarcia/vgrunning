@@ -15,6 +15,7 @@ Repositorio de descubrimiento, diseño y futura implementación del PMV de Runni
 - [Diseño detallado de clasificación y segmentación — Fase 2](docs/phase-2-detailed-design-classification-segmentation.md)
 - [Diseño detallado de planificación — Fase 2](docs/phase-2-detailed-design-planning.md)
 - [Diseño detallado de publicación — Fase 2](docs/phase-2-detailed-design-publication.md)
+- [Diseño detallado de entrega de notificaciones — Fase 2](docs/phase-2-detailed-design-notification-delivery.md)
 - [Guía de diseño de API HTTP](docs/api-design-guidelines.md)
 - [Architecture Decision Records](docs/adr/README.md)
 - [Mejoras futuras](docs/future-improvements.md)
