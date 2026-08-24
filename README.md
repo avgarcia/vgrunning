@@ -1,6 +1,6 @@
 # Running Coach
 
-Repositorio de descubrimiento, diseño y futura implementación del PMV de Running Coach.
+Repositorio de descubrimiento, diseño y preparación técnica del PMV de Running Coach.
 
 ## Documentación
 

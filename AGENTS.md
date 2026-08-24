@@ -2,9 +2,17 @@
 
 ## Estructura del proyecto y organización de módulos
 
-Este repositorio está actualmente en fase de descubrimiento de producto. El material de referencia está en `docs/`; `docs/phase-0-problem-statement.md` recoge el problema validado, el alcance, las decisiones, los supuestos y los riesgos. `README.md` es el punto de entrada del proyecto.
+El repositorio está en preparación técnica del PMV. El material normativo está en `docs/`; `docs/phase-0-problem-statement.md` recoge el problema validado, y `README.md` es el punto de entrada.
 
-Cuando comience la implementación, mantén el código de producción, las pruebas y los recursos estáticos en directorios raíz claramente nombrados, por ejemplo: `src/`, `tests/` y `assets/`. No mezcles archivos generados, credenciales locales ni notas personales con la documentación de producto validada.
+El monorepo contiene un único proyecto Gradle raíz y estas fronteras:
+
+- `src/main/java`: producción Java, bajo `com.vgrunning`.
+- `src/main/resources`: recursos del backend.
+- `src/test/java`: pruebas Java.
+- `frontend/`: futura SPA y sus herramientas npm.
+- `api/openapi/`: contratos OpenAPI como fuente de verdad.
+
+No mezcles código generado, credenciales locales ni notas personales con la documentación validada. Los generados permanecen bajo directorios de build y no se versionan.
 
 ## Convenciones de documentación
 
@@ -18,14 +26,20 @@ Toda operación HTTP pública debe diseñarse contract-first con OpenAPI y cumpl
 
 ## Comandos de compilación, pruebas y desarrollo
 
-Todavía no hay runtime de aplicación, gestor de paquetes, linter, formateador ni framework de pruebas configurados. No añadas comandos a esta guía hasta que exista la herramienta correspondiente. Para el repositorio actual, solo de documentación, usa:
+Gradle Wrapper es la entrada canónica; no hace falta instalar Gradle globalmente. Requiere una JVM 17 o superior para arrancar Gradle y resuelve automáticamente Java 25 Temurin para compilar.
 
 ```powershell
-git status       # Revisa los cambios locales antes de compartirlos
-git diff --check # Detecta errores de espacios en blanco
+.\gradlew.bat clean build         # Compila y ejecuta los controles disponibles en Windows.
+.\gradlew.bat verifyJavaToolchain # Comprueba Java 25 Temurin.
+.\gradlew.bat -q javaToolchains   # Muestra toolchains detectados y descargados.
+npm ci --prefix frontend           # Instala el lockfile con Node 24.19.0 y npm 11.17.0.
+git status                         # Revisa los cambios locales antes de compartirlos.
+git diff --check                   # Detecta errores de espacios en blanco.
 ```
 
-Cuando se elija una tecnología, añade aquí sus comandos de instalación, ejecución local, lint, formato y pruebas en el mismo cambio que la incorpore.
+En macOS, Linux o Git Bash, usa `./gradlew clean build`, `./gradlew verifyJavaToolchain` y `./gradlew -q javaToolchains`.
+
+No hay todavía runtime de aplicación, framework de pruebas, linter ni formateador. Añade cada comando en el mismo cambio que incorpore su herramienta.
 
 ## Directrices de pruebas
 
