@@ -1,7 +1,8 @@
 # Arranque de arquitectura — Fase 2
 
-**Estado:** Propuesto
+**Estado:** Completado — preparación de Fase 2 cerrada
 **Fecha:** 2026-08-10
+**Última actualización:** 2026-08-24 — cierre documental de Fase 2
 
 ## Propósito
 
@@ -47,4 +48,4 @@ No hace falta cerrar todos los ADRs antes de iniciar Fase 2. Sí hace falta cerr
 
 ## Siguiente paso
 
-El siguiente documento de Fase 2 debería ser el diseño funcional y técnico de alto nivel que trace `RF-01` a `RF-20` contra flujos, modelos, ADRs candidatos y pruebas previstas.
+El paso previsto quedó materializado en el [Diseño funcional y técnico de alto nivel](phase-2-high-level-design.md), los ocho diseños detallados y los ADRs aceptados. La comprobación final se registra en [Cierre documental — Fase 2](phase-2-closure.md).

@@ -18,6 +18,7 @@ Repositorio de descubrimiento, diseño y futura implementación del PMV de Runni
 - [Diseño detallado de entrega de notificaciones — Fase 2](docs/phase-2-detailed-design-notification-delivery.md)
 - [Diseño detallado de seguimiento y revisión — Fase 2](docs/phase-2-detailed-design-tracking-review.md)
 - [Diseño detallado del portal del corredor — Fase 2](docs/phase-2-detailed-design-runner-portal.md)
+- [Cierre documental — Fase 2](docs/phase-2-closure.md)
 - [Guía de diseño de API HTTP](docs/api-design-guidelines.md)
 - [Architecture Decision Records](docs/adr/README.md)
 - [Mejoras futuras](docs/future-improvements.md)

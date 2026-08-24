@@ -2,7 +2,7 @@
 
 **Estado:** Validado — Fase 1 cerrada
 **Fecha:** 2026-08-10
-**Última actualización:** 2026-08-21 — refinamiento de `RF-15` y `RF-20` conforme a `ADR-0021`
+**Última actualización:** 2026-08-24 — alineación final de `RF-02`, `RF-08` y trazabilidad con el cierre de Fase 2
 
 ## Actores y permisos
 
@@ -19,13 +19,13 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 ### Imprescindible
 
 - **RF-01.** Invitación de corredores por el administrador mediante correo electrónico; activación con correo electrónico, contraseña y restablecimiento de contraseña.
-- **RF-02.** Gestión de usuarios, roles, definiciones de etiquetas y sus valores permitidos por el administrador.
+- **RF-02.** Gestión de cuentas, asignación inicial de un único rol inmutable, definiciones de etiquetas y sus valores permitidos por el administrador. Un rol no puede modificarse después de crear la cuenta.
 - **RF-03.** Etiquetas controladas para clasificar corredores y segmentos dinámicos construidos a partir de reglas de etiquetas. No se permite crear etiquetas ni valores libres.
 - **RF-04.** Modalidad en línea o presencial representada mediante etiquetas controladas del corredor. El lugar de encuentro se define como texto libre en el entrenamiento cuando aplique a sesiones presenciales; no se limita al Retiro.
 - **RF-05.** Reglas de segmentos en el PMV limitadas a condiciones sobre etiquetas con operador Y entre criterios, selección de uno o varios valores permitidos dentro de cada etiqueta y exclusión manual de corredores. No se incluyen expresiones avanzadas ni reglas libres.
 - **RF-06.** Inclusión y exclusión manual de corredores en un segmento.
 - **RF-07.** Creación de un plan semanal que agrupe varios entrenamientos fechados.
-- **RF-08.** Asignación de un plan a segmentos y, excepcionalmente, a corredores individuales.
+- **RF-08.** Gestión de grupos de planificación que combinan uno o varios segmentos y, excepcionalmente, inclusiones o exclusiones individuales persistentes. Cada plan semanal pertenece a un único grupo y no se asigna directamente a segmentos o corredores.
 - **RF-09.** Publicación atómica del plan semanal: todos sus entrenamientos se hacen visibles a la vez.
 - **RF-10.** Registro de la versión publicada y de los destinatarios efectivos de cada publicación, para conservar trazabilidad si cambian las etiquetas, segmentos o asignaciones posteriores.
 - **RF-11.** Catálogo de entrenamientos: rodaje, tirada larga, series, cambios de ritmo/fartlek, cuestas y carrera/test.
@@ -61,32 +61,32 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 
 ## Matriz de trazabilidad de Fase 1 a Fase 2
 
-Esta matriz es el contrato de entrada para Fase 2, no una declaración de diseño ya realizado. Cada fila debe enlazarse desde el diseño de Fase 2 que la materialice y completar sus criterios de aceptación antes de implementación.
+Al cerrar Fase 1, esta matriz fue el contrato de entrada para Fase 2. Tras el cierre de Fase 2, cada fila conserva el elemento solicitado y registra su materialización; los diseños y criterios enlazados continúan siendo obligatorios antes de implementar.
 
 | Requisito de Fase 1 | Elemento de diseño requerido en Fase 2 | Estado |
 | --- | --- | --- |
-| RF-01 | Flujo de invitación, activación, inicio y restablecimiento de contraseña | Pendiente de diseño en Fase 2 |
-| RF-02 | Modelo de usuarios, roles y administración de taxonomías | Pendiente de diseño en Fase 2 |
-| RF-03 | Modelo de etiquetas y evaluación de segmentos dinámicos | Pendiente de diseño en Fase 2 |
-| RF-04 | Modelo de modalidad y ubicación de entrenamiento | Pendiente de diseño en Fase 2 |
-| RF-05 | Semántica y límites de reglas de segmentación | Pendiente de diseño en Fase 2 |
-| RF-06 | Interacción y persistencia de inclusiones y exclusiones manuales | Pendiente de diseño en Fase 2 |
-| RF-07 | Modelo y ciclo de vida del plan semanal | Pendiente de diseño en Fase 2 |
-| RF-08 | Modelo de asignación a segmentos y corredores | Pendiente de diseño en Fase 2 |
-| RF-09 | Flujo y consistencia de publicación atómica | Pendiente de diseño en Fase 2 |
-| RF-10 | Versionado y registro de destinatarios efectivos | Pendiente de diseño en Fase 2 |
-| RF-11 | Modelo de catálogo y tipos de entrenamiento | Pendiente de diseño en Fase 2 |
-| RF-12 | Modelo de objetivos por frecuencia cardiaca, ritmo y aclaraciones | Pendiente de diseño en Fase 2 |
-| RF-13 | Captura y consulta del lugar de encuentro presencial | Pendiente de diseño en Fase 2 |
-| RF-14 | Máquina de estados de borrador y publicado | Pendiente de diseño en Fase 2 |
-| RF-15 | Flujo de republicación y destinatarios afectados | Pendiente de diseño en Fase 2 |
-| RF-16 | Experiencia móvil de consulta para corredores | Pendiente de diseño en Fase 2 |
-| RF-17 | Modelo y captura de información de seguimiento | Pendiente de diseño en Fase 2 |
-| RF-18 | Modelo de historial de entrenamientos y seguimiento | Pendiente de diseño en Fase 2 |
-| RF-19 | Consulta y permisos de revisión para entrenadores | Pendiente de diseño en Fase 2 |
-| RF-20 | Contrato de contenido y entrega de correo electrónico | Pendiente de diseño en Fase 2 |
+| RF-01 | Flujo de invitación, activación, inicio y restablecimiento de contraseña | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-02 | Modelo de cuentas, rol inicial inmutable, perfiles y administración de taxonomías | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-03 | Modelo de etiquetas y evaluación de segmentos dinámicos | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-04 | Modelo de modalidad y ubicación de entrenamiento | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-05 | Semántica y límites de reglas de segmentación | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-06 | Interacción y persistencia de inclusiones y exclusiones manuales | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-07 | Modelo y ciclo de vida del plan semanal | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-08 | Modelo de grupos de planificación, segmentos y excepciones persistentes | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-09 | Flujo y consistencia de publicación atómica | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-10 | Versionado y registro de destinatarios efectivos | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-11 | Modelo de catálogo y tipos de entrenamiento | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-12 | Modelo de objetivos por frecuencia cardiaca, ritmo y aclaraciones | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-13 | Captura y consulta del lugar de encuentro presencial | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-14 | Máquina de estados de borrador y publicado | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-15 | Flujo de republicación y destinatarios afectados | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-16 | Experiencia móvil de consulta para corredores | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-17 | Modelo y captura de información de seguimiento | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-18 | Modelo de historial de entrenamientos y seguimiento | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-19 | Consulta y permisos de revisión para entrenadores | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-20 | Contrato de contenido y entrega de correo electrónico | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
 
-El revisor de arquitectura debe comprobar, al cerrar Fase 2, que cada requisito `RF-01` a `RF-20` enlaza con su diseño, criterios de aceptación y decisión técnica correspondiente. En el flujo de un único mantenedor, el autor asume esta comprobación y deja constancia de ella en la PR.
+La comprobación final de que cada requisito `RF-01` a `RF-20` enlaza con diseño, criterios de aceptación y decisión técnica se registra en [Cierre documental — Fase 2](phase-2-closure.md). En el flujo de un único mantenedor, el autor asume esa revisión y deja constancia en la PR.
 
 ## Requisitos no funcionales
 
@@ -124,7 +124,7 @@ El revisor de arquitectura debe comprobar, al cerrar Fase 2, que cada requisito 
 - Los riesgos principales de Fase 0 quedan tratados: planificación por grupos, información de seguimiento revisable, presencial con lugar de encuentro y correo como notificación, no como sistema de gestión.
 - Las decisiones que condicionan Fase 2 quedan cerradas: segmentos dinámicos con etiquetas controladas, trazabilidad de publicaciones, republicación atómica, modalidad como etiqueta, información de seguimiento mínima estructurada, operación de un único club y lugar de encuentro no restringido al Retiro.
 - Las decisiones de diseño, sus motivos, alternativas descartadas, impactos y materialización prevista están documentadas en [Matriz de decisiones de Fase 1](phase-1-decision-matrix.md).
-- Los requisitos imprescindibles `RF-01` a `RF-20` tienen un elemento de diseño identificado y declarado pendiente en la matriz de trazabilidad hacia Fase 2.
+- Al cerrar Fase 1, los requisitos imprescindibles `RF-01` a `RF-20` tenían un elemento de diseño identificado y pendiente; la misma matriz registra ahora su materialización tras el cierre de Fase 2.
 - Los criterios de aceptación de éxito y error para los requisitos imprescindibles están documentados en [Criterios de aceptación de Fase 1](phase-1-acceptance-criteria.md).
 - Las obligaciones de privacidad quedan identificadas como precondición antes de producción, sin bloquear el diseño funcional de Fase 2.
 

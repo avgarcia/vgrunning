@@ -547,5 +547,5 @@ Riesgos aceptados:
 No quedan decisiones de producto o arquitectura pendientes dentro del diseño detallado de `publication`.
 
 - Antes de implementar deberán producirse OpenAPI, migraciones Flyway, tipos jOOQ, catálogo común de Problem Details, límites de página medidos y pruebas transaccionales con PostgreSQL.
-- El diseño detallado de `runner-portal` deberá materializar la representación móvil del corredor sin exponer metadatos administrativos ni versiones históricas.
+- El [diseño detallado de `runner-portal`](phase-2-detailed-design-runner-portal.md) materializa la representación móvil del corredor sin exponer metadatos administrativos ni versiones históricas.
 - Los datos personales reales, el proveedor de correo y la producción continúan bloqueados hasta completar las evidencias de privacidad y operación aplicables.

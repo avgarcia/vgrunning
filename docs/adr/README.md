@@ -1,7 +1,7 @@
 # Architecture Decision Records
 
 **Estado:** Vigente
-**Fecha:** 2026-08-21
+**Fecha:** 2026-08-24
 
 ## Propósito
 
@@ -56,9 +56,6 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0020](0020-planning-lifecycle-objectives-history.md) | Ciclo de vida, objetivos e historial de planificación | Aceptado | `RF-04`, `RF-07` a `RF-16`; especialmente `RF-08`, `RF-12`, `RF-14`; datos y privacidad |
 | [ADR-0021](0021-publication-editing-notification-eligibility.md) | Edición de publicaciones y elegibilidad de notificaciones | Aceptado | `RF-07`, `RF-09`, `RF-10`, `RF-14` a `RF-16`, `RF-20` |
 
-## Backlog inicial de Fase 2
+## Resultado del backlog inicial de Fase 2
 
-Estos ADRs candidatos deben confirmarse, dividirse o descartarse durante el diseño de Fase 2:
-
-| Candidato | Decisión pendiente | Requisitos relacionados | Tratamiento |
-| --- | --- | --- | --- |
+El backlog inicial quedó agotado: las decisiones confirmadas se materializaron en `ADR-0001` a `ADR-0021`, todos aceptados, y no quedan candidatos pendientes al cerrar Fase 2. Una decisión arquitectónica nueva o contradictoria deberá abrir otro ADR a partir de evidencia; no se resolverá implícitamente durante la implementación.

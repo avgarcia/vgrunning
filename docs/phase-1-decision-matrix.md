@@ -2,7 +2,7 @@
 
 **Estado:** Validado — Fase 1 cerrada
 **Fecha:** 2026-08-10
-**Última actualización:** 2026-08-21 — evolución de `D-06` documentada por `ADR-0021`
+**Última actualización:** 2026-08-24 — enlace con la trazabilidad final de Fase 2
 
 ## Propósito
 
@@ -21,4 +21,4 @@ Registrar las decisiones de diseño con impacto funcional tomadas en [Fase 1](ph
 
 ## Uso en Fase 2
 
-Para cada fila `D-01` a `D-08`, Fase 2 debe enlazar su documento de diseño, decisiones técnicas y pruebas previstas. Cualquier cambio de una decisión, alternativa o impacto deberá actualizar esta matriz y activar el control de cambios de alcance.
+Para cada fila `D-01` a `D-08`, Fase 2 enlaza documento de diseño, decisiones técnicas y pruebas previstas en su [trazabilidad de decisiones](phase-2-high-level-design.md#trazabilidad-de-decisiones-de-fase-1). Cualquier cambio futuro de una decisión, alternativa o impacto deberá actualizar esta matriz y activar el control de cambios de alcance.

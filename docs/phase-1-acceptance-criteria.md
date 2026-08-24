@@ -2,7 +2,7 @@
 
 **Estado:** Validado — Fase 1 cerrada
 **Fecha:** 2026-08-10
-**Última actualización:** 2026-08-21 — refinamiento de `RF-15` y `RF-20` conforme a `ADR-0021`
+**Última actualización:** 2026-08-24 — alineación final de `RF-02`, `RF-08` y `RF-17` con los ADRs aceptados
 
 ## Propósito
 
@@ -15,10 +15,10 @@ Definir criterios mínimos y observables de éxito y error para los requisitos i
 - **Éxito:** dado un administrador y un correo de corredor válido, al enviar una invitación el corredor recibe el mecanismo de activación, define una contraseña y puede iniciar sesión con ese correo y contraseña.
 - **Error o límite:** al intentar invitar un correo con formato inválido o activar con un enlace no válido o caducado, la operación se rechaza y no crea ni activa una cuenta. Una solicitud de restablecimiento para un correo no registrado no revela si existe una cuenta.
 
-### RF-02 — Usuarios, roles y taxonomías
+### RF-02 — Cuentas, rol inicial y taxonomías
 
-- **Éxito:** dado un administrador, al crear o modificar un usuario, su rol, una etiqueta controlada o uno de sus valores permitidos, el cambio queda disponible para la gestión operativa.
-- **Error o límite:** un entrenador o corredor no puede modificar roles, definiciones de etiquetas ni valores permitidos; la aplicación rechaza también nombres o valores vacíos.
+- **Éxito:** dado un administrador, al crear una cuenta asigna exactamente un rol inicial entre los permitidos; también puede crear o modificar una definición de etiqueta o uno de sus valores permitidos, y el cambio válido queda disponible para la gestión operativa.
+- **Error o límite:** ningún actor puede modificar el rol después de crear la cuenta; entrenador y corredor tampoco pueden administrar cuentas, definiciones ni valores. La aplicación rechaza roles, nombres o valores vacíos o fuera de catálogo sin conservar un cambio parcial.
 
 ### RF-03 — Etiquetas y segmentos dinámicos
 
@@ -45,10 +45,10 @@ Definir criterios mínimos y observables de éxito y error para los requisitos i
 - **Éxito:** dado un entrenador, al crear un plan para una semana y añadir varios entrenamientos fechados, el plan conserva todos los entrenamientos asociados a esa semana.
 - **Error o límite:** no se puede guardar un entrenamiento sin fecha ni un plan sin semana identificable; la validación informa del dato faltante.
 
-### RF-08 — Asignación de planes
+### RF-08 — Grupos de planificación y planes
 
-- **Éxito:** dado un plan semanal, el entrenador puede asignarlo a uno o varios segmentos y añadir excepcionalmente corredores individuales; los destinatarios resultantes incluyen ambos tipos de asignación.
-- **Error o límite:** una asignación a un segmento o corredor inexistente se rechaza y no cambia los destinatarios ya configurados.
+- **Éxito:** dado un grupo de planificación válido que combina segmentos e inclusiones o exclusiones individuales persistentes, el entrenador crea para él un plan semanal y los destinatarios candidatos de la primera publicación son los miembros efectivos del grupo.
+- **Error o límite:** la aplicación rechaza segmentos o corredores inexistentes, un estado que sitúe a un corredor en dos grupos efectivos y un segundo plan para la misma pareja grupo-semana; ninguna de esas operaciones altera la configuración válida anterior.
 
 ### RF-09 — Publicación atómica
 
@@ -92,8 +92,8 @@ Definir criterios mínimos y observables de éxito y error para los requisitos i
 
 ### RF-17 — Registro de ejecución y seguimiento
 
-- **Éxito:** dado un entrenamiento publicado para el corredor, este puede registrar realizado o no realizado, un esfuerzo de 1 a 10, una sensación de bien, normal o mal y un comentario opcional; el registro queda asociado al entrenamiento.
-- **Error o límite:** valores de esfuerzo fuera de 1 a 10 o una sensación distinta de los valores permitidos se rechazan y no sustituyen un registro válido existente.
+- **Éxito:** dado un entrenamiento publicado para el corredor dentro de la ventana, este registra `realizado` con esfuerzo de `1` a `10` y sensación `bien`, `normal` o `mal`, o registra `no-realizado` sin esfuerzo ni sensación. Puede añadir un comentario opcional solo con consentimiento vigente; el registro queda asociado al entrenamiento.
+- **Error o límite:** un esfuerzo o sensación inválidos, `realizado` sin ambos campos, `no-realizado` con alguno de ellos o un comentario sin consentimiento vigente se rechazan por completo y no sustituyen un registro válido existente.
 
 ### RF-18 — Historial del corredor
 
@@ -112,4 +112,4 @@ Definir criterios mínimos y observables de éxito y error para los requisitos i
 
 ## Uso en Fase 2
 
-Fase 2 debe enlazar cada decisión de diseño y cada prueba de implementación con los criterios de su requisito `RF-01` a `RF-20`. Cualquier criterio que requiera precisar una escala, formato, política de reintentos o definición de cambio relevante debe convertir esa precisión en una decisión documentada, no resolverla implícitamente durante implementación.
+Fase 2 enlaza cada decisión de diseño y cada validación prevista con los criterios de su requisito `RF-01` a `RF-20`. La implementación deberá conservar esa trazabilidad; cualquier contradicción descubierta en OpenAPI, migraciones o pruebas requiere corregir el diseño o registrar una nueva decisión, no resolverla implícitamente durante la codificación.

@@ -8,7 +8,7 @@
 
 Definir el comportamiento, los límites modulares, el modelo de datos, las transacciones, la API y las pruebas de identidad y acceso antes de crear el contrato OpenAPI y comenzar la implementación.
 
-Este diseño cubre completamente `RF-01` y la parte de cuentas y roles de `RF-02`. También concreta la autenticación y autorización necesarias para `RF-16`, `RF-18` y `RF-19`. No diseña el perfil operativo del corredor, las taxonomías ni su asignación: esos conceptos pertenecen respectivamente a `runner-management` y `classification-segmentation`. El perfil se concreta en el [Diseño detallado de gestión de corredores](phase-2-detailed-design-runner-management.md), validado con la restricción de usar solo datos sintéticos mientras permanezca pendiente la revisión de privacidad; clasificación necesita su diseño detallado propio.
+Este diseño cubre completamente `RF-01` y la parte de cuentas y roles de `RF-02`. También concreta la autenticación y autorización necesarias para `RF-16`, `RF-18` y `RF-19`. No diseña el perfil operativo del corredor, las taxonomías ni su asignación: esos conceptos pertenecen respectivamente a `runner-management` y `classification-segmentation`. Se concretan en el [Diseño detallado de gestión de corredores](phase-2-detailed-design-runner-management.md) y el [Diseño detallado de clasificación y segmentación](phase-2-detailed-design-classification-segmentation.md), ambos validados con la restricción de usar solo datos sintéticos mientras permanezca pendiente la revisión de privacidad.
 
 ## Fuentes normativas
 

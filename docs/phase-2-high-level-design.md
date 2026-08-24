@@ -1,13 +1,14 @@
 # Diseño funcional y técnico de alto nivel — Fase 2
 
-**Estado:** Propuesto
+**Estado:** Validado — Fase 2 cerrada
 **Fecha:** 2026-08-24
+**Cierre documental:** [Evidencia y condiciones posteriores](phase-2-closure.md)
 
 ## Propósito
 
 Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazable. Este documento delimita los componentes lógicos, los flujos, los datos y las decisiones técnicas que deben resolverse antes de implementar el PMV.
 
-`ADR-0013` define runtime, framework, acceso JDBC, frontend conjunto y contrato API; `ADR-0017` define las convenciones HTTP orientadas a recursos. `ADR-0014` concreta la estructura modular y `ADR-0015` el mecanismo técnico de autorización. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. `ADR-0016` define Microsoft Azure `West Europe` para despliegue y operación. Los ADRs aún propuestos deben resolverse antes de cerrar el diseño afectado.
+`ADR-0013` define runtime, framework, acceso JDBC, frontend conjunto y contrato API; `ADR-0017` define las convenciones HTTP orientadas a recursos. `ADR-0014` concreta la estructura modular y `ADR-0015` el mecanismo técnico de autorización. `ADR-0012` define PostgreSQL y la estrategia transaccional; la entrega de correo se concreta en `ADR-0011`. `ADR-0016` define Microsoft Azure `West Europe` para despliegue y operación. Todos los ADRs relacionados están aceptados al cerrar Fase 2; cualquier contradicción posterior requiere otro ADR.
 
 ## Alcance y restricciones heredadas
 
@@ -27,7 +28,7 @@ Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazab
 - Aplicar autorización en cada operación y no solo en la interfaz. El aislamiento de cada corredor es una regla de datos y de acceso.
 - Representar el seguimiento con valores estructurados y comentario opcional, deshabilitado hasta obtener el consentimiento explícito y separado definido por `ADR-0010`; no solicitar campos de salud ni ampliar ese ámbito, sin ignorar que el texto libre puede contenerlos.
 
-## Componentes lógicos propuestos
+## Componentes lógicos confirmados
 
 | Componente | Responsabilidad | Requisitos principales | Datos lógicos que gobierna |
 | --- | --- | --- | --- |
@@ -75,7 +76,7 @@ Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como
 3. El historial incluye todos los entrenamientos que llegaron a publicarse, diferencia `sin-seguimiento`, `no-realizado` y `retirado`, y conserva la versión de referencia fijada al responder.
 4. El entrenador revisa seguimiento y ausencias por corredor, plan semanal o entrenamiento, sin modificar, responder ni marcar como revisado; no se crea una relación de titularidad de entrenador en el PMV.
 
-## Modelo lógico preliminar
+## Modelo lógico consolidado
 
 | Concepto | Relación o invariante de diseño |
 | --- | --- |
@@ -88,18 +89,18 @@ Estos límites son lógicos. `ADR-0002` aceptado define que se materializan como
 | Seguimiento | Un corredor registra una única respuesta estructurada por entrenamiento publicado durante su ventana de siete días; ausencia, no realización y retirada son estados diferenciados. |
 | Notificación | Se origina exclusivamente por publicación o actualización; referencia versión, destinatario congelado, contenido requerido y estado técnico. Antes de cada intento se comprueba si el corredor continúa activo. |
 
-El modelo es conceptual y no define tablas, identificadores, índices físicos concretos ni retención. `ADR-0012` define el motor, las garantías transaccionales y la estrategia de índices; los detalles restantes dependen del diseño posterior.
+El modelo es conceptual y no sustituye los modelos detallados, tablas, identificadores, retención o límites de cada módulo. `ADR-0012` define el motor, las garantías transaccionales y la estrategia de índices; los ocho diseños detallados concretan la propiedad y los artefactos que deben producirse antes de implementar.
 
 ## Trazabilidad de requisitos
 
-Los criterios de validación citados son los de [Criterios de aceptación — Fase 1](phase-1-acceptance-criteria.md). El estado `Pendiente` indica diseño técnico no cerrado, no ausencia de tratamiento funcional.
+Los criterios de validación citados son los de [Criterios de aceptación — Fase 1](phase-1-acceptance-criteria.md). Cada estado enlaza el diseño detallado que materializa el requisito; los bloqueos posteriores se distinguen del cierre de diseño.
 
 | Requisito | Flujo y componente | Modelo lógico o regla principal | Decisiones de Fase 1 | ADR relacionado o candidato | Validación prevista | Estado |
 | --- | --- | --- | --- | --- | --- | --- |
 | `RF-01` | Acceso; Identidad y acceso | Invitación, activación, reactivación, credencial, sesiones, cambio de correo y restablecimiento sin revelar cuentas existentes. | — | `ADR-0003`, `ADR-0010` a `ADR-0017` | Criterios de `RF-01`; pruebas de estado, secretos, caducidad, revocación, concurrencia, enumeración y entrega recuperable. | Identidad y entrega validadas en [Identidad y acceso](phase-2-detailed-design-identity-access.md) y [Entrega de notificaciones](phase-2-detailed-design-notification-delivery.md) |
 | `RF-02` | Administración; Identidad, Gestión de corredores y Clasificación | Rol inicial inmutable, perfil de corredor y taxonomías cerradas administrados solo por administrador; modificar roles queda descartado en Fase 2. | `D-01`, `D-08` | `ADR-0003`, `ADR-0004`, `ADR-0005`, `ADR-0014`, `ADR-0015`, `ADR-0017`, `ADR-0018`, `ADR-0019` | Criterios de `RF-02`, ajustados para probar asignación inicial y rechazo de cambios; pruebas de autorización. | Identidad, roles, perfil y clasificación diseñados y validados; solo se autoriza desarrollo con datos sintéticos hasta completar la revisión de privacidad |
 | `RF-03` | Clasificación y segmentación | Etiquetas controladas asignadas a corredores alimentan segmentos dinámicos y solapables. | `D-01`, `D-02` | `ADR-0005`, `ADR-0019` | Criterios de `RF-03`; pruebas de evaluación dinámica, lotes atómicos y solapamiento permitido. | Diseñado y validado en [Diseño detallado de clasificación y segmentación](phase-2-detailed-design-classification-segmentation.md) |
-| `RF-04` | Planificación; Clasificación y segmentación | Modalidad del corredor como etiqueta; modalidad propia del entrenamiento y ubicación libre opcional solo en presencial. | `D-02`, `D-04` | `ADR-0005`, `ADR-0006` (Aceptado), `ADR-0019`, `ADR-0020` (Aceptado) | Criterios de `RF-04`; pruebas de modalidad, valores permitidos, ubicación ausente y rechazo en línea. | Clasificación y planificación validadas; consulta del corredor pendiente del portal |
+| `RF-04` | Planificación; Clasificación y segmentación; Portal del corredor | Modalidad del corredor como etiqueta; modalidad propia del entrenamiento y ubicación libre opcional solo en presencial. | `D-02`, `D-04` | `ADR-0005`, `ADR-0006`, `ADR-0019`, `ADR-0020` (Aceptados) | Criterios de `RF-04`; pruebas de modalidad, valores permitidos, ubicación ausente, rechazo en línea y consulta propia. | Diseñado y validado en clasificación, planificación y [Portal del corredor](phase-2-detailed-design-runner-portal.md) |
 | `RF-05` | Clasificación y segmentación | Semántica limitada a Y, varios valores por etiqueta y sin expresiones libres. | `D-05` | `ADR-0005`, `ADR-0019` | Criterios de `RF-05`; pruebas de reglas aceptadas y rechazadas y evaluación explicada. | Diseñado y validado en [Diseño detallado de clasificación y segmentación](phase-2-detailed-design-classification-segmentation.md) |
 | `RF-06` | Clasificación y segmentación | Excepciones manuales se aplican sobre el resultado dinámico antes de resolver destinatarios. | `D-01`, `D-05` | `ADR-0005`, `ADR-0019` | Criterios de `RF-06`; pruebas de inclusión, exclusión e historial inmutable. | Diseñado y validado en [Diseño detallado de clasificación y segmentación](phase-2-detailed-design-classification-segmentation.md) |
 | `RF-07` | Planificación | Cada grupo tiene como máximo un plan por semana; el plan admite como máximo un entrenamiento completo por día de lunes a domingo. | — | `ADR-0006` (Aceptado), `ADR-0020` (Aceptado) | Criterios de `RF-07`; pruebas de ciclo de vida, semana, revisión global, unicidad grupo-semana y unicidad diaria. | Diseñado y validado en [Diseño detallado de planificación](phase-2-detailed-design-planning.md) |
@@ -130,7 +131,7 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `D-07` | Seguimiento estructurado, historial y revisión global de solo lectura. | `ADR-0009` (Aceptado) |
 | `D-08` | Permisos globales de entrenador y aislamiento del corredor. | `ADR-0004` (Aceptado), `ADR-0019` (Aceptado) |
 
-## Preguntas bloqueantes y ADRs pendientes
+## Decisiones de arquitectura y bloqueos posteriores
 
 | ADR o pregunta | Impacto | Bloquea | Responsable | Tratamiento |
 | --- | --- | --- | --- | --- |
@@ -144,20 +145,20 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 | `ADR-0010`: privacidad, retención y derechos | Responsable persona física, bases por finalidad, consentimiento del comentario, mayores de edad, conservación, bloqueo, derechos, encargados, EIPD y evidencias. | Salida a producción y cualquier cambio de alcance derivado. | Responsable del tratamiento con asesoramiento de privacidad | Aceptado; las evidencias jurídicas y operativas siguen bloqueando producción y no se consideran satisfechas por la aceptación arquitectónica. |
 | `ADR-0011`: correo transaccional | Brevo por API REST, outbox persistente, worker interno, reintentos por tipo, webhooks, supresión y observabilidad. | No bloquea implementación; decisión aceptada. Dominio, revisión de privacidad y alertas bloquean producción. | Revisor de arquitectura | Aceptado con reconciliación dentro del TTL, entrega posterior gestionada por Brevo y orden liberado al aceptar el proveedor. |
 | `ADR-0012`: persistencia y transacciones | PostgreSQL, restricciones, coordinación de planificación, publicación, outbox recuperable, índices, cursores y migraciones. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado con PostgreSQL compartido, `READ COMMITTED`, bloqueos explícitos, restricciones físicas, outbox con lease, cursor y migraciones versionadas. |
-| `ADR-0013`: runtime y contrato API | Java, Spring MVC, JDBC, HikariCP, jOOQ, Flyway, frontend conjunto, OpenAPI y gates de calidad. | Implementación del runtime y de cualquier módulo. | Revisor de arquitectura | Aceptado; permanecen pendientes los controles operativos previos a producción. |
-| `ADR-0014`: módulos, hexagonal y DDD | Límites de código y datos, dependencias, comunicación, puertos, esquemas y modelado de dominio. | Estructura inicial del backend y desarrollo de dominio. | Revisor de arquitectura | Aceptado; proyecto Gradle único, ocho módulos y aplicación selectiva de DDD y puertos. |
-| `ADR-0015`: autorización de aplicación | Propagación del actor, políticas de aplicación, alcance en consultas y pruebas. | Implementación de cualquier caso de uso protegido. | Revisor de arquitectura | Aceptado; actor explícito, políticas Java canónicas e identidad de sistema mínima. |
+| `ADR-0013`: runtime y contrato API | Java, Spring MVC, JDBC, HikariCP, jOOQ, Flyway, frontend conjunto, OpenAPI y gates de calidad. | OpenAPI, build y gates bloquean comenzar la implementación; la elección arquitectónica está aceptada. | Revisor de arquitectura | Producir y revisar los artefactos contract-first antes de controladores o código de negocio. |
+| `ADR-0014`: módulos, hexagonal y DDD | Límites de código y datos, dependencias, comunicación, puertos, esquemas y modelado de dominio. | El scaffolding y las verificaciones modulares bloquean desarrollo que pueda violar límites; la decisión está aceptada. | Revisor de arquitectura | Materializar un proyecto Gradle único, ocho módulos y reglas Spring Modulith y ArchUnit antes de ampliar código. |
+| `ADR-0015`: autorización de aplicación | Propagación del actor, políticas de aplicación, alcance en consultas y pruebas. | Las políticas y pruebas bloquean cualquier caso de uso protegido; la decisión está aceptada. | Revisor de arquitectura | Implementar actor explícito, políticas Java canónicas e identidad de sistema mínima desde el primer caso de uso. |
 | `ADR-0016`: despliegue y operación | Microsoft Azure `West Europe`, artefactos, promoción, PostgreSQL, copias, observabilidad, secretos y recuperación. | Despliegue de staging y producción. | Revisor de arquitectura y persona operadora | Aceptado; completar evidencias previas a producción. |
 | `ADR-0017`: API HTTP orientada a recursos | Recursos, rutas, métodos, transiciones, seguridad y controles del contrato HTTP. | No bloquea; decisión aceptada. | Revisor de arquitectura | Aceptado; nivel 2 de Richardson sin HATEOAS obligatorio y con revisión semántica humana. |
 | `ADR-0018`: ciclo de vida, inactividad y reactivación del corredor | Perfil mínimo, permisos, elegibilidad, retención automática durante 24 meses y reactivación revisada. | Datos personales reales y producción; no bloquea diseño o desarrollo con datos sintéticos. | Revisor de arquitectura; Revisor de privacidad o DPO antes de datos reales | Aceptado como decisión de arquitectura; la revisión de base jurídica, necesidad y proporcionalidad sigue pendiente y prohíbe usar datos reales. |
 | `ADR-0019`: coordinación, ciclo de vida e historial de clasificación | Coordinador transaccional, segmentos inactivos, lotes, impacto, evaluación explicada, historial y reservas de reactivación. | Datos personales reales y producción; no bloquea diseño o desarrollo con datos sintéticos. | Revisor de arquitectura; Revisor de privacidad o DPO antes de datos reales | Aceptado; no quedan decisiones de producto o arquitectura pendientes y OpenAPI, migraciones y límites medidos preceden a la implementación. |
-| `ADR-0020`: ciclo de vida, objetivos e historial de planificación | Grupos activos e inactivos, reconfiguración multigrupo, borradores, objetivos, modalidad, historial y purga. | Datos personales reales y producción; OpenAPI, migraciones y pruebas antes de implementar. | Revisor de arquitectura; Revisor de privacidad o DPO antes de datos reales | Aceptado con decisiones de planificación validadas explícitamente; no levanta el bloqueo de privacidad ni cierra Fase 2. |
+| `ADR-0020`: ciclo de vida, objetivos e historial de planificación | Grupos activos e inactivos, reconfiguración multigrupo, borradores, objetivos, modalidad, historial y purga. | Datos personales reales y producción; OpenAPI, migraciones y pruebas antes de implementar. | Revisor de arquitectura; Revisor de privacidad o DPO antes de datos reales | Aceptado con decisiones de planificación validadas explícitamente; no levanta el bloqueo de privacidad. |
 | `ADR-0021`: edición de publicaciones y elegibilidad de notificaciones | Regla temporal, sesión local de varios días, ausencia de retirada y de borrador persistente, autoría mínima y omisión de correo a inactivos. | OpenAPI, migraciones y pruebas transaccionales antes de implementar; datos personales reales, proveedor de correo y producción continúan bloqueados. | Revisor de arquitectura | Aceptado; no quedan decisiones de producto o arquitectura pendientes y sustituye normativamente solo las partes incompatibles que identifica. |
 
 ## Riesgos y mitigaciones
 
 - Una publicación parcialmente visible o sin destinatarios congelados rompería la trazabilidad. Mitigación: tratar publicación, versión y destinatarios como una misma decisión en `ADR-0007`.
-- Un control de acceso solo de interfaz expondría datos de corredores. Mitigación: `ADR-0004` debe definir reglas de autorización aplicadas en las operaciones de datos.
+- Un control de acceso solo de interfaz expondría datos de corredores. Mitigación: `ADR-0004` define reglas de autorización aplicadas en las operaciones de datos.
 - Convertir reglas de segmentos en un lenguaje genérico ampliaría el alcance. Mitigación: conservar la gramática de `D-05` y rechazar expresiones libres.
 - Un cambio de etiquetas, segmentos o excepciones podría situar a un corredor activo o a una reserva `pending_reactivation` en dos grupos. Mitigación: aplicar `ADR-0019`, bloquear la coordinación global de `planning`, validar el estado final y revertir la operación completa mostrando solo el detalle permitido por el alcance del actor.
 - Un cambio de grupo posterior a una publicación podría intentar incluir al corredor en otro plan de la misma semana. Mitigación: los planes ya publicados conservan destinatarios y la primera publicación de otro plan comprueba unicidad transaccional por corredor y semana.
@@ -169,6 +170,8 @@ Los criterios de validación citados son los de [Criterios de aceptación — Fa
 - Una publicación errónea no podrá retirarse. Mitigación: candidatura con grupo, semana, contenido, conteo y lista exacta, revisión estable y confirmación explícita; el riesgo residual se acepta como coste de excluir retirada.
 - El comentario libre puede contener datos de salud aunque el PMV no los solicite. Mitigación: mantener los campos acotados, no presentar el seguimiento como clínico y resolver base jurídica, información, retención y derechos en `ADR-0010` antes de producción.
 
-## Criterios para avanzar
+## Resultado de Fase 2
 
-Este documento deja lista la trazabilidad funcional de Fase 2, pero no cierra la fase ni autoriza implementación. Se puede continuar abriendo ADRs en estado `Propuesto` por orden de dependencia. Antes de implementar un área deben estar aceptados los ADRs que la bloquean y debe existir diseño detallado enlazado a sus requisitos y criterios de aceptación.
+La trazabilidad funcional, los ocho diseños detallados y los `21` ADRs aceptados permiten cerrar Fase 2. La evidencia de los controles documentales y las correcciones finales se registran en [Cierre documental — Fase 2](phase-2-closure.md).
+
+Este cierre no autoriza implementación. Antes de implementar un módulo deben aprobarse el contrato OpenAPI, los artefactos de persistencia, los límites medidos y las pruebas indicadas por su diseño. Los datos personales reales, el proveedor de correo y producción continúan bloqueados por las evidencias de privacidad, seguridad y operación aplicables.
