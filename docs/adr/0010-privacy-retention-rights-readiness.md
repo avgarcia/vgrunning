@@ -7,7 +7,7 @@
 
 ## Contexto
 
-El PMV trata datos personales de cuentas y corredores: correo e identidad operativa, roles, etiquetas, segmentos, grupos, destinatarios de publicaciones, historial de planes, seguimiento declarado, comentarios libres, notificaciones y registros de seguridad o auditoría. Administrador y entrenador tienen lectura global de datos operativos según `ADR-0004`.
+El PMV trata datos personales de cuentas y corredores: correo e identidad operativa, roles, etiquetas, segmentos, grupos, destinatarios de publicaciones, historial de planes, seguimiento declarado, comentarios libres, notificaciones y registros de seguridad o auditoría. El entrenador tiene alcance deportivo global solo sobre corredores `active`; el administrador puede acceder de forma auditada a estados no operativos según `ADR-0004` y `ADR-0018`.
 
 `ADR-0009` no solicita campos clínicos, pero su comentario libre puede contener información sobre lesiones, enfermedad u otros datos de salud. Negar ese riesgo sería falso: si el sistema recibe ese contenido, lo trata aunque no lo haya pedido.
 
@@ -64,7 +64,7 @@ Una solicitud de derechos no concederá acceso al solicitante a datos de tercero
 
 El producto no ofrecerá decisiones automatizadas con efectos jurídicos, perfilado comercial ni inferencias de salud. El comentario de seguimiento estará deshabilitado hasta obtener un consentimiento separado del contrato. Rechazarlo o retirarlo no limitará el resto del servicio. El sistema registrará la versión de la información aceptada, el instante, el actor y la retirada, sin reutilizar el consentimiento para otras finalidades. Tras la retirada impedirá nuevos comentarios y aplicará a los existentes la supresión, el bloqueo o la conservación estrictamente exigible según la política aprobada. Además mostrará una instrucción visible para no introducir diagnósticos, lesiones ni otra información de salud. Esa advertencia reduce recogida accidental, pero no sustituye el consentimiento ni elimina el riesgo.
 
-El PMV se limitará a personas de `18` años o más. No permitirá invitar ni activar cuentas de menores. El alta registrará únicamente la declaración de mayoría de edad, su fecha y si procede del corredor o del administrador; no almacenará fecha de nacimiento, documento de identidad ni copia acreditativa. Introducir menores requerirá reemplazar este ADR y diseñar representación, información, ejercicio de derechos y bases aplicables antes de admitirlos.
+El PMV se limitará a personas de `18` años o más. El administrador declarará esa condición al crear cualquier invitación y la persona invitada la confirmará durante su activación inicial; ninguna de las dos evidencias sustituye a la otra y la ausencia de cualquiera impedirá completar el alta. Cada declaración conservará cuenta, actor, origen, instante y versión inmutable del texto mostrado. Una reactivación conservará las declaraciones existentes y no las solicitará de nuevo. No se almacenarán fecha de nacimiento, documento de identidad ni copia acreditativa. El sistema no puede detectar una declaración falsa y acepta expresamente ese riesgo residual. Introducir menores requerirá reemplazar este ADR y diseñar representación, información, ejercicio de derechos y bases aplicables antes de admitirlos.
 
 El comentario libre de seguimiento se mantiene bajo consentimiento explícito conforme a los artículos `6.1.a` y `9.2.a` del RGPD. Antes de producción, una revisión especializada deberá confirmar que el consentimiento es libre, específico, informado, demostrable y revocable en la relación real con el corredor. Si esa revisión concluye que no existe una solución defendible, el comentario se eliminará del alcance antes de recoger seguimiento.
 
@@ -147,7 +147,7 @@ Se descarta. El comentario potencialmente sanitario, el seguimiento longitudinal
 - Copias de seguridad, logs, proveedores y entornos de prueba entran en el alcance de privacidad y no pueden tratarse como excepciones invisibles.
 - Los plazos cortos reducen exposición, pero pueden limitar historial operativo; los largos exigen justificación específica.
 - La evaluación deberá repetirse cuando cambien datos, finalidades, proveedores, transferencias, escala, menores o capacidades de análisis.
-- Excluir menores reduce alcance y evita recoger fecha de nacimiento o documentos, pero exige impedir altas que no declaren cumplir el umbral.
+- Excluir menores reduce alcance y evita recoger fecha de nacimiento o documentos, pero exige dos declaraciones obligatorias, versionadas y auditables. No aporta verificación material de edad y acepta el riesgo de falsedad.
 - La matriz aprobada convierte retención en comportamiento verificable; cualquier excepción deberá documentarse y no podrá convertirse en conservación indefinida.
 - El responsable será una persona física y deberá mantener su identidad y contacto completos fuera del repositorio público; producción seguirá bloqueada hasta publicarlos en la información de privacidad y habilitar el buzón dedicado.
 - La verificación evita recopilar documentos de identidad de forma rutinaria, pero requiere proteger los desafíos y registrar el resultado sin conservar evidencia excesiva.
@@ -157,20 +157,21 @@ Se descarta. El comentario potencialmente sanitario, el seguimiento longitudinal
 
 ## Requisitos relacionados
 
-- `RF-01` a `RF-20`
+- `RF-01` a `RF-21`
 - Requisito no funcional de datos y privacidad de Fase 1
 
 ## Decisiones de Fase 1 relacionadas
 
 - `D-07`: seguimiento estructurado y comentario opcional con revisión global.
 - `D-08`: acceso global de entrenador y aislamiento del corredor.
+- `D-10`: restricción a personas de `18` años o más mediante declaración administrativa y confirmación de la persona invitada.
 
 ## Validación prevista
 
 - Revisar y aprobar el inventario y registro de actividades de tratamiento con responsable, finalidades, datos, destinatarios, bases, transferencias, retención y medidas.
 - Probar la política de cada categoría con datos que alcanzan su vencimiento, incluidas copias restauradas.
 - Probar exportación y acceso sin exponer datos de terceros ni secretos.
-- Probar rechazo de invitación o activación sin declaración de mayoría de edad y comprobar que no se almacenan fecha de nacimiento ni documentos identificativos.
+- Probar rechazo de la invitación sin declaración administrativa y de la activación sin confirmación de la persona; conservar por separado actor, origen, instante y versión del texto, mantenerlas al reactivar y comprobar que no existen fecha de nacimiento ni documentos identificativos.
 - Probar rectificación, supresión, limitación y anonimización, incluidas referencias históricas y registros vinculados.
 - Probar que el comentario permanece deshabilitado sin consentimiento, que el consentimiento registra texto versionado, instante y actor y que su rechazo no impide el seguimiento estructurado.
 - Probar que la retirada impide nuevos comentarios, no degrada planificación ni seguimiento estructurado y aplica a los comentarios existentes la política aprobada.

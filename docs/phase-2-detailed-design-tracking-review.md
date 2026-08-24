@@ -1,6 +1,6 @@
 # Diseño detallado de seguimiento y revisión — Fase 2
 
-**Estado:** Validado
+**Estado:** Validado como diseño — únicamente autorizada la preparación técnica con datos sintéticos
 **Fecha:** 2026-08-23
 **Fecha de validación:** 2026-08-23
 **Responsable de revisión:** Revisor de arquitectura
@@ -18,7 +18,7 @@ Materializar `RF-17`, la aportación de seguimiento a `RF-18` y la revisión glo
 - El seguimiento estructurado funciona aunque el corredor no acepte el comentario opcional.
 - El comentario solo se habilita después de un consentimiento explícito, separado, versionado y revocable; retirarlo elimina su contenido del uso ordinario sin borrar el seguimiento estructurado.
 - El historial empieza en la fecha del entrenamiento, nunca muestra entrenamientos futuros y distingue `sin-seguimiento`, `realizado`, `no-realizado` y `retirado`.
-- Administrador y entrenador abren la semana actual, revisan conteos por plan y entrenamiento y acceden al detalle por corredor sin modificar, responder ni marcar como revisado.
+- Administrador y entrenador abren la semana actual, consultan y analizan conteos por plan y entrenamiento y acceden al detalle por corredor sin modificar, responder ni marcar como revisado. El sistema no garantiza ni registra que una persona haya leído cada elemento.
 - La baja de un corredor bloquea nuevas escrituras y oculta sus datos al entrenador, pero no reescribe entrenamientos publicados ni seguimiento histórico; el administrador conserva acceso auditado.
 
 ## Fuentes normativas
@@ -28,7 +28,7 @@ Materializar `RF-17`, la aportación de seguimiento a `RF-18` y la revisión glo
 - [Diseño detallado de gestión de corredores](phase-2-detailed-design-runner-management.md), que define estados, inactividad, reactivación y retención del corredor.
 - [Diseño detallado de publicación](phase-2-detailed-design-publication.md), que gobierna versiones, destinatarios, visibilidad y retirada de entrenamientos mediante republicación.
 - `ADR-0004`: escritura del corredor propietario, lectura global de administrador y entrenador y aislamiento.
-- `ADR-0009`: registro único, campos cerrados, ventana, historial, versiones de referencia, retirados y revisión de solo lectura.
+- `ADR-0009`: registro único, campos cerrados, ventana, historial, versiones de referencia, retirados y revisión de solo lectura, con escala de esfuerzo refinada por `ADR-0022`.
 - `ADR-0010`: consentimiento del comentario, retirada, minimización, derechos, retención y bloqueo de producción.
 - `ADR-0012`: PostgreSQL, transacciones, restricciones, índices y cursores.
 - `ADR-0014`: propiedad de `tracking-review`, APIs Java y dependencias permitidas.
@@ -85,7 +85,7 @@ Quedan fuera:
 9. Un corredor inactivo permanece en los entrenamientos ya publicados y en el histórico, sin reescribir datos. Solo el administrador puede consultarlo con acceso auditado e identificado como inactivo; el entrenador deja de verlo mientras dure la inactividad. No puede crear ni modificar seguimiento y no participa en nuevas primeras publicaciones.
 10. Retirar el consentimiento elimina los comentarios anteriores de las representaciones y del almacenamiento operativo, impide otros nuevos y conserva el seguimiento estructurado y la evidencia de consentimiento. Volver a consentir no recupera textos anteriores.
 11. Un entrenamiento retirado permanece en el histórico y conserva su seguimiento, si existía, pero queda fuera de los conteos `realizado`, `no-realizado` y `sin-seguimiento`.
-12. La revisión es estrictamente de lectura: no hay titularidad de entrenador, respuesta, nota, aprobación ni marca de revisado.
+12. La revisión significa consultar y analizar información y es estrictamente de lectura: no hay titularidad de entrenador, respuesta, nota, prioridad, aprobación, SLA ni marca de revisado. Tampoco existe prueba de lectura; pueden producirse consultas duplicadas u omisiones humanas y el PMV acepta ese límite.
 
 ## Supuestos e incertidumbres
 
@@ -166,12 +166,14 @@ La baja del corredor bloquea inmediatamente creación y sustitución. Las filas 
 La representación completa contiene:
 
 - `performed`: booleano obligatorio;
-- `effort`: entero de `1` a `10`, obligatorio solo cuando `performed=true`;
+- `effort`: entero de `1` a `5`, obligatorio solo cuando `performed=true`;
 - `feeling`: `bien`, `normal` o `mal`, obligatorio solo cuando `performed=true`;
 - `comment`: texto plano opcional de hasta `1.000` caracteres;
 - identificadores opacos, versión de referencia, fechas y revisión expuestos según el actor.
 
 Cuando `performed=false`, `effort` y `feeling` deben estar ausentes; no se ignoran valores recibidos. Cambiar desde `realizado` a `no-realizado` elimina ambos campos en la misma sustitución. Cambiar en sentido contrario exige ambos.
+
+El formulario pregunta exactamente «¿Cuánto esfuerzo te supuso este entrenamiento?» sin valor por defecto y muestra la escala única: `1 Muy suave`, `2 Suave`, `3 Moderado`, `4 Intenso`, `5 Muy intenso`. Solo se persiste el entero. La escala describe percepción subjetiva del entrenamiento y no representa un máximo fisiológico, una medición clínica ni una inferencia de salud.
 
 El comentario se normaliza eliminando espacios exteriores y conservando saltos de línea y espacios interiores. Una cadena vacía después de normalizar equivale a ausencia. Exactamente `1.000` caracteres se aceptan; `1.001` rechaza la operación completa y nunca se trunca. No se admite HTML ni formato enriquecido.
 
@@ -394,10 +396,11 @@ El dominio no depende de Spring, OpenAPI, jOOQ, JDBC ni módulos consumidores. S
 
 ### `RF-17` — Registro de seguimiento
 
-- Probar primera respuesta válida `realizado` con esfuerzo `1` y `10`, sensaciones cerradas y comentario ausente o vigente.
+- Probar primera respuesta válida `realizado` con esfuerzo `1` y `5`, sensaciones cerradas y comentario ausente o vigente.
+- Probar la pregunta exacta, ausencia de selección inicial, las cinco etiquetas y persistencia exclusiva del entero en todas las vistas.
 - Probar `no-realizado` sin esfuerzo ni sensación y rechazo si alguno se envía.
 - Cambiar en ambos sentidos y comprobar sustitución completa, limpieza de campos y ausencia de historial de ediciones.
-- Rechazar esfuerzo `0` y `11`, sensación desconocida, cuerpo incompleto y comentario de `1.001` caracteres sin alterar el registro anterior.
+- Rechazar esfuerzo `0` y `6`, números no enteros, sensación desconocida, cuerpo incompleto y comentario de `1.001` caracteres sin alterar el registro anterior.
 - Aceptar `1.000` caracteres, conservar saltos interiores, quitar espacios exteriores y tratar texto vacío como ausencia.
 - Probar inicio exacto de la fecha, final del sexto día posterior, instante siguiente, cambio de horario y carrera al cruzar medianoche.
 - Rechazar entrenamiento futuro, borrador, publicación ajena, corredor inactivo y primera respuesta a un retirado.
@@ -433,7 +436,8 @@ El dominio no depende de Spring, OpenAPI, jOOQ, JDBC ni módulos consumidores. S
 - Mostrar retirados fuera de los conteos y conservar su detalle histórico.
 - Comprobar que listados solo incluyen `hasComment` y que el texto aparece únicamente al abrir un detalle autorizado.
 - Verificar ausencia de búsqueda, filtro, exportación masiva o telemetría por comentario.
-- Probar que administrador y entrenador leen globalmente y no pueden crear, modificar, responder, aprobar ni marcar como revisado.
+- Probar que administrador y entrenador consultan globalmente y no pueden crear, modificar, responder, anotar, priorizar, asignar SLA, aprobar ni marcar como revisado.
+- Verificar que no se registra ni promete lectura individual y que abrir repetidamente u omitir un elemento no crea estado.
 
 ### Arquitectura, API y privacidad
 
@@ -458,7 +462,7 @@ El dominio no depende de Spring, OpenAPI, jOOQ, JDBC ni módulos consumidores. S
 
 ## Cambios de alcance y riesgos aceptados
 
-Este diseño no amplía el PMV con mensajería, revisión clínica ni analítica. Concreta comportamientos que `ADR-0009`, `ADR-0010` y `ADR-0018` exigían pero no detallaban en interfaz y contratos: consentimiento justo a tiempo, ausencia de borrado ordinario, entrada temporal al historial, presentación semanal, minimización del comentario, alcance de inactivos y conteos de retirados.
+Este diseño no amplía el PMV con mensajería, revisión clínica ni analítica. Concreta comportamientos que `ADR-0009`, `ADR-0010`, `ADR-0018` y el refinamiento de escala de `ADR-0022` exigen en interfaz y contratos: esfuerzo entero `1..5`, consentimiento justo a tiempo, ausencia de borrado ordinario, entrada temporal al historial, presentación semanal, minimización del comentario, alcance de inactivos y conteos de retirados.
 
 Riesgos aceptados:
 

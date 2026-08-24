@@ -24,7 +24,9 @@ Una invitación crea o reutiliza una cuenta pendiente de activación y envía un
 
 La recuperación de contraseña usa un secreto separado, aleatorio y de un solo uso. La solicitud responde de forma indistinguible para correos existentes o inexistentes y no revela si una cuenta está registrada. Una solicitud nueva invalida el secreto de recuperación anterior de esa cuenta.
 
-Los secretos de activación y recuperación solo se enviarán al correo del usuario y se almacenarán como verificadores `SHA-256` no reversibles, con propósito, fecha de expiración y estado de uso. Los valores se generan con el CSPRNG del sistema operativo y nunca se persisten en claro. Las contraseñas se almacenarán con Argon2id. La política de contraseñas, los plazos de expiración, los límites de intentos y los parámetros mínimos de coste se fijan en la [Línea base de seguridad de acceso — Fase 2](../phase-2-access-security-baseline.md).
+Los secretos de activación, reactivación, recuperación y verificación de correo solo se enviarán al correo del usuario y se almacenarán como verificadores `SHA-256` no reversibles, con propósito, fecha de expiración y estado de uso. Los valores se generan con el CSPRNG del sistema operativo y nunca se persisten en claro. Las contraseñas se almacenarán con Argon2id. La política de contraseñas, los plazos de expiración, los límites de intentos y los parámetros mínimos de coste se fijan en la [Línea base de seguridad de acceso — Fase 2](../phase-2-access-security-baseline.md).
+
+El enlace HTTPS transportará el secreto exclusivamente en el fragmento de URL. La SPA lo leerá y eliminará mediante `history.replaceState` durante el bootstrap, antes de renderizar, iniciar telemetría o cargar recursos adicionales. Solo permanecerá en memoria durante el flujo y se enviará a la API dentro del cuerpo HTTPS protegido; nunca se copiará a ruta, query, `Referer`, historial visible, `localStorage`, `sessionStorage`, logs o analítica. La página aplicará `Referrer-Policy: no-referrer`, `Cache-Control: no-store`, CSP estricta y ausencia de terceros. Esta regla cubre activación, reactivación, recuperación y verificación de cambio de correo.
 
 El inicio de sesión creará una sesión opaca de 32 bytes generada con el CSPRNG del sistema operativo y gestionada por el servidor mediante un verificador `SHA-256`. El navegador la recibirá exclusivamente en una cookie `Secure`, `HttpOnly` y `SameSite=Lax`; no se expondrá un token de acceso al código del navegador. Las operaciones que cambien estado deberán protegerse contra solicitudes forjadas. La duración, rotación, revocación y protección anti-CSRF se fijan en la [Línea base de seguridad de acceso — Fase 2](../phase-2-access-security-baseline.md). Restablecer una contraseña invalida todas las sesiones de la cuenta y no inicia sesión automáticamente.
 
@@ -48,6 +50,7 @@ Se descarta para la primera aplicación web. Complica revocación, tratamiento a
 
 - El PMV controla el ciclo de vida de las cuentas y puede vincularlo a la administración de usuarios sin depender de un proveedor externo.
 - Las invitaciones y recuperaciones son verificables, de un solo uso y caducan; requieren persistir estado y solicitar envío de correo.
+- El fragmento impide que el servidor reciba el secreto durante la primera navegación y su retirada temprana reduce fugas, pero el código de bootstrap pasa a ser una frontera de seguridad que debe ejecutarse antes que cualquier tercero, telemetría o renderizado.
 - La sesión gestionada por el servidor simplifica la revocación y evita exponer credenciales de acceso al código del navegador, pero exige proteger cookies y solicitudes que cambian estado.
 - No se implementará autorregistro, SSO, inicio de sesión social ni una API de autenticación para clientes nativos como parte del PMV.
 - Los controles de autorización no se sustituyen por autenticar una cuenta. Cada operación protegida deberá aplicar `ADR-0004`.
@@ -64,12 +67,15 @@ Se descarta para la primera aplicación web. Complica revocación, tratamiento a
 
 - `D-03`: existe una única organización operativa y no se necesita aislamiento por club.
 - `D-08`: los roles y el permiso global del entrenador son premisas de Fase 1; su comprobación técnica y el aislamiento del corredor se decidirán en `ADR-0004`.
+- `D-10`: una activación inicial exige declaración del administrador y confirmación de mayoría de edad de la persona invitada, sin documentos ni fecha de nacimiento.
 
 ## Validación prevista
 
 - Probar que una invitación válida permite activar una cuenta, fijar contraseña e iniciar sesión; una invitación caducada, usada o reemplazada se rechaza sin activar la cuenta.
 - Probar que una recuperación válida permite cambiar la contraseña una vez y que la respuesta a correos inexistentes no revela la existencia de una cuenta.
 - Verificar que no se almacenan ni devuelven contraseñas, secretos de activación, secretos de recuperación ni identificadores de sesión en texto claro.
+- Probar activación, reactivación, recuperación y verificación de correo con el secreto en fragmento, retirada mediante `history.replaceState` antes del primer render o recurso adicional, permanencia exclusiva en memoria y envío posterior solo en cuerpo HTTPS.
+- Verificar `no-referrer`, CSP, `no-store`, ausencia de terceros y ausencia del secreto en historial, rutas, query, almacenamiento web, logs, errores, telemetría y `Referer`.
 - Verificar que las cookies de sesión aplican los atributos acordados y que las operaciones que cambian estado rechazan solicitudes sin protección contra falsificación.
 - Probar que autenticar una cuenta no concede por sí mismo acceso a datos u operaciones fuera de las reglas que defina `ADR-0004`.
 

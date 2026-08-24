@@ -6,7 +6,7 @@
 
 ## Contexto
 
-Fase 1 cerró requisitos funcionales, criterios de aceptación y decisiones de diseño con impacto funcional. Esa documentación declara que Fase 2 debe enlazar cada requisito `RF-01` a `RF-20` con su diseño, criterios de aceptación y decisión técnica correspondiente.
+Fase 1 cerró inicialmente veinte requisitos funcionales, criterios de aceptación y decisiones de diseño con impacto funcional. La auditoría de cierre incorporó `RF-21` y `D-09` a `D-11`; Fase 2 debe enlazar ahora cada requisito `RF-01` a `RF-21` con su diseño, criterios de aceptación y decisión técnica correspondiente.
 
 Si Fase 2 avanza solo con documentos narrativos, las decisiones técnicas pueden quedar mezcladas con el diseño de flujos o resolverse implícitamente durante la implementación. Eso haría más difícil revisar alternativas, detectar cambios de alcance y mantener trazabilidad entre requisitos, arquitectura y pruebas.
 
@@ -49,8 +49,8 @@ Evitaría documentación temprana, pero permitiría que decisiones estructurales
 
 ## Requisitos relacionados
 
-- Todos los requisitos `RF-01` a `RF-20` de [Requisitos funcionales y no funcionales - Fase 1](../phase-1-requirements.md).
-- Todas las decisiones `D-01` a `D-08` de [Matriz de decisiones - Fase 1](../phase-1-decision-matrix.md).
+- Todos los requisitos `RF-01` a `RF-21` de [Requisitos funcionales y no funcionales - Fase 1](../phase-1-requirements.md).
+- Todas las decisiones `D-01` a `D-11` de [Matriz de decisiones - Fase 1](../phase-1-decision-matrix.md).
 
 ## Validación prevista
 

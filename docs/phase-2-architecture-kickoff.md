@@ -1,7 +1,8 @@
 # Arranque de arquitectura — Fase 2
 
-**Estado:** Propuesto
+**Estado:** Completado — preparación de Fase 2 cerrada
 **Fecha:** 2026-08-10
+**Última actualización:** 2026-08-24 — cierre documental de Fase 2
 
 ## Propósito
 
@@ -11,7 +12,7 @@ Este documento no decide todavía el stack técnico ni la arquitectura final. Su
 
 ## Supuestos
 
-- Fase 1 está cerrada como fuente de requisitos funcionales imprescindibles `RF-01` a `RF-20`.
+- Fase 1 se cerró inicialmente con `RF-01` a `RF-20`; la auditoría de cierre incorporó `RF-21`, que forma parte del contrato vigente de revisión.
 - La [Matriz de decisiones de Fase 1](phase-1-decision-matrix.md) recoge decisiones funcionales que Fase 2 debe materializar técnicamente.
 - El PMV sigue limitado a un único club y a una aplicación web adaptable.
 - Al iniciar Fase 2 no había runtime, framework, base de datos, proveedor de correo ni estrategia de despliegue seleccionados; las decisiones posteriores se registran en el índice de ADRs.
@@ -28,7 +29,7 @@ No hace falta cerrar todos los ADRs antes de iniciar Fase 2. Sí hace falta cerr
 2. Crear el documento o documentos de diseño de Fase 2 que materialicen la matriz de trazabilidad de Fase 1.
 3. Para cada área de diseño, abrir ADRs en estado `Propuesto` cuando aparezca una decisión técnica no trivial.
 4. Aceptar un ADR solo cuando sus alternativas, consecuencias, requisitos afectados y validación prevista estén claros.
-5. Al cerrar Fase 2, comprobar que cada `RF-01` a `RF-20` enlaza con diseño, criterios de aceptación y ADR o decisión técnica equivalente.
+5. Al cerrar Fase 2, comprobar que cada `RF-01` a `RF-21` enlaza con diseño, criterios de aceptación y ADR o decisión técnica equivalente.
 
 ## Criterios de cierre para esta preparación
 
@@ -47,4 +48,4 @@ No hace falta cerrar todos los ADRs antes de iniciar Fase 2. Sí hace falta cerr
 
 ## Siguiente paso
 
-El siguiente documento de Fase 2 debería ser el diseño funcional y técnico de alto nivel que trace `RF-01` a `RF-20` contra flujos, modelos, ADRs candidatos y pruebas previstas.
+El paso previsto quedó materializado en el [Diseño funcional y técnico de alto nivel](phase-2-high-level-design.md), los ocho diseños detallados y los ADRs aceptados. La comprobación final se registra en [Cierre documental — Fase 2](phase-2-closure.md).

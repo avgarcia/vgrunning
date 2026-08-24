@@ -129,7 +129,7 @@ Se descarta. Generar OpenAPI desde controladores convierte la implementación en
 
 ## Requisitos relacionados
 
-- Todos los requisitos `RF-01` a `RF-20`.
+- Todos los requisitos `RF-01` a `RF-21`.
 
 ## Decisiones de Fase 1 relacionadas
 

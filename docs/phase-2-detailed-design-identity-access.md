@@ -1,6 +1,6 @@
 # Diseño detallado de identidad y acceso - Fase 2
 
-**Estado:** Validado
+**Estado:** Validado como diseño — únicamente autorizada la preparación técnica con datos sintéticos
 **Fecha:** 2026-08-15
 **Responsable de revisión:** Revisor de arquitectura
 
@@ -8,7 +8,7 @@
 
 Definir el comportamiento, los límites modulares, el modelo de datos, las transacciones, la API y las pruebas de identidad y acceso antes de crear el contrato OpenAPI y comenzar la implementación.
 
-Este diseño cubre completamente `RF-01` y la parte de cuentas y roles de `RF-02`. También concreta la autenticación y autorización necesarias para `RF-16`, `RF-18` y `RF-19`. No diseña el perfil operativo del corredor, las taxonomías ni su asignación: esos conceptos pertenecen respectivamente a `runner-management` y `classification-segmentation`. El perfil se concreta en el [Diseño detallado de gestión de corredores](phase-2-detailed-design-runner-management.md), validado con la restricción de usar solo datos sintéticos mientras permanezca pendiente la revisión de privacidad; clasificación necesita su diseño detallado propio.
+Este diseño cubre completamente `RF-01` y la parte de cuentas y roles de `RF-02`. También concreta la autenticación y autorización necesarias para `RF-16`, `RF-18` y `RF-19`. No diseña el perfil operativo del corredor, las taxonomías ni su asignación: esos conceptos pertenecen respectivamente a `runner-management` y `classification-segmentation`. Se concretan en el [Diseño detallado de gestión de corredores](phase-2-detailed-design-runner-management.md) y el [Diseño detallado de clasificación y segmentación](phase-2-detailed-design-classification-segmentation.md), ambos validados como diseño; hasta cerrar Fase 2 solo autorizan preparación técnica con datos sintéticos.
 
 ## Fuentes normativas
 
@@ -62,6 +62,8 @@ Si este documento contradice una fuente aceptada, prevalece el ADR o la línea b
 - bootstrap y recuperación operativa de la única cuenta administradora.
 
 `runner-management` es propietario del perfil del corredor y de su vínculo con una cuenta. Para dar de alta a un corredor, ese módulo coordina la creación del perfil y consume la API Java publicada por `identity-access` dentro de la misma transacción. `identity-access` no consulta el esquema de corredores y no crea perfiles.
+
+Para entregar una publicación, `runner-management` puede consultar mediante un contrato Java restringido si el corredor continúa activo y, en la misma respuesta, obtener su correo verificado vigente. Esta información no se publica por HTTP, no se incorpora a listas o pantallas y no autoriza a `runner-management` a persistir una copia del correo.
 
 `identity-access` consume la API publicada por `notification-delivery` para crear solicitudes autocontenidas. No accede a sus tablas ni llama al proveedor de correo dentro de una transacción de negocio.
 
@@ -209,6 +211,10 @@ AccountProvisioningApi
   provisionRunnerAccount(command, actorContext) -> ProvisionedAccount
   cancelProvisioning(accountId, actorContext)
 
+PublicationDeliveryContactApi
+  getCurrentVerifiedEmail(runnerId, systemContext)
+    -> inactive | active(currentVerifiedEmail)
+
 ActorContext
   accountId
   role
@@ -216,6 +222,8 @@ ActorContext
 ```
 
 `ProvisionRunnerAccount` contiene correo, declaración administrativa de mayoría de edad y correlación, pero fija internamente el rol `corredor`; el consumidor no puede elegirlo. El resultado expone únicamente el identificador estable y el estado necesario para que `runner-management` cree su vínculo.
+
+`PublicationDeliveryContactApi` es un contrato de sistema de mínimo privilegio: solo puede invocarlo el caso de uso de entrega de publicaciones a través de `runner-management`. Devuelve conjuntamente el estado vigente y el correo verificado actual para evitar una composición incoherente entre dos lecturas. El consumidor debe fijar ese correo para la solicitud lógica en el primer procesamiento elegible; los cambios posteriores solo afectan a solicitudes futuras.
 
 La resolución del verificador de sesión es un puerto de entrada interno usado por el `SecurityContextRepository`; no se publica a otros módulos. El adaptador de seguridad convierte su resultado en el `ActorContext` explícito definido por `ADR-0015`. Ningún módulo recibe el hash de contraseña, verificadores, sesiones ni tipos jOOQ de identidad.
 
@@ -262,7 +270,9 @@ La entrega asíncrona introduce una necesidad real: el worker debe obtener una v
 
 La solicitud a `notification-delivery` incluye un payload mínimo cifrado mediante AEAD antes de confirmar la transacción. El sobre conserva versión de clave, nonce, texto cifrado y autenticación; la clave reside en Azure Key Vault y nunca en PostgreSQL. La versión activa de la clave se carga en memoria durante el arranque y se rota de forma controlada, por lo que cifrar dentro de la transacción es una operación local y no llama a Key Vault. El worker descifra el payload solo en memoria inmediatamente antes de renderizar y enviar. El contenido cifrado se elimina al alcanzar estado terminal, ser reemplazado o caducar el desafío, sin esperar la retención de metadatos técnicos.
 
-La rotación conserva en memoria las versiones anteriores mientras exista un payload no terminal que las referencie y el arranque falla de forma segura si falta una versión necesaria. La clave idempotente, correlación, plantilla y destino pueden persistir según `ADR-0011`, pero logs, trazas, métricas, errores y eventos no contienen el secreto ni el enlace completo. Las páginas que reciben secretos aplican `Referrer-Policy: no-referrer` y no cargan terceros.
+La rotación conserva en memoria las versiones anteriores mientras exista un payload no terminal que las referencie y el arranque falla de forma segura si falta una versión necesaria. La clave idempotente, correlación, plantilla y destino pueden persistir según `ADR-0011`, pero logs, trazas, métricas, errores y eventos no contienen el secreto ni el enlace completo.
+
+Activación, reactivación, recuperación y verificación de cambio de correo entregan el secreto en el fragmento HTTPS de la URL. La SPA lo lee durante el bootstrap y ejecuta `history.replaceState` antes del primer renderizado, telemetría o carga de recursos. Solo lo conserva en memoria y lo envía en el cuerpo HTTPS de la operación correspondiente; queda prohibido copiarlo a `localStorage`, `sessionStorage`, logs, trazas o parámetros de consulta. Estas páginas aplican `Referrer-Policy: no-referrer`, CSP estricta, `Cache-Control: no-store` y no cargan recursos de terceros.
 
 ## Desactivación, privacidad y recuperación operativa
 
@@ -339,6 +349,7 @@ Las retenciones y supresiones siguen `ADR-0010`. Las tareas de limpieza eliminan
 - Probar atributos de cookie, expiración inactiva y absoluta, CSRF, origen y revocaciones masivas.
 - Probar que un número no acotado de sesiones puede coexistir sin alterar la caducidad individual.
 - Probar ausencia de secretos, correos e IP completos en logs, métricas, trazas, URL de salida y errores.
+- Probar que cada enlace de acceso usa fragmento HTTPS, lo elimina antes del primer render o recurso y no lo persiste en almacenamiento del navegador.
 
 ### Persistencia e integración
 
@@ -346,6 +357,7 @@ Las retenciones y supresiones siguen `ADR-0010`. Las tareas de limpieza eliminan
 - Probar restricciones, índices parciales, bloqueos y rollback con Testcontainers.
 - Probar atomicidad entre cuenta, desafío, auditoría y outbox a través de módulos y esquemas.
 - Probar cifrado, rotación de clave, descifrado solo en worker y eliminación del payload terminal o caducado.
+- Probar que la consulta restringida devuelve de forma atómica `inactive` o `active(currentVerifiedEmail)`, y que ningún consumidor persiste una copia de identidad fuera de la solicitud de entrega.
 - Probar que `identity-access` no importa jOOQ ni paquetes internos de otros módulos.
 
 ### Contrato

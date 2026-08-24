@@ -3,6 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-12
 **Responsable de revisión:** Revisor de arquitectura
+**Refinado parcialmente por:** [ADR-0020](0020-planning-lifecycle-objectives-history.md)
 
 ## Contexto
 

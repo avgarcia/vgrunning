@@ -121,12 +121,12 @@ Se descarta porque introduciría otra fuente operativa, despliegue, credenciales
 
 ## Requisitos relacionados
 
-- Todos los requisitos `RF-01` a `RF-20`.
+- Todos los requisitos `RF-01` a `RF-21`.
 - Especialmente `RF-03`, `RF-05` a `RF-10`, `RF-14`, `RF-15` y `RF-17` a `RF-20`.
 
 ## Decisiones de Fase 1 relacionadas
 
-- `D-01` a `D-08`.
+- `D-01` a `D-11`.
 
 ## Validación prevista
 

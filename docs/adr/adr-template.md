@@ -3,6 +3,8 @@
 **Estado:** Propuesto
 **Fecha:** YYYY-MM-DD
 **Responsable de revisión:** Revisor de arquitectura
+**Refina parcialmente:** ADR-NNNN — sustituir por un enlace y omitir si no aplica
+**Refinado parcialmente por:** ADR-NNNN — sustituir por un enlace y omitir si no aplica
 
 ## Contexto
 

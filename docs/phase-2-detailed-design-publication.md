@@ -1,6 +1,6 @@
 # Diseño detallado de publicación — Fase 2
 
-**Estado:** Validado para diseño y desarrollo con datos sintéticos
+**Estado:** Validado como diseño — únicamente autorizada la preparación técnica con datos sintéticos
 **Fecha:** 2026-08-20
 **Última actualización:** 2026-08-21
 **Responsable de revisión:** Revisor de arquitectura
@@ -10,7 +10,7 @@
 
 ## Propósito
 
-Materializar `RF-09`, `RF-10`, `RF-14`, `RF-15` y `RF-20`, y la contribución de publicación a `RF-07`, `RF-08` y `RF-16`, para que una semana se publique y actualice como una unidad coherente, conserve destinatarios efectivos y genere notificaciones sin exponer cambios parciales ni depender del proveedor de correo.
+Materializar `RF-09`, `RF-10`, `RF-14`, `RF-15`, `RF-20` y `RF-21`, y la contribución de publicación a `RF-07`, `RF-08` y `RF-16`, para que una semana se publique y actualice como una unidad coherente, conserve miembros efectivos, genere notificaciones sin exponer cambios parciales ni depender del proveedor de correo y ofrezca al entrenador una cobertura semanal operativa.
 
 Este diseño aplica `ADR-0007`, `ADR-0008`, `ADR-0011`, `ADR-0012`, `ADR-0014`, `ADR-0015`, `ADR-0017`, `ADR-0018`, `ADR-0020` y el refinamiento aceptado en `ADR-0021`.
 
@@ -22,7 +22,8 @@ Este diseño aplica `ADR-0007`, `ADR-0008`, `ADR-0011`, `ADR-0012`, `ADR-0014`, 
 - Administrador o entrenador entra en modo edición, modifica localmente uno o varios días futuros y los confirma como una sola versión completa.
 - Hoy y los días anteriores quedan bloqueados; no existe primera publicación retroactiva.
 - No existen retirada, despublicación, restauración, historial visible de versiones ni modificación de nombre, grupo o semana después de publicar.
-- Cada versión crea una solicitud por destinatario efectivo. El envío comprueba justo antes del proveedor que el corredor continúa activo.
+- Cada versión crea una solicitud por miembro efectivo. En el primer procesamiento se comprueban conjuntamente actividad y correo verificado vigente; ese correo queda fijado para todos los intentos de la solicitud.
+- Administrador y entrenador pueden consultar, para una semana, la cobertura de todos los corredores activos mediante estados derivados y no bloqueantes.
 
 ## Alcance
 
@@ -34,7 +35,7 @@ Incluye:
 - congelación y exclusividad de destinatarios;
 - autoría mínima visible;
 - contenido e idempotencia lógica de notificaciones;
-- elegibilidad por estado del corredor antes de cada intento;
+- resolución de actividad y correo antes del primer intento de cada solicitud;
 - API HTTP administrativa orientada a recursos;
 - APIs Java internas, persistencia, concurrencia, retención, observabilidad y pruebas.
 
@@ -58,8 +59,8 @@ Quedan fuera del PMV:
 | Candidatura de publicación | Representación derivada y no persistida del plan, destinatarios y revisiones que se deben confirmar antes de la primera publicación. |
 | Publicación actual | Recurso estable que representa la única versión activa de un plan publicado. |
 | Versión publicada | Instantánea completa e inmutable creada por la primera publicación o por un guardado posterior confirmado. |
-| Destinatario efectivo | Corredor `active` incluido en la primera publicación y cuyo identificador queda congelado históricamente en todas las versiones del plan. |
-| Destinatario elegible para envío | Destinatario efectivo que continúa `active` inmediatamente antes de un intento concreto contra el proveedor. |
+| Miembro efectivo de la publicación | Corredor `active` incluido en la primera publicación y cuyo identificador queda congelado históricamente en todas las versiones del plan. |
+| Miembro elegible para envío | Miembro efectivo que devuelve `active(currentVerifiedEmail)` al comenzar el primer procesamiento de su solicitud. |
 | Sesión de edición | Copia local y temporal de la publicación actual; no es un estado de dominio ni un recurso del servidor. |
 | Republicación | Sustitución confirmada de la publicación actual que crea una nueva versión completa; se presenta al corredor como actualización del plan. |
 | Día modificable | Día de una semana futura o, en la semana actual, día estrictamente posterior a la fecha local del servidor. |
@@ -273,7 +274,7 @@ Al guardar, la interfaz muestra todos los días cambiados y la advertencia de no
 7. valida la estructura completa mediante la API de `planning`;
 8. sustituye el contenido de `planning` e incrementa su revisión;
 9. crea una única versión completa, sus destinatarios copiados y días cambiados;
-10. crea una solicitud por destinatario efectivo y actualiza versión activa y última modificación;
+10. crea una solicitud por miembro efectivo y actualiza versión activa y última modificación;
 11. confirma todo o revierte todo.
 
 La respuesta devuelve `200 OK` y el nuevo `ETag`. Un guardado posterior parte de esa versión y generará otra publicación independiente.
@@ -284,21 +285,22 @@ Cancelar no llama al backend. Navegar fuera con cambios provoca una advertencia 
 
 ### Procesar una notificación de publicación
 
-Después de reclamar una solicitud y antes de iniciar cada llamada a Brevo, `notification-delivery` invoca el puerto de elegibilidad:
+Después de reclamar por primera vez una solicitud que todavía no tiene destino, `notification-delivery` invoca el puerto de elegibilidad:
 
 1. la implementación de `publication` recibe identificadores opacos de solicitud y corredor;
-2. consulta a `runner-management` si el corredor continúa `active`;
-3. si está activo, autoriza ese intento y continúa `ADR-0011`;
+2. consulta a `runner-management` si el corredor continúa `active` y obtiene en la misma respuesta el correo verificado vigente;
+3. si está activo, devuelve `eligible(currentVerifiedEmail)`; entrega fija atómicamente el destino y continúa `ADR-0011`;
 4. si no está activo, marca `omitido-inactivo`, termina la solicitud y libera el orden;
-5. si la consulta falla, no contacta con Brevo, conserva la solicitud recuperable y registra fallo técnico.
+5. si la consulta falla, devuelve `retry-later`, no contacta con Brevo y aplica backoff de `5` segundos a `5` minutos hasta creación `+120` minutos;
+6. al vencer el máximo termina como `fallo-definitivo/elegibilidad-no-resuelta`, alerta y libera el orden.
 
-Cada reintento vuelve a consultar. Reactivar al corredor no reabre solicitudes ya omitidas. Una baja posterior al comienzo de la llamada no cancela el mensaje en curso.
+Una vez fijado el destino, los reintentos y la reconciliación no vuelven a consultar actividad ni correo. Reactivar al corredor no reabre solicitudes ya omitidas o fallidas. Una baja o cambio de correo posterior a la fijación no altera la solicitud actual; el PMV acepta que un mensaje en curso todavía llegue al destino fijado.
 
 Si después de reactivarse se confirma otra versión del mismo plan, el corredor continúa dentro del conjunto congelado, recibe una solicitud nueva y puede volver a ser elegible para su envío. No se recuperan ni regeneran correos correspondientes a versiones omitidas durante la inactividad.
 
 ## Notificaciones
 
-Cada solicitud conserva versión, plan, destinatario, destino usado, tipo, contenido mínimo, clave idempotente y correlación. El destino no se vuelve a resolver durante reintentos.
+Cada solicitud nace con versión, plan, miembro efectivo, tipo, contenido mínimo, clave idempotente y correlación, pero sin copiar el correo. Al obtener por primera vez `active(currentVerifiedEmail)` conserva cifrados el destino y su huella; desde ese momento no se vuelven a resolver durante intentos o reconciliación.
 
 Primera publicación:
 
@@ -328,6 +330,20 @@ Estados técnicos aplicables:
 
 `omitido-inactivo` libera el orden de versiones igual que los demás terminales. No se muestra a ningún rol del producto.
 
+### Consultar cobertura semanal
+
+Administrador o entrenador selecciona una semana; la actual es el valor inicial de la interfaz. `publication` coordina una consulta derivada, calculada bajo demanda desde `runner-management`, `classification-segmentation`, `planning` y sus publicaciones, sin mantener una proyección adicional.
+
+Cada corredor `active` recibe exactamente un estado principal siguiendo la estructura canónica, no una prioridad arbitraria:
+
+- `sin-grupo`: no pertenece a ningún grupo activo;
+- `grupo-sin-plan`: pertenece a un grupo activo que no tiene plan para la semana;
+- `plan-en-borrador`: el plan existe, pero nunca se ha publicado;
+- `cubierto`: existe publicación y su conjunto congelado contiene al corredor;
+- `fuera-de-publicacion`: existe publicación, pero su conjunto congelado no lo contiene.
+
+Las invariantes de un único grupo activo y un único plan por grupo-semana hacen estas condiciones mutuamente excluyentes. Si las fuentes violasen esas invariantes, la consulta fallaría con un Problem Detail estable y alerta en lugar de clasificar parcialmente. `sin-modalidad` es un indicador informativo independiente y no altera el estado principal. El resultado ofrece conteos por estado y una lista paginada de todos los activos; modalidad y ubicación no bloquean, filtran ni cambian la cobertura. La consulta no es un buscador global ni modifica planes, grupos, corredores o publicaciones.
+
 ## Permisos y representaciones
 
 | Capacidad | Administrador | Entrenador | Corredor |
@@ -355,6 +371,7 @@ La baja deshabilita acceso mediante `runner-management` e identidad sin borrar l
 - validar que un entrenamiento pertenece a una versión visible para `tracking-review`;
 - aplicar retención, anonimización o supresión sin reactivar versiones;
 - implementar la elegibilidad previa al intento exigida por `notification-delivery`.
+- coordinar la cobertura semanal derivada de todos los corredores activos.
 
 Consumirá de `planning`:
 
@@ -368,12 +385,12 @@ Consumirá de `planning`:
 Consumirá de `runner-management`:
 
 - presentación mínima y estado de corredores activos para candidatura;
-- comprobación opaca de estado `active` previa a cada intento;
+- resolución opaca `inactive | active(currentVerifiedEmail)` previa a fijar el destino de una solicitud;
 - anonimización o supresión coordinada conforme a retención.
 
 Consumirá de `notification-delivery`:
 
-- creación transaccional de solicitudes autocontenidas;
+- creación transaccional de solicitudes de publicación sin correo y fijación posterior del destino antes del primer intento;
 - puerto de elegibilidad que `publication` implementa para notificaciones de planes;
 - estados terminales necesarios para orden y retención, sin exponer proveedor al dominio.
 
@@ -389,8 +406,12 @@ OpenAPI `3.1` será la fuente de verdad antes de implementar. Las operaciones ad
 | Administrador o entrenador | `GET /api/weekly-plans/{weeklyPlanId}/publication-candidates/current/recipients` | Recorre con cursor la lista exacta ligada a `candidateRevision`; un cambio invalida el cursor. |
 | Administrador o entrenador | `GET /api/weekly-plans/{weeklyPlanId}/publications/current` | Obtiene la publicación activa completa, días modificables, autoría y `ETag`. |
 | Administrador o entrenador | `PUT /api/weekly-plans/{weeklyPlanId}/publications/current` | Crea la primera publicación con `If-None-Match: *` y `candidateRevision`, o sustituye la actual con `If-Match`; recibe representación completa. |
+| Administrador o entrenador | `GET /api/weekly-plan-coverages/{weekStart}` | Obtiene el resumen derivado y conteos para la semana local; la interfaz usa la semana actual por defecto. |
+| Administrador o entrenador | `GET /api/weekly-plan-coverages/{weekStart}/runners` | Recorre con cursor todos los corredores activos con un estado principal y el indicador independiente `sin-modalidad`. |
 
 `publication-candidate` es un recurso derivado real: representa el estado publicable actual, tiene identidad contextual, representación y revisión, pero no persistencia ni mutaciones. `publications/current` es la publicación activa estable; cada sustitución crea una versión interna sin exponer una colección histórica.
+
+`weekly-plan-coverage` también es un recurso derivado real e informativo. `weekStart` es el lunes local calculado según la zona IANA del club; la representación declara instante de cálculo y no ofrece mutaciones, búsqueda global ni garantías de instantánea entre páginas. OpenAPI cerrará filtros, cursores, estados y Problem Details antes de implementar.
 
 No existirán `POST /publish`, `POST /republish`, `/restore`, `/withdraw`, `/unpublish`, `/history` ni prefijos por rol. Tampoco se expondrán rutas por identificador de versión anterior.
 
@@ -503,11 +524,18 @@ Alertas:
 - Publicar por primera vez un plan posterior a la baja y comprobar que el corredor queda excluido.
 - Reactivar y demostrar que no se recalculan publicaciones ni se reabren solicitudes omitidas.
 - Confirmar otra versión después de reactivar y comprobar que crea una solicitud nueva que puede enviarse mientras el corredor continúe `active`.
-- Cambiar estado entre intentos y repetir la comprobación antes de cada llamada.
-- Simular fallo de elegibilidad y comprobar que no se llama a Brevo ni se pierde la solicitud.
+- Cambiar correo antes del primer procesamiento y comprobar que se fija el vigente; cambiarlo después y comprobar que la solicitud actual conserva el fijado y una futura usa el nuevo.
+- Simular `retry-later` y comprobar que no se llama a Brevo, que el backoff queda entre `5` segundos y `5` minutos y que creación `+120` minutos termina con alerta y libera el orden.
 - Simular baja después de la comprobación y aceptar que el mensaje en vuelo puede llegar.
 - Verificar resumen semanal, todos los días cambiados, ausencia de detalle y enlace a la publicación activa.
 - Probar orden por plan-destinatario-versión con `omitido-inactivo` como terminal liberador.
+
+### Cobertura semanal
+
+- Probar semana actual por defecto y cambio a semanas pasadas o futuras autorizadas.
+- Probar que todos y solo los corredores `active` aparecen una vez y reciben exactamente uno entre `cubierto`, `sin-grupo`, `grupo-sin-plan`, `plan-en-borrador` y `fuera-de-publicacion`.
+- Probar que `sin-modalidad` es independiente, que los conteos cuadran con la lista paginada y que modalidades mezcladas o ubicación ausente no bloquean ni alteran el estado.
+- Probar cálculo bajo demanda desde fuentes canónicas, ausencia de proyección y ausencia de operaciones de búsqueda o mutación.
 
 ### Seguridad, módulos y API
 
@@ -522,12 +550,13 @@ Alertas:
 
 Este diseño reemplaza respecto a `ADR-0020` la preparación persistente de cambios después de publicar. Desaparecen edición silenciosa del borrador publicado, `hasPendingChanges`, restauración y mutabilidad del nombre. La edición publicada pasa a ser una sustitución atómica de la publicación actual iniciada desde una sesión local.
 
-No se amplía el PMV con nuevas notificaciones ni historial visible. Se añade la comprobación de actividad previa a cada intento de publicación y el estado técnico `omitido-inactivo`.
+No se amplía el PMV con nuevas notificaciones ni historial visible. Se añade la resolución de actividad y correo vigente antes del primer intento de publicación y el estado técnico `omitido-inactivo`.
 
 Riesgos aceptados:
 
 - una publicación equivocada no puede retirarse;
 - un error en hoy o el pasado no puede corregirse mediante republicación;
+- el grupo, semana o miembros equivocados de una publicación no pueden corregirse retroactivamente y sus correos pendientes o en vuelo no se cancelan;
 - un cierre forzado pierde la edición local;
 - sesiones concurrentes pueden exigir reaplicar cambios manualmente;
 - guardados separados producen correos separados;
@@ -547,5 +576,5 @@ Riesgos aceptados:
 No quedan decisiones de producto o arquitectura pendientes dentro del diseño detallado de `publication`.
 
 - Antes de implementar deberán producirse OpenAPI, migraciones Flyway, tipos jOOQ, catálogo común de Problem Details, límites de página medidos y pruebas transaccionales con PostgreSQL.
-- El diseño detallado de `runner-portal` deberá materializar la representación móvil del corredor sin exponer metadatos administrativos ni versiones históricas.
+- El [diseño detallado de `runner-portal`](phase-2-detailed-design-runner-portal.md) materializa la representación móvil del corredor sin exponer metadatos administrativos ni versiones históricas.
 - Los datos personales reales, el proveedor de correo y la producción continúan bloqueados hasta completar las evidencias de privacidad y operación aplicables.

@@ -1,6 +1,6 @@
 # Diseño detallado de clasificación y segmentación — Fase 2
 
-**Estado:** Validado para diseño y desarrollo con datos sintéticos
+**Estado:** Validado como diseño — únicamente autorizada la preparación técnica con datos sintéticos
 **Fecha:** 2026-08-17
 **Responsable de revisión:** Revisor de arquitectura
 **Restricción:** Prohibido tratar datos personales reales hasta completar la revisión especializada de privacidad exigida por `ADR-0010`, `ADR-0018` y `ADR-0019`

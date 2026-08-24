@@ -3,6 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
+**Refinado parcialmente por:** [ADR-0021](0021-publication-editing-notification-eligibility.md)
 
 ## Contexto
 
@@ -31,7 +32,7 @@ Los módulos de aplicación serán:
 | `tracking-review` | Seguimiento del corredor, versión de referencia, historial de respuesta y consultas globales de revisión. |
 | `runner-portal` | Fachada de lectura de planes, entrenamientos e historial propios; no será fuente de verdad de negocio. |
 
-Los entrenadores no forman un módulo ni un perfil independiente porque el PMV solo los modela como cuentas con rol `entrenador` y capacidades globales. No existen asignaciones, cartera de corredores, atributos profesionales ni ciclo de vida propio. Incorporar alguno de esos conceptos exigiría revisar el límite de `identity-access` y los requisitos afectados.
+Los entrenadores no forman un módulo ni un perfil independiente porque el PMV solo los modela como cuentas con rol `entrenador` y capacidades deportivas globales sobre corredores `active`. No existen asignaciones, cartera de corredores, atributos profesionales ni ciclo de vida propio. Incorporar alguno de esos conceptos exigiría revisar el límite de `identity-access` y los requisitos afectados.
 
 Taxonomías y segmentación forman una única capacidad de clasificación: los segmentos se expresan exclusivamente con definiciones, valores y asignaciones controladas. `runner-management` conserva la identidad operativa del corredor, mientras `classification-segmentation` gobierna cómo se clasifica; así, cambiar la gramática de segmentación no modifica el ciclo de vida del corredor.
 
@@ -65,6 +66,12 @@ Las dependencias inversas y los ciclos quedan prohibidos. Cuando un flujo parezc
 Una colaboración que necesite resultado inmediato, validación conjunta o la misma transacción usará una llamada Java síncrona a una interfaz publicada en `api`. No habrá HTTP, REST, mensajería ni serialización interna entre módulos del mismo ejecutable.
 
 Los eventos de aplicación se reservarán para hechos ya confirmados cuyos consumidores puedan ejecutarse después y fallar independientemente. No sustituirán las llamadas necesarias para publicación, resolución de destinatarios, autorización ni creación atómica de outbox. Un evento no concederá acceso a paquetes o tablas internas del emisor.
+
+Cuando perder un evento confirmado pudiera dejar módulos incoherentes —por ejemplo al proyectar una activación o ejecutar una supresión de privacidad—, Spring Modulith registrará cada entrega dirigida mediante su implementación JDBC de `EventPublicationRegistry` en PostgreSQL dentro de la transacción de origen. El esquema se creará exclusivamente con Flyway y la inicialización automática del framework quedará deshabilitada. No se introducirá un broker para esta comunicación interna.
+
+Un listener durable será idempotente por identificador de evento y por invariante de negocio. Solo marcará la publicación como completada después de confirmar sus efectos; una caída o excepción conservará la publicación incompleta. El arranque y una tarea operativa reintentarán en lotes las publicaciones incompletas o fallidas y alertarán cuando superen el umbral de antigüedad definido por el runbook. Reprocesar nunca deberá duplicar transiciones, ampliar plazos ni reintroducir datos suprimidos.
+
+El registro durable no sustituye reconciliaciones de estado ni las solicitudes de outbox de correo. Después de restaurar una copia, el runbook recalculará vencimientos y volverá a aplicar, antes de reabrir el servicio, las supresiones y limitaciones registradas en el registro externo de solicitudes de privacidad. Solo después reprocesará las publicaciones incompletas compatibles con ese estado. El producto no incorporará un libro mayor adicional de privacidad ni prometerá un SLA arbitrario para esa coordinación.
 
 La transacción se delimitará en el servicio de aplicación que coordina el caso de uso. Una llamada síncrona a otro módulo participará en esa misma transacción mediante el gestor definido por `ADR-0013`. El módulo receptor aplicará sus invariantes y autorización igual que ante una entrada HTTP; proceder de otro módulo no será una relación de confianza implícita.
 
@@ -196,13 +203,14 @@ Se descarta porque combina ciclo de vida, clasificación administrativa y compos
 - Las claves foráneas entre esquemas preservan integridad a costa de hacer explícitas algunas dependencias de migración.
 - Prohibir joins cruzados puede exigir varias consultas o una proyección cuando aparezca una necesidad de lectura compleja; esa optimización no se anticipará sin medición.
 - Las APIs internas requieren diseño y pruebas, aunque no tengan versionado ni despliegue independiente.
+- El registro JDBC de eventos evita perder entregas diferidas tras un commit, a costa de otra tabla de infraestructura, serialización versionada, limpieza, reintentos y alertas que deben operarse.
 - El uso selectivo de DDD evita sobreingeniería, pero exige criterio de revisión para distinguir reglas de dominio de simple transformación de datos.
 - `runner-portal` podrá componer lecturas sin adquirir tablas ni convertirse en propietario de los datos mostrados.
 - Mantener un único proyecto Gradle simplifica el build, pero sus límites dependen de verificaciones obligatorias y disciplina de paquetes.
 
 ## Requisitos relacionados
 
-- Todos los requisitos `RF-01` a `RF-20`.
+- Todos los requisitos `RF-01` a `RF-21`.
 
 ## Decisiones de Fase 1 relacionadas
 
@@ -211,6 +219,7 @@ Se descarta porque combina ciclo de vida, clasificación administrativa y compos
 - `D-06`: planificación, publicación y solicitud de notificación colaboran dentro de una transacción.
 - `D-07`: seguimiento y portal del corredor conservan modelos y responsabilidades separados.
 - `D-08`: entrenador se modela como rol global y cada módulo aplica autorización sin introducir titularidad.
+- `D-09`: la cobertura semanal se compone bajo demanda entre módulos y no crea una proyección persistente.
 
 ## Validación prevista
 
@@ -224,6 +233,8 @@ Se descarta porque combina ciclo de vida, clasificación administrativa y compos
 - Probar claves foráneas entre esquemas, nombres cualificados y ausencia de acceso SQL cruzado.
 - Probar publicación y creación de outbox en una sola transacción aun atravesando módulos y esquemas.
 - Probar composición de `runner-portal` exclusivamente mediante APIs de `publication` y `tracking-review`.
+- Probar que cada evento durable se registra en la transacción de origen, queda incompleto ante fallo del listener, se reintenta sin duplicar efectos y alerta al envejecer.
+- Restaurar una copia sintética, recalcular vencimientos, reaplicar supresiones desde el registro externo de privacidad y solo entonces reprocesar publicaciones incompletas antes de reabrir.
 - Revisar una muestra de modelos simples y ricos para comprobar que DDD táctico responde a invariantes y no a una plantilla uniforme.
 
 ## Decisiones pendientes
@@ -234,3 +245,8 @@ Se descarta porque combina ciclo de vida, clasificación administrativa y compos
 - **Resuelto:** se confirma una base PostgreSQL, un esquema por módulo con estado, un único `DataSource`, usuario técnico e historial Flyway, y `runner-portal` sin esquema inicial.
 - **Resuelto:** se permiten claves foráneas entre esquemas según dependencias declaradas y se prohíben acceso SQL directo y joins entre módulos.
 - **Resuelto por `ADR-0019`:** los adaptadores de clasificación y corredores dependerán de puertos de coordinación definidos por sus módulos propietarios e implementados por `planning`; así se conserva la dirección de dependencias sin permitir atajos locales.
+- **Resuelto durante la auditoría H-02:** los eventos diferidos que no pueden perderse usarán `EventPublicationRegistry` JDBC de Spring Modulith, migraciones Flyway, listeners idempotentes, reintento de incompletos y alertas; no se añade broker.
+
+## Referencias oficiales
+
+- [Spring Modulith: registro de publicaciones de eventos y reenvío de incompletas](https://docs.spring.io/spring-modulith/reference/events.html).

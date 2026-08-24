@@ -4,6 +4,7 @@
 **Fecha:** 2026-08-13
 **Fecha de aceptación:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
+**Refinado parcialmente por:** [ADR-0021](0021-publication-editing-notification-eligibility.md)
 
 ## Contexto
 
@@ -15,7 +16,7 @@ El PMV necesita correo transaccional para invitación, recuperación de acceso y
 
 La escala prevista, superior a `500` corredores pero limitada a un único club, no justifica introducir un broker distribuido solo para correo. Sí exige recuperar trabajo después de caídas, evitar duplicados lógicos, distinguir aceptación del proveedor de entrega y operar rebotes o fallos globales sin depender de estados visibles en el producto.
 
-> **Refinamiento aceptado:** `ADR-0021` añade para notificaciones de publicación una comprobación `active` inmediatamente anterior a cada intento y el estado terminal `omitido-inactivo`. No cambia proveedor, outbox, destino conservado, idempotencia, supresiones ni política de reintentos cuando el destinatario es elegible.
+> **Refinamiento aceptado:** `ADR-0021` añade para notificaciones de publicación una resolución de elegibilidad y correo verificado vigente antes del primer intento. El destino se fija entonces para toda la solicitud lógica, no al crearla. Si la resolución no concluye en `120` minutos desde la creación, la solicitud termina como `fallo-definitivo/elegibilidad-no-resuelta`.
 
 ## Decisión
 
@@ -34,7 +35,7 @@ Todas las solicitudes se persistirán en una outbox de la misma base de datos de
 
 Un worker ejecutado dentro de la misma aplicación reclamará solicitudes mediante el bloqueo, lease con token y recuperación definidos por `ADR-0012`. Deberá impedir procesamiento concurrente ordinario y devolver a `pendiente` cualquier trabajo abandonado tras una caída. El PMV no incorporará un broker externo para esta carga.
 
-La entrega tendrá semántica **al menos una vez**. Cada solicitud lógica será inmutable y conservará una clave idempotente UUID estable y una etiqueta opaca de correlación. Todos sus intentos usarán la misma clave, etiqueta, destino y contenido. El adaptador enviará ambos identificadores a Brevo y persistirá el identificador de mensaje devuelto. La idempotencia reduce duplicados ante respuestas perdidas, pero no permite prometer exactamente un correo físico y Brevo solo conserva su clave durante `30` minutos.
+La entrega tendrá semántica **al menos una vez**. Cada solicitud lógica será inmutable y conservará una clave idempotente UUID estable y una etiqueta opaca de correlación. Las solicitudes de identidad fijan el destino al crearse; las de publicación lo fijan atómicamente al obtener por primera vez `active(currentVerifiedEmail)`. Desde ese instante todos sus intentos y reconciliaciones usan la misma clave, etiqueta, destino y contenido. El adaptador enviará ambos identificadores a Brevo y persistirá el identificador de mensaje devuelto. La idempotencia reduce duplicados ante respuestas perdidas, pero no permite prometer exactamente un correo físico y Brevo solo conserva su clave durante `30` minutos.
 
 Cada solicitud de invitación o recuperación referenciará la generación del secreto que comunica. Emitir un secreto nuevo invalidará el anterior y, dentro de la misma transacción, marcará como `fallo-definitivo` con motivo `reemplazado` cualquier solicitud anterior que siga `pendiente`. El correo nuevo podrá procesarse inmediatamente y no quedará ordenado detrás del antiguo.
 
@@ -48,11 +49,12 @@ El estado técnico normalizado será:
 - `procesando`: reclamada por un worker con arrendamiento vigente;
 - `aceptado-proveedor`: Brevo aceptó la solicitud y devolvió identificador;
 - `entregado`: el servidor receptor confirmó la entrega mediante evento;
+- `omitido-inactivo`: el miembro efectivo ya no está activo al resolver su entrega de publicación;
 - `fallo-definitivo`: no habrá más intentos automáticos.
 
 Cada transición conservará instante, contador de intentos, siguiente intento, código normalizado y referencia del proveedor cuando exista. No se conservará el cuerpo en los eventos técnicos ni se copiarán secretos a logs. Estos estados no serán visibles para administrador, entrenador ni corredor y no habilitarán reintentos desde el producto.
 
-`aceptado-proveedor` es terminal para el envío desde la aplicación y libera el orden de procesamiento, aunque un evento posterior pueda precisar el resultado como `entregado` o `fallo-definitivo`. Para una pareja plan-destinatario, la versión siguiente podrá comenzar cuando la anterior alcance `aceptado-proveedor` o `fallo-definitivo`; no esperará a la entrega física.
+`aceptado-proveedor` es terminal para el envío desde la aplicación y libera el orden de procesamiento, aunque un evento posterior pueda precisar el resultado como `entregado` o `fallo-definitivo`. Para una pareja plan-miembro, la versión siguiente podrá comenzar cuando la anterior alcance `aceptado-proveedor`, `omitido-inactivo` o `fallo-definitivo`; no esperará a la entrega física.
 
 Brevo notificará eventos mediante un endpoint HTTPS autenticado con un secreto Bearer o cabecera equivalente, complementado con restricción de origen cuando sea viable. El receptor validará autenticación antes de procesar, deduplicará por identificador de evento o mensaje y tolerará eventos repetidos o fuera de orden sin hacer retroceder un estado terminal.
 
@@ -61,6 +63,10 @@ Solo se habilitarán eventos necesarios para aceptación, entrega, retraso, rebo
 Después de `aceptado-proveedor`, un evento `deferred` no generará otro envío desde la aplicación: Brevo seguirá intentando la entrega durante su ventana técnica. Si termina en `soft bounce`, la solicitud pasará a `fallo-definitivo`, pero la dirección no quedará suprimida para futuros correos. Dirección inválida, rebote duro y queja sí aplicarán la supresión global decidida en este ADR.
 
 ### Reintentos y fallo definitivo
+
+Antes de contactar con Brevo por una publicación, el worker solicita a la política de elegibilidad `inactive`, `retry-later` o `active(currentVerifiedEmail)`. `inactive` produce `omitido-inactivo`. `active` fija el destino si todavía no estaba ligado y comienza el flujo normal. `retry-later` reprograma con espera exponencial acotada entre `5` segundos y `5` minutos, sin superar el máximo absoluto de `120` minutos desde la creación.
+
+Al alcanzar ese máximo sin resolver la elegibilidad, la solicitud pasa a `fallo-definitivo` con motivo `elegibilidad-no-resuelta`, genera alerta y libera el orden de la versión siguiente. No se reabre, recrea ni envía manualmente después. Si una llamada al proveedor ya comenzó y su resultado es incierto, la reconciliación específica de ese intento puede finalizar después del límite, porque ya no constituye una nueva decisión de elegibilidad ni un reenvío.
 
 Los instantes siguientes son desplazamientos desde la creación de la solicitud, no pausas acumulativas entre intentos. Esta planificación solo continúa cuando existe certeza de que Brevo no aceptó el intento anterior:
 
@@ -78,7 +84,7 @@ Si al agotar esa ventana no existe evidencia concluyente, la solicitud pasará a
 
 Dirección inválida, rebote duro, queja o rechazo permanente producirán `fallo-definitivo`. La dirección quedará suprimida para todos los tipos de correo hasta que una operación autorizada corrija la causa y reactive explícitamente el destino. La reactivación será auditada y no reenviará por sí sola solicitudes antiguas.
 
-Credenciales inválidas, dominio no autenticado, cuenta suspendida, cuota contractual agotada o configuración global inválida pausarán el worker y generarán una alerta operativa. No consumirán los intentos individuales mientras persista la incidencia.
+Credenciales inválidas, dominio no autenticado, cuenta suspendida, cuota contractual agotada o configuración global inválida pausarán el worker y generarán una alerta operativa. No consumirán los intentos individuales mientras persista la incidencia. Esta pausa global es una contingencia operativa separada y no amplía ni reinicia el máximo de elegibilidad de una solicitud que todavía no ha empezado a contactar con el proveedor.
 
 Tras corregir una incidencia global, una persona operadora podrá reanudar de forma auditada las solicitudes no terminales. La reanudación reutilizará la solicitud, contenido y clave idempotente originales; no creará una notificación lógica nueva ni ofrecerá la operación en el producto. No reanudará un `resultado-desconocido` fuera de su ventana idempotente. En publicaciones seguirá aplicándose el orden por plan, destinatario y versión definido por `ADR-0008`.
 
@@ -158,12 +164,16 @@ Se descarta porque trasladaría reputación, entregabilidad, seguridad, rebotes,
 - Simular respuesta perdida después de aceptar el proveedor y comprobar que todos los intentos usan la misma clave idempotente y contenido.
 - Probar reconciliación de resultados inciertos a `+1`, `+5`, `+15` y `+25` minutos, confirmación por clave duplicada o evento correlacionado y cierre `resultado-desconocido` sin envío posterior al TTL.
 - Probar cada secuencia temporal y que recuperación nunca se intenta después de caducar el secreto.
+- Probar `inactive`, fijación atómica de `active(currentVerifiedEmail)` y `retry-later` con backoff entre `5` segundos y `5` minutos.
+- Probar el cierre exacto a creación `+120` minutos como `fallo-definitivo/elegibilidad-no-resuelta`, la liberación de la versión siguiente y la prohibición de reabrir, recrear o enviar manualmente.
+- Probar que un cambio de correo posterior a la fijación no altera reintentos ni reconciliación, pero sí una solicitud futura.
+- Probar que una reconciliación ya iniciada puede concluir después del máximo sin efectuar un nuevo envío y que la pausa global no reinicia el plazo de elegibilidad.
 - Probar clasificación de timeout, `408`, `429`, `5xx`, diferido, rebote blando, rebote duro, dirección inválida, queja y errores globales.
 - Probar que `deferred` no reenvía desde la aplicación, que `soft bounce` cierra solo la solicitud y que Brevo puede completar la entrega durante su ventana propia.
 - Probar que una incidencia global pausa el worker, alerta y no consume intentos individuales.
 - Probar supresión para todos los tipos, reactivación auditada y ausencia de reenvío retroactivo automático.
 - Probar reanudación operativa con la solicitud original y orden por versión de publicación.
-- Probar que la versión siguiente se libera con `aceptado-proveedor` o `fallo-definitivo` y no espera a `entregado`.
+- Probar que la versión siguiente se libera con `aceptado-proveedor`, `omitido-inactivo` o `fallo-definitivo` y no espera a `entregado`.
 - Validar autenticación, deduplicación, repetición y desorden de webhooks, incluido rechazo de peticiones no autenticadas.
 - Comprobar que los estados terminales no retroceden y que `entregado` no se interpreta como apertura.
 - Probar HTML y texto plano de cada plantilla versionada y la exclusión de adjuntos, seguimiento, contenido excesivo y datos de otros corredores.

@@ -3,6 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-14
 **Responsable de revisión:** Revisor de arquitectura
+**Refinado parcialmente por:** [ADR-0023](0023-recovery-objectives-independent-key-custody.md)
 
 ## Contexto
 
@@ -11,6 +12,8 @@
 La escala prevista, superior a `500` corredores y con picos iniciales inferiores a `100` usuarios concurrentes, no justifica operar Kubernetes ni construir una plataforma propia. Sí requiere un proceso siempre activo para el worker, PostgreSQL administrado, despliegues repetibles, recuperación probada y observabilidad suficiente para una única persona operadora.
 
 Esta decisión debe minimizar operación sin fingir que una PaaS elimina la responsabilidad sobre migraciones, capacidad, seguridad, copias o incidentes. Un plan gratuito, una base sin recuperación o un despliegue directo no controlado desde `main` no son aceptables para producción.
+
+> **Refinamiento aceptado:** `ADR-0023` concreta los escenarios de recuperación, `RPO`/`RTO`, custodia independiente de claves, credenciales externas y frecuencia de simulacros. En caso de conflicto prevalece `ADR-0023`; el resto de plataforma, despliegue y operación de este ADR permanece vigente.
 
 ## Decisión
 
@@ -97,13 +100,16 @@ Los cambios de secretos, recursos, accesos y despliegues relevantes deberán que
 
 Azure Database for PostgreSQL Flexible Server proporcionará PITR con una ventana configurada de `7` días. Se verificará la redundancia de backup disponible en la región y el coste del almacenamiento que exceda el incluido antes de contratar y después de cada cambio de plan. Además se realizará un backup lógico diario con `pg_dump` en formato portable, cifrado antes de la subida y almacenado en **Scaleway Object Storage**, región `fr-par`, clase Standard Multi-AZ y API compatible con S3. El bucket tendrá versionado, Object Lock y una regla de ciclo de vida que elimine las copias como máximo a los `35` días conforme a `ADR-0010`.
 
-Los objetivos iniciales propuestos son:
+Los objetivos vigentes, concretados por `ADR-0023`, son:
 
-- `RPO` máximo de `15` minutos para fallos recuperables mediante PITR;
-- `RTO` máximo de `4` horas, contado desde que la única persona operadora acepte el incidente durante su disponibilidad, para restaurar base, validar integridad, reconfigurar la aplicación y reabrir el servicio;
+- fallo recuperable en Azure mediante PITR: `RPO <= 15 min` y `RTO <= 4 h`;
+- pérdida total de Azure, suscripción o proveedor: backup lógico diario en Scaleway, `RPO <= 24 h` y `RTO <= 24 h`;
+- migración planificada: congelación de escrituras y backup final con objetivo de pérdida cero y `RTO <= 4 h`;
 - disponibilidad mensual objetivo de `99,5 %`, excluyendo mantenimiento anunciado, medido como objetivo interno y no como SLA contractual.
 
-Un backup no se considerará válido hasta restaurarlo. Se ejecutará un simulacro trimestral alternando PITR y backup lógico, verificando migraciones, recuentos, restricciones, acceso, outbox y reaplicación de supresiones pendientes antes de reabrir. El runbook identificará responsables, credenciales de emergencia, orden de operaciones y evidencia del ejercicio.
+Un backup no se considerará válido hasta restaurarlo. Se ejecutará un simulacro PITR trimestral, una restauración externa semestral y una salida anual. Antes de producción habrá una restauración externa completa fuera de Azure. Cada ejercicio verificará migraciones, recuentos, restricciones, acceso, outbox y, antes de reabrir, recálculo de vencimientos y reaplicación de supresiones desde el registro externo de privacidad. El runbook identificará responsables, credenciales de emergencia, orden de operaciones y evidencia del ejercicio.
+
+El backup externo usará cifrado híbrido estándar sin criptografía propia. Azure poseerá solo la clave pública; la privada tendrá dos copias protegidas en ubicaciones físicas distintas, bajo custodia del propietario y una persona de recuperación, y nunca residirá en Azure, GitHub, Scaleway, repositorio o CI. Las credenciales de recuperación y administración de Scaleway se custodiarán fuera de Azure con MFA. La identidad escritora de Azure podrá crear objetos, pero no borrarlos ni reducir retención. Las claves privadas antiguas se conservarán hasta que caduque el último backup que dependa de ellas.
 
 La alta disponibilidad de PostgreSQL y una segunda instancia de aplicación se activarán antes de elevar el objetivo de disponibilidad o cuando el coste medido de una interrupción supere el coste operativo adicional. HA no sustituye backups: la replicación asíncrona puede perder escrituras recientes y replica también errores lógicos.
 
@@ -120,7 +126,7 @@ El cambio de plataforma seguirá inicialmente una parada controlada, al ser más
 7. arrancar aplicación y worker en el destino, ejecutar smoke tests y cambiar DNS;
 8. conservar el origen sin escrituras entre `24` y `48` horas antes de retirar recursos y rotar credenciales.
 
-La migración deberá completarse dentro de `RTO <= 4 h` y no perder más de `RPO <= 15 min`; la parada de escrituras y el backup final buscarán pérdida cero. Si el volumen medido impide cumplir el RTO mediante backup y restauración, la migración usará replicación lógica de PostgreSQL y un cambio final breve, con un plan específico que pruebe compatibilidad de esquema, secuencias y operaciones no replicadas antes de ejecutarse.
+La migración deberá completarse dentro de `RTO <= 4 h`; la parada de escrituras y el backup final tendrán como objetivo pérdida cero. Si el volumen medido impide cumplir el RTO mediante backup y restauración, la migración usará replicación lógica de PostgreSQL y un cambio final breve, con un plan específico que pruebe compatibilidad de esquema, secuencias y operaciones no replicadas antes de ejecutarse.
 
 Cada año, y también antes de abandonar la plataforma tras un cambio material del modelo de datos o del pipeline, se realizará un simulacro de salida: desplegar temporalmente el último digest en una PaaS alternativa, restaurar el backup independiente y ejecutar las validaciones críticas. La portabilidad no se considerará demostrada solo por disponer de una imagen o un runbook.
 
@@ -200,7 +206,7 @@ Se descarta. Los gates automáticos son necesarios pero no validan por sí solos
 
 ## Requisitos relacionados
 
-- Todos los requisitos `RF-01` a `RF-20`.
+- Todos los requisitos `RF-01` a `RF-21`.
 - Requisito no funcional de datos y privacidad de Fase 1.
 
 ## Decisiones de Fase 1 relacionadas
@@ -209,6 +215,7 @@ Se descarta. Los gates automáticos son necesarios pero no validan por sí solos
 - `D-06`: publicación y solicitud de notificación conservan una frontera transaccional común.
 - `D-07`: seguimiento e historial requieren persistencia y recuperación coherentes.
 - `D-08`: el aislamiento del corredor exige secretos, red, logs y accesos operativos controlados.
+- `D-09` a `D-11`: cobertura semanal, mayoría de edad y accesibilidad dependen de persistencia, evidencias y operación recuperables.
 
 ## Validación prevista
 
@@ -221,8 +228,10 @@ Se descarta. Los gates automáticos son necesarios pero no validan por sí solos
 - Reiniciar y reemplazar instancias durante envíos para comprobar cierre ordenado, expiración de leases e idempotencia.
 - Verificar aislamiento de entornos, ausencia de datos reales en staging y falta de secretos de producción en pull requests.
 - Rotar cada tipo de secreto y recuperar el servicio siguiendo el runbook.
-- Restaurar trimestralmente desde PITR y backup lógico dentro de `RPO` y `RTO`, incluida la reaplicación de supresiones.
-- Completar anualmente un simulacro de salida hacia una PaaS alternativa dentro de `RTO` y `RPO`, incluido despliegue, restauración, smoke tests y cambio de configuración sin modificar la aplicación.
+- Restaurar trimestralmente mediante PITR dentro de `RPO <= 15 min` y `RTO <= 4 h`.
+- Restaurar semestralmente el backup externo fuera de Azure dentro de `RPO <= 24 h` y `RTO <= 24 h`, incluida la reaplicación ordenada de vencimientos y supresiones.
+- Completar antes de producción y después anualmente un simulacro de salida hacia una PaaS alternativa, incluido despliegue, restauración, smoke tests y cambio de configuración sin modificar la aplicación.
+- Probar custodia dual de claves privadas, recuperación con credenciales externas y MFA, permisos de solo creación del escritor Azure, Object Lock y conservación de claves antiguas.
 - Simular indisponibilidad de PostgreSQL, Brevo y observabilidad sin provocar reinicios en bucle ni pérdida silenciosa.
 - Revisar logs, métricas, trazas y alertas para impedir datos personales o secretos y comprobar cada destino.
 - Verificar dominio, HTTPS, cookies seguras, cabeceras y rechazo de hosts distintos del dominio de producción.

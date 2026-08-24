@@ -3,6 +3,8 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-18
 **Responsable de revisión:** Revisor de arquitectura
+**Refina parcialmente:** [ADR-0006](0006-weekly-plan-training-model.md)
+**Refinado parcialmente por:** [ADR-0021](0021-publication-editing-notification-eligibility.md)
 **Validación documental:** Decisiones de planificación aceptadas explícitamente por el responsable el 2026-08-19
 
 ## Contexto
@@ -78,15 +80,19 @@ La duplicación de planes y las plantillas reutilizables quedan fuera del PMV y 
 
 Cada entrenamiento tendrá modalidad explícita `presencial` o `en-linea`. El lugar de encuentro solo se admitirá para `presencial`, será opcional, de una sola línea y con un máximo de `300` caracteres. Su ausencia no generará un valor ficticio. La aclaración será texto plano opcional y multilínea de hasta `1.000` caracteres. Ambos campos usarán Unicode NFC; un valor compuesto solo por espacios será ausencia y no se admitirá HTML.
 
+La modalidad del corredor y la del entrenamiento son datos informativos e independientes. Un grupo o plan puede combinar corredores y entrenamientos de ambas modalidades sin bloqueo, exclusión, advertencia ni confirmación especial. La ubicación tampoco condiciona la pertenencia o publicación; únicamente conserva la regla estructural de que, cuando exista, pertenece a un entrenamiento `presencial`.
+
 Las duraciones se introducirán en minutos y segundos y se normalizarán a segundos enteros. Cada duración válida estará entre `1` segundo y `360` minutos. Las distancias se introducirán en metros enteros o kilómetros con un máximo de tres decimales, se normalizarán exactamente a metros enteros y conservarán la unidad de presentación elegida. Cada distancia válida estará entre `1` metro y `100` kilómetros.
 
 Un bloque tendrá de `1` a `100` repeticiones y un entrenamiento de `1` a `20` bloques principales. Cuando exista recuperación, se ejecutará después de cada repetición, incluida la última; el bloque repetirá la unidad completa `trabajo + recuperación` antes de continuar al siguiente bloque o al enfriamiento.
 
 ### Objetivos estructurados
 
-Los objetivos no almacenarán frecuencia cardiaca máxima, zonas personales, marcas ni ritmos personales del corredor. La aplicación mostrará una instrucción relativa común para todos los destinatarios y no calculará un valor individual.
+Los objetivos no almacenarán frecuencia cardiaca máxima, zonas personales, marcas ni ritmos personales del corredor. La aplicación mostrará una instrucción relativa común para todos los destinatarios y no calculará un valor individual. No existe personalización de contenido dentro de un grupo: las inclusiones y exclusiones solo cambian membresía.
 
 Un objetivo de `frecuencia-cardiaca` contendrá exactamente una clave de catálogo entre `Z1`, `Z2`, `Z3`, `Z4` y `Z5`. La aplicación no asociará porcentajes ni descripciones fisiológicas fijas; entrenador y corredor interpretarán la zona mediante sus referencias externas.
+
+La interfaz mostrará exactamente «Zx según las zonas que utilizas con tu entrenador» y, para ritmo relativo, «ritmo de distancia +/− segundos por km, usando tu marca de referencia acordada con tu entrenador». Si el corredor desconoce la referencia, la resolverá por el canal externo habitual con su entrenador; el producto no almacena la consulta, no abre chat y no bloquea la publicación.
 
 Un objetivo de `ritmo-relativo` contendrá:
 
@@ -166,6 +172,7 @@ Se descarta del alcance actual porque Fase 1 las clasifica como opcionales y exi
 - El historial completo facilita investigación y responsabilidad, pero aumenta volumen y exposición; se limita a `12` meses y se excluye de logs y métricas.
 - La purga a `90` días reduce borradores abandonados y elimina también su trazabilidad de contenido; solo queda evidencia técnica mínima.
 - La modalidad explícita del entrenamiento evita depender de una clasificación dinámica, pero añade un campo obligatorio y una validación cruzada con la ubicación.
+- La mezcla de modalidades es válida e informativa; introducir avisos o personalización individual queda fuera del PMV y esta última se registra como `MF-006`.
 
 ## Requisitos relacionados
 
@@ -201,7 +208,9 @@ Se descarta del alcance actual porque Fase 1 las clasifica como opcionales y exi
 - Probar revisión única del plan, `If-Match`, restauración de la versión activa y ausencia de pérdida silenciosa.
 - Probar entrenamientos siempre completos, tres fases, bloques, recuperación tras cada repetición y todos los límites numéricos.
 - Probar modalidad explícita, rechazo de ubicación en `en-linea`, ausencia permitida en `presencial` y límites de texto.
+- Probar que un grupo y plan mezclan modalidades de corredores y entrenamientos sin bloqueo, exclusión, advertencia ni confirmación.
 - Probar `Z1` a `Z5`, distancias de referencia, desviaciones `-60..+180`, orden del intervalo y familias de trabajo y recuperación.
+- Probar los textos explicativos exactos, la ausencia de cálculo o datos personales y que desconocer la referencia no bloquea ni crea conversación en el producto.
 - Probar normalización exacta de minutos/segundos, metros/kilómetros y conservación de la unidad de presentación.
 - Probar consulta explicada de miembros, búsqueda de planes, permisos e historial completo anterior/posterior.
 - Probar retención de `12` meses, anonimización anticipada y purga conjunta de borrador e historial a los `90` días.
