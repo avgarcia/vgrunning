@@ -107,8 +107,8 @@ Se descarta para el PMV. No existe una matriz dinámica que justifique otro leng
 - `D-01`: administración, segmentación y publicación requieren capacidades explícitas.
 - `D-03`: no existe alcance por organización porque el PMV es single-club.
 - `D-06`: publicación y republicación están reservadas a entrenador y administrador.
-- `D-07`: el corredor escribe solo su seguimiento y entrenador y administrador consultan globalmente.
-- `D-08`: entrenador dispone de alcance global y cada corredor queda aislado.
+- `D-07`: el corredor escribe solo su seguimiento; entrenador y administrador consultan sin crear un workflow de revisión.
+- `D-08`: entrenador dispone de alcance global solo sobre corredores `active`; administrador gobierna estados no operativos y cada corredor queda aislado.
 
 ## Validación prevista
 

@@ -1,6 +1,6 @@
 # Diseño detallado de planificación — Fase 2
 
-**Estado:** Validado; refinado por el diseño validado de publicación
+**Estado:** Validado como diseño — únicamente autorizada la preparación técnica con datos sintéticos; refinado por el diseño de publicación
 **Fecha:** 2026-08-18
 **Última actualización:** 2026-08-21
 **Responsable de revisión:** Revisor de arquitectura
@@ -64,7 +64,7 @@ Si este documento contradice una fuente aceptada, prevalece el ADR y deberá cor
 13. Un entrenamiento solo se mueve entre planes nunca publicados y el traslado es atómico.
 14. Todo el plan comparte una única revisión optimista.
 15. Según el refinamiento aceptado en `ADR-0021`, un plan publicado no conserva cambios pendientes: cualquier edición confirmada sustituye atómicamente contenido vigente y publicación activa.
-16. Cada entrenamiento declara `presencial` o `en-linea`; el lugar solo se admite en `presencial` y puede faltar.
+16. Cada entrenamiento declara `presencial` o `en-linea`; el lugar solo se admite en `presencial` y puede faltar. Las modalidades de corredor y entrenamiento son informativas e independientes y pueden mezclarse sin fricción especial.
 17. Duraciones y distancias conservan presentación humana y tienen valores canónicos exactos y límites cerrados.
 18. La recuperación configurada se ejecuta después de cada repetición, incluida la última.
 19. Frecuencia cardiaca usa exactamente una zona `Z1` a `Z5`, sin cálculo ni descripción fisiológica.
@@ -183,7 +183,7 @@ El entrenamiento tiene UUID, día `MONDAY` a `SUNDAY`, modalidad, aclaración, l
 2. parte principal, con tipo cerrado y de uno a veinte bloques;
 3. enfriamiento `rodaje`, solo por duración y sin objetivo.
 
-La modalidad es `presencial` o `en-linea`. `presencial` admite lugar opcional; `en-linea` exige ausencia. La aclaración admite saltos de línea; el lugar no. Ambos son texto plano, Unicode NFC y sin marcado.
+La modalidad es `presencial` o `en-linea`. `presencial` admite lugar opcional; `en-linea` exige ausencia. La aclaración admite saltos de línea; el lugar no. Ambos son texto plano, Unicode NFC y sin marcado. La modalidad del corredor no se compara con la del entrenamiento: un grupo y un plan pueden mezclar ambas modalidades sin bloqueo, exclusión, advertencia o confirmación, y la ubicación ausente nunca impide guardar o publicar.
 
 Un entrenamiento solo se guarda si la estructura completa satisface todas sus invariantes. La fecha se deriva del lunes y el día; no se persiste como una segunda fuente editable.
 
@@ -220,6 +220,8 @@ minOffsetSecondsPerKm <= maxOffsetSecondsPerKm
 ```
 
 Los signos se muestran de forma explícita cuando corresponda. Ninguna representación incluye `runnerId`, pulsaciones, marca, ritmo calculado, porcentaje ni descripción fisiológica.
+
+La presentación usa exactamente «Zx según las zonas que utilizas con tu entrenador» o «ritmo de distancia +/− segundos por km, usando tu marca de referencia acordada con tu entrenador». Es contenido común para todos los miembros efectivos; las excepciones de grupo solo cambian membresía. Si un corredor desconoce su referencia, la consulta se resuelve fuera del producto con el entrenador, sin chat, dato nuevo, cálculo ni bloqueo. La personalización individual queda aplazada a `MF-006`.
 
 ## Modelo persistente
 
@@ -470,10 +472,11 @@ Las etiquetas no incluirán nombres, UUID de corredor, ubicaciones, aclaraciones
 - Probar de `1` a `20` bloques, de `1` a `100` repeticiones y carga exclusiva.
 - Probar recuperación obligatoria u opcional según repeticiones y su ejecución tras la última.
 - Probar minutos/segundos, límites `1..21.600`, kilómetros con tres decimales, conversión exacta, límites `1..100.000` y unidad conservada.
-- Probar modalidad, ubicación ausente o presente, rechazo en línea y máximos de texto.
+- Probar modalidad, ubicación ausente o presente, rechazo de ubicación en línea y máximos de texto; mezclar modalidades de corredores y entrenamientos sin bloqueo, exclusión, advertencia ni confirmación.
 - Probar catálogo `Z1..Z5` sin porcentajes ni descripciones.
 - Probar seis distancias, offsets `-60..180`, intervalo ordenado y extremos iguales.
 - Probar familia común de bloques y familia independiente de recuperaciones `rodaje`.
+- Probar los dos textos explicativos exactos, contenido idéntico para todos los miembros, ausencia de cálculo o referencias personales y desconocimiento no bloqueante.
 - Rechazar HTML, espacios vacíos, escalas fuera de rango y combinaciones incompatibles.
 
 ### Consultas, historial y retención
@@ -507,7 +510,7 @@ Las etiquetas no incluirán nombres, UUID de corredor, ubicaciones, aclaraciones
 - Unidades decimales canónicas: introducen redondeos y pierden la presentación elegida.
 - Resolver modalidad desde ubicación o corredores: no distingue una sesión presencial sin lugar y depende de estado dinámico.
 - Conservar borradores abandonados o su historial tras purga: retención indefinida o eliminación cosmética.
-- Duplicación y plantillas: alcance opcional sin necesidad para `RF-01` a `RF-20`.
+- Duplicación y plantillas: alcance opcional sin necesidad para `RF-01` a `RF-21`.
 - SQL cruzado, miembros materializados canónicos o dependencia hacia publicación: violan propiedad modular.
 
 ## Conclusiones
@@ -527,4 +530,5 @@ No quedan decisiones de producto o arquitectura pendientes dentro de `planning`.
 - Antes de implementar deberán producirse OpenAPI, migraciones Flyway, tipos jOOQ, límites medidos, catálogo de Problem Details y pruebas transaccionales.
 - La búsqueda global de corredores por etiquetas, segmentos o grupos continúa aplazada a `MF-004`.
 - La duplicación de planes y las plantillas continúan aplazadas a `MF-005`.
+- La personalización individual del contenido continúa aplazada a `MF-006`; las inclusiones y exclusiones solo cambian membresía.
 - Los datos personales reales y la producción continúan bloqueados hasta completar las evidencias de privacidad aplicables.

@@ -3,6 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-24
 **Responsable de revisión:** Revisor de producto y Revisor de arquitectura
+**Refina parcialmente:** [ADR-0009](0009-training-feedback-history-review.md)
 
 ## Contexto
 
@@ -16,7 +17,17 @@ Todavía no existen runtime, contrato OpenAPI, migraciones ni datos reales. Por 
 
 El campo `effort` será un entero de `1` a `5`, ambos extremos incluidos, cuando `performed=true`. Será obligatorio en ese estado y deberá estar ausente cuando `performed=false`.
 
-La interfaz presentará las cinco opciones numéricas sin atribuirles nombres clínicos ni afirmar que implementan una escala médica estandarizada. Añadir etiquetas interpretativas requerirá una decisión de producto posterior para evitar significados inconsistentes entre corredores.
+La interfaz preguntará exactamente «¿Cuánto esfuerzo te supuso este entrenamiento?», no preseleccionará una respuesta y presentará siempre número y etiqueta mediante este catálogo canónico:
+
+| Valor persistido | Etiqueta visible |
+| --- | --- |
+| `1` | Muy suave |
+| `2` | Suave |
+| `3` | Moderado |
+| `4` | Intenso |
+| `5` | Muy intenso |
+
+Solo se persistirá el entero. Las etiquetas son lenguaje de producto y no nombres clínicos: `1` y `5` son los extremos de esta escala de percepción, no mínimos o máximos fisiológicos. La interfaz no afirmará que implementa una escala médica estandarizada ni inferirá ritmo, frecuencia cardiaca, carga o estado de salud.
 
 OpenAPI declarará `type: integer`, `minimum: 1` y `maximum: 5`. La persistencia aplicará una restricción equivalente y las validaciones de aplicación no corregirán, redondearán ni truncarán valores fuera del intervalo.
 
@@ -34,13 +45,14 @@ Se descarta por decisión explícita del responsable de producto. Ofrece mayor g
 
 Se acepta. Reduce opciones y carga de interacción, mantiene orden y extremos verificables y sigue permitiendo comparar la declaración vigente sin añadir otra dimensión de seguimiento.
 
-### Alternativa C: Sustituir el número por etiquetas cualitativas
+### Alternativa C: Sustituir el número por etiquetas cualitativas sin valor
 
-Se descarta porque duplicaría la sensación general o exigiría decidir otro catálogo y su orden. También perdería la restricción numérica ya esperada por `RF-17` y las consultas de `RF-19`.
+Se descarta porque perdería la restricción numérica, el orden y los extremos esperados por `RF-17` y `RF-19`. Mostrar una etiqueta junto al número sí se acepta para hacer comprensible la escala sin sustituir el valor persistido.
 
 ## Consecuencias
 
 - El corredor elige entre cinco valores y la interfaz puede usar un control discreto más breve.
+- Portal, historial y revisión deben mostrar la misma pareja número-etiqueta y la misma pregunta, sin valor por defecto.
 - Se reduce la granularidad respecto a `1..10`; dos percepciones antes diferenciables pueden compartir valor.
 - Requisito, criterios, diseño, OpenAPI, restricción PostgreSQL y pruebas deben usar exactamente el mismo intervalo.
 - No se añade una nueva categoría de datos, actor, permiso, flujo ni capacidad del PMV.
@@ -62,8 +74,9 @@ Se descarta porque duplicaría la sensación general o exigiría decidir otro ca
 - Probar que `performed=true` acepta exactamente los enteros `1` a `5` y exige `effort`.
 - Probar que `0`, `6`, números no enteros y valores no numéricos se rechazan sin sustituir el registro válido anterior.
 - Probar que `performed=false` rechaza cualquier `effort`, incluido uno dentro del intervalo.
+- Verificar pregunta, ausencia de preselección y correspondencia exacta `1 Muy suave`, `2 Suave`, `3 Moderado`, `4 Intenso`, `5 Muy intenso` en captura, historial y revisión.
 - Verificar que OpenAPI y la restricción física de PostgreSQL usan los mismos extremos.
-- Verificar que portal, historial y revisión muestran el valor conservado sin convertirlo ni añadir etiquetas no aprobadas.
+- Verificar que solo se persiste el entero y que ninguna interfaz interpreta los extremos como magnitudes fisiológicas o clínicas.
 - Buscar referencias activas a `1..10`, `1–10`, límites `10` u `11` y justificar únicamente las que permanezcan como historia de `ADR-0009`.
 
 ## Decisiones pendientes

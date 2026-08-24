@@ -1,132 +1,98 @@
 # Cierre documental — Fase 2
 
-**Estado:** Validado — Fase 2 cerrada
+**Estado:** Validado — diseño cerrado; únicamente autorizada la preparación técnica con datos sintéticos
 **Fecha:** 2026-08-24
 **Responsables de revisión:** Revisor de arquitectura y Revisor de producto
-**Restricción:** Este cierre no autoriza implementación, tratamiento de datos personales reales ni producción
+**Evidencia de autorrevisión:** Registrada en la PR por la persona mantenedora que actúa como autora y revisora, incluida la ausencia de revisión independiente y la aceptación expresa de ese riesgo
+**Alcance de autorización:** Se autoriza únicamente la preparación técnica con datos sintéticos; no se autorizan funcionalidades de negocio, tratamiento de datos personales reales, proveedor de correo ni producción
 
-## Alcance del cierre
+Los documentos normativos conservan responsables por rol para no vincular decisiones duraderas a una persona concreta. La evidencia de cada cambio identifica en la PR a la persona que ejerció esos roles; mantener solo roles anónimos o duplicar nombres personales en cada ADR queda descartado.
 
-Este documento registra la comprobación final de que Fase 2 materializa los requisitos imprescindibles `RF-01` a `RF-20`, las decisiones `D-01` a `D-08`, los riesgos activos y los límites del PMV mediante diseño detallado y decisiones de arquitectura trazables.
+## Alcance de la revisión
 
-El cierre comprende ocho módulos confirmados por `ADR-0014`: `identity-access`, `runner-management`, `classification-segmentation`, `planning`, `publication`, `notification-delivery`, `tracking-review` y `runner-portal`. No crea un noveno módulo ni amplía el alcance del PMV.
+Esta revisión comprueba que Fase 2 materializa los requisitos imprescindibles `RF-01` a `RF-21`, las decisiones `D-01` a `D-11`, los riesgos activos y los límites del PMV mediante diseños detallados y `ADR-0001` a `ADR-0023`.
 
-## Resultado
+Se mantienen los ocho módulos de `ADR-0014`: `identity-access`, `runner-management`, `classification-segmentation`, `planning`, `publication`, `notification-delivery`, `tracking-review` y `runner-portal`. La cobertura semanal se coordina desde `publication`; no crea un noveno módulo, una proyección persistente ni un buscador global.
 
-- Los ocho módulos tienen diseño detallado validado y propietario, dependencias, datos, autorización, API prevista y validación documentados.
-- Cada requisito `RF-01` a `RF-20` tiene una fila única en la [trazabilidad de requisitos](phase-2-high-level-design.md#trazabilidad-de-requisitos), criterios de aceptación y ADR o decisión técnica equivalente.
-- Cada decisión `D-01` a `D-08` tiene tratamiento y ADR relacionado en la [trazabilidad de decisiones](phase-2-high-level-design.md#trazabilidad-de-decisiones-de-fase-1).
-- Los `22` ADRs están aceptados y el backlog inicial de Fase 2 no conserva candidatos pendientes.
-- No quedan preguntas de producto o arquitectura abiertas dentro del diseño de los ocho módulos.
-- Las obligaciones anteriores a implementación, datos reales y producción permanecen explícitas y no se presentan como trabajo resuelto.
+## Resultado validado
+
+- Los ocho módulos tienen propietario, dependencias, datos, autorización, API prevista y validación documentados.
+- Cada requisito `RF-01` a `RF-21` tiene dos criterios de aceptación con identificador estable y una fila única en la [trazabilidad de requisitos](phase-2-high-level-design.md#trazabilidad-de-requisitos).
+- Cada decisión `D-01` a `D-11` tiene tratamiento en la [trazabilidad de decisiones](phase-2-high-level-design.md#trazabilidad-de-decisiones-de-fase-1).
+- Los `23` ADR están aceptados y sus nueve relaciones parciales están registradas simétricamente en ambos documentos y en el índice.
+- Las decisiones de producto y arquitectura examinadas tienen tratamiento explícito. Los artefactos contract-first, las evidencias de privacidad, la restauración externa y la operación real siguen pendientes.
+- El estado `Validado` se apoya en las puertas documentales repetidas sobre el cambio final y en la autorrevisión y aceptación del riesgo registradas en la PR; cualquier modificación material posterior deberá reabrir la revisión afectada.
+
+## Decisiones incorporadas durante la auditoría
+
+1. Las solicitudes de publicación nacen sin correo. En su primer procesamiento se resuelven conjuntamente actividad y correo verificado vigente; el destino se fija para todos sus intentos y cambios posteriores solo afectan a solicitudes futuras.
+2. `retry-later` de elegibilidad aplica backoff de `5` segundos a `5` minutos y termina a creación `+120` minutos como `fallo-definitivo/elegibilidad-no-resuelta`, con alerta y liberación del orden. Una reconciliación ya iniciada conserva su ventana sin nuevo envío.
+3. Los eventos internos durables usan `EventPublicationRegistry` JDBC de Spring Modulith, tablas gestionadas por Flyway, consumidores idempotentes, reintento de publicaciones incompletas y alerta por antigüedad. No se introduce broker.
+4. Tras restaurar, se recalculan vencimientos y se reaplican primero las supresiones del registro externo de privacidad; solo después se reanudan consumidores y trabajo incompleto.
+5. Las excepciones de grupo cambian membresía, no contenido. Todos los miembros reciben el mismo plan; la personalización individual se aplaza a `MF-006`.
+6. `RF-21` y `D-09` incorporan cobertura semanal informativa para todos los corredores `active`: `cubierto`, `sin-grupo`, `grupo-sin-plan`, `plan-en-borrador` o `fuera-de-publicacion`, con `sin-modalidad` independiente.
+7. Los secretos de activación, reactivación, recuperación y verificación de correo viajan en fragmento HTTPS, se eliminan antes de renderizar o cargar recursos y permanecen solo en memoria hasta enviarlos en el cuerpo HTTPS.
+8. El entrenador opera globalmente solo sobre corredores `active`. Pendientes, inactivos y cancelados quedan ocultos en listas, detalles, conteos y seguimiento; el administrador conserva acceso auditado.
+9. `ADR-0009` permanece aceptado y `ADR-0022` reemplaza únicamente su intervalo. La escala única es `1 Muy suave`, `2 Suave`, `3 Moderado`, `4 Intenso`, `5 Muy intenso`, con la pregunta «¿Cuánto esfuerzo te supuso este entrenamiento?» y sin valor por defecto.
+10. La edición publicada se conserva sin retirada. Se acepta que errores de grupo, semana, miembros, hoy o pasado no puedan corregirse retroactivamente ni cancelar correos pendientes o en vuelo.
+11. El PMV admite únicamente adultos. El administrador declara la mayoría de edad al invitar y la persona la confirma en la activación inicial; se conserva evidencia mínima, no fecha de nacimiento, documento o copia acreditativa.
+12. Modalidad de corredor y de entrenamiento son informativas e independientes. Mezclarlas no bloquea, excluye, advierte ni exige confirmación. La ubicación es opcional e informativa y, cuando existe, pertenece a un entrenamiento presencial.
+13. La revisión de seguimiento significa consultar y analizar. No existe estado revisado, titularidad, prioridad, nota, respuesta, SLA ni prueba de lectura; se acepta que haya consultas duplicadas u omisiones humanas.
+14. `RF-01` separa aceptación durable de la solicitud, aceptación del proveedor y entrega al servidor receptor. No promete entrega física ni lectura; la entrega se verifica con un buzón controlado.
+15. `RF-15` enumera los cambios canónicos visibles futuros que exigen republicación y excluye no-op, metadatos técnicos, hoy y pasado.
+16. Todo el PMV web debe cumplir WCAG `2.2 AA`, incluidas pruebas a `320` CSS px, zoom `400 %`, texto `200 %`, teclado, foco, errores y objetivos de puntero de `24 × 24` CSS px o excepción oficial documentada.
+17. `ADR-0023` fija recuperación por escenario: PITR Azure `RPO <= 15 min` y `RTO <= 4 h`; pérdida total de Azure `RPO <= 24 h` y `RTO <= 24 h`; migración planificada con objetivo de pérdida cero y `RTO <= 4 h`. La clave privada y las credenciales externas se custodian fuera de Azure.
+18. Los objetivos se muestran como «Zx según las zonas que utilizas con tu entrenador» o «ritmo de distancia +/− segundos por km, usando tu marca de referencia acordada con tu entrenador». No se almacenan, calculan o validan referencias personales; desconocerlas no bloquea y se resuelve fuera del producto.
+19. Se normaliza el lenguaje a «miembro efectivo del segmento» y «entrenamiento publicado para el corredor».
+20. La línea base de acceso y seguridad queda enlazada desde `README.md`; las fechas históricas no se reescriben de forma masiva.
 
 ## Trazabilidad desde Fase 0
 
-| Riesgo, supuesto o límite de Fase 0 | Tratamiento confirmado en Fase 2 | Trabajo posterior |
+| Riesgo, supuesto o límite | Tratamiento en Fase 2 | Trabajo posterior |
 | --- | --- | --- |
-| La personalización individual podía convertir los grupos en una distinción cosmética. | `classification-segmentation` y `planning` separan segmentos reutilizables, grupos exclusivos y excepciones persistentes; los planes pertenecen al grupo, no a listas semanales reconstruidas. | Medir durante la validación operativa si el modelo reduce trabajo manual; cualquier cambio de alcance exige revisar `ADR-0005`, `ADR-0006` y `ADR-0020`. |
-| La información de seguimiento era demasiado vaga para resultar operativa. | `tracking-review` define estados, valores, ventana, historial y consultas globales; `runner-portal` define captura y presentación. | Validar usabilidad con datos sintéticos y completar privacidad antes de datos reales. |
-| Correo y WhatsApp podían seguir actuando como sistema de gestión. | La aplicación es la fuente de verdad; `publication` y `notification-delivery` usan el correo únicamente como aviso de disponibilidad o cambio. WhatsApp queda fuera del PMV. | Probar entregabilidad y operación antes de habilitar el proveedor. |
-| Los grupos debían poder expresarse mediante criterios operativos útiles. | Las taxonomías controladas, segmentos dinámicos, excepciones y grupos de planificación materializan el supuesto sin introducir un motor genérico. | Medir límites de lote, página y rendimiento antes de cerrar los contratos. |
-| El entrenador debía revisar seguimiento sin intervención administrativa. | `tracking-review` concede lectura global a administrador y entrenador, sin asignación de titularidad ni edición de la declaración del corredor. | Mantener autorización, auditoría y revisión de privacidad del acceso global. |
-| El Retiro podía convertirse en una restricción accidental. | `D-04`, `planning` y `runner-portal` usan ubicación opcional de texto libre solo para entrenamientos presenciales. | Ninguno dentro del PMV. |
+| La personalización individual podía convertir los grupos en una distinción cosmética. | Segmentos, grupos y excepciones gobiernan membresía; el plan es común para el grupo. | Medir uso real; cualquier personalización parte de `MF-006` y exige revisar datos, UX y arquitectura. |
+| El seguimiento era demasiado vago. | Estados, escala, ventana, historial y consulta de solo lectura son observables. | Validar usabilidad con datos sintéticos y completar privacidad. |
+| Correo y WhatsApp podían actuar como sistema de gestión. | La aplicación es fuente de verdad; el correo solo avisa. WhatsApp queda fuera. | Probar proveedor, dominio, buzón controlado, supresión y operación. |
+| El entrenador necesitaba visibilidad sin una bandeja de trabajo. | `RF-21` muestra cobertura semanal y `RF-19` permite consulta de seguimiento de activos, sin workflow. | Medir utilidad antes de añadir estados, SLA o asignaciones. |
+| Una pérdida total de Azure podía inutilizar recuperación y claves. | `ADR-0023` separa backup, credenciales y clave privada del proveedor principal. | Completar restauración externa antes de producción y repetirla semestralmente. |
+| El Retiro o la modalidad podían convertirse en restricciones accidentales. | Ubicación y modalidades son informativas; mezclar modalidades es válido. | Ninguno dentro del PMV. |
 
-## Correcciones de coherencia realizadas al cerrar
+## Puertas de calidad documental
 
-- `RF-02` y sus criterios se alinean con el rol inicial único e inmutable decidido por `ADR-0004`.
-- `RF-08` y sus criterios se alinean con `ADR-0006`: cada plan pertenece a un grupo de planificación y no se asigna directamente a segmentos o corredores.
-- Los criterios de `RF-17` distinguen `realizado`, que exige esfuerzo y sensación, de `no-realizado`, que los prohíbe; el comentario requiere consentimiento vigente.
-- `ADR-0022` cambia explícitamente la escala de esfuerzo de `1..10` a `1..5` por decisión del responsable de producto y actualiza requisito, criterios, diseño y validación.
-- Los estados y referencias que todavía describían `runner-portal`, los ADRs o los diseños detallados como pendientes se actualizan al resultado ya validado.
+| Puerta | Evidencia esperada | Estado actual |
+| --- | --- | --- |
+| Trazabilidad entre fases | `RF-01..RF-21`, `D-01..D-11`, riesgos, ADR y mejoras futuras enlazados. | Autorrevisión del mantenedor único: `21` filas de requisitos, `11` de decisiones, `23` ADR indexados y enlaces locales válidos; evidencia reproducible en la PR. |
+| Requisitos verificables | Actor, condición, comportamiento y resultado observable por requisito. | Autorrevisión completada sobre los `21` requisitos; evidencia en la PR. |
+| Criterios de aceptación | Éxito y error o límite para los `21` requisitos imprescindibles. | Autorrevisión: `21/21` secciones contienen ambos escenarios y `42/42` identificadores son únicos; evidencia en la PR. |
+| Terminología | Cuenta, corredor, segmento, grupo, miembro efectivo, publicación, seguimiento y revisión usados sin significados incompatibles. | Autorrevisión terminológica completada; no aparecen los dos términos obsoletos buscados; evidencia en la PR. |
+| Decisiones de diseño | Alternativas, consecuencias, trazabilidad y validación de `ADR-0001..ADR-0023`. | Auditoría estricta: `23 ADR(s), 0 error(es), 0 aviso(s)`; nueve relaciones parciales simétricas y evidencia en la PR. |
+| Preguntas bloqueantes | Decisiones no resueltas clasificadas por implementación, datos reales o producción, con tratamiento. | Autovalidación: sin decisión de producto o arquitectura implícita; artefactos y bloqueos posteriores conservan responsable y tratamiento. |
+| Cambios de alcance | `RF-21`, `D-09..D-11`, `ADR-0023` y `MF-006` declarados; no se añade módulo. | Autorrevisión del diff completada; alcance y riesgo sin revisión independiente aceptados expresamente en la PR. |
+| API HTTP | Recursos y semántica previstos; OpenAPI `3.1` todavía inexistente. | Bloquea cada slice antes de implementar su HTTP. |
+| Privacidad y producción | Evidencias de `ADR-0010`, `ADR-0018`, proveedores, EIPD, restauración y runbooks. | No satisfecha; bloquea datos reales y producción. |
 
-Estas correcciones no añaden capacidades, actores, datos ni módulos al PMV. Sí cambian una restricción funcional existente al reducir la escala de esfuerzo de `1..10` a `1..5`; el resto elimina contradicciones con decisiones aceptadas y con documentos detallados ya fusionados.
+## Preparación técnica posterior
 
-## Revisión de trazabilidad
+Durante la revisión puede ejecutarse únicamente la preparación técnica: proyecto Gradle, esqueleto Spring Boot y Spring Modulith, frontend React, pipeline, OpenAPI, Flyway, generación jOOQ y cliente, y fixtures sintéticos. Tras cerrar la fase se creará en Linear el backlog de funcionalidades verticales y podrá comenzar su implementación de negocio.
 
-- Estado: listo para revisión humana
-- Evidencia: matrices de `RF-01` a `RF-20` y `D-01` a `D-08` en [Diseño de alto nivel](phase-2-high-level-design.md), diseños detallados de los ocho módulos, índice de ADRs y tabla de trazabilidad desde Fase 0 de este documento.
-- Hallazgos: se corrigieron estados heredados que aún decían `Pendiente de diseño`, la consulta de `RF-04` pendiente del portal y dos referencias que trataban diseños ya validados como trabajo futuro. No queda un requisito, decisión o riesgo activo sin tratamiento o aplazamiento explícito.
-- Acción requerida: enlazar OpenAPI, migraciones y pruebas posteriores con estas matrices; ninguna acción adicional para el cierre documental.
-- Revisor humano: Revisor de arquitectura
+Esta separación permite producir y revisar los artefactos contract-first que cada slice necesita sin convertir el cierre pendiente en una formalidad vacía. Se descartan tanto bloquear esos artefactos hasta cerrar la fase como implementar funcionalidades de negocio antes de completar la revisión humana.
 
-## Revisión de verificabilidad de requisitos
+Cada funcionalidad deberá completar y aprobar antes de implementar su caso de uso:
 
-- Estado: listo para revisión humana
-- Evidencia: definiciones únicas de `RF-01` a `RF-20` en [Requisitos de Fase 1](phase-1-requirements.md), criterios observables y validación prevista por módulo.
-- Hallazgos: los veinte requisitos identifican actor o capacidad autorizada, comportamiento y resultado; se corrigieron las combinaciones no observables o contradictorias de `RF-02`, `RF-08` y `RF-17`, cuya escala queda ahora acotada a `1..5`.
-- Acción requerida: ninguna para cerrar; los contratos y pruebas deberán conservar las restricciones documentadas.
-- Revisor humano: Revisor de producto
+1. contrato OpenAPI y compatibilidad;
+2. catálogo de Problem Details;
+3. modelo, migraciones Flyway, restricciones e índices;
+4. autorización, alcance y transacciones;
+5. pruebas de contrato, dominio, arquitectura, concurrencia, accesibilidad, privacidad y operación aplicables.
 
-## Revisión de terminología
+Esta secuencia no autoriza código con datos reales, proveedor de correo real, staging productivo ni producción.
 
-- Estado: listo para revisión humana
-- Evidencia: lenguaje ubicuo de los diseños detallados y mapa modular de `ADR-0014`.
-- Hallazgos: `cuenta` designa identidad de acceso, `corredor` el perfil operativo, `segmento` una clasificación dinámica, `grupo de planificación` la cohorte exclusiva y `publicación` la versión visible. `Alumno` permanece únicamente en el contexto histórico de Fase 0. No se detectan significados incompatibles después de las correcciones.
-- Acción requerida: usar estos términos canónicos en OpenAPI, código, migraciones y pruebas.
-- Revisor humano: Revisor de arquitectura
+## Bloqueos antes de datos reales o producción
 
-## Revisión de decisiones de diseño
+- Completar responsable, bases, información, consentimientos, retención, derechos, encargados, EIPD y riesgo residual de `ADR-0010` y `ADR-0018` a `ADR-0023`.
+- Aprobar dominio, remitente, `Reply-To`, DPA de Brevo, webhook, entregabilidad, supresión, alertas y runbooks de `ADR-0011` y `ADR-0016`.
+- Demostrar aislamiento, eventos durables, restauración PITR, restauración externa completa fuera de Azure, custodia de claves, telemetría sin datos personales y reaplicación ordenada de vencimientos y supresiones.
 
-- Estado: listo para revisión humana
-- Evidencia: [Matriz de decisiones de Fase 1](phase-1-decision-matrix.md), `ADR-0001` a `ADR-0022` y secciones de alternativas, consecuencias y validación de cada diseño detallado.
-- Hallazgos: las decisiones activas tienen motivo, alternativas descartadas, impacto y materialización. `ADR-0022` registra la preferencia `1..5`, el coste de menor granularidad y la ausencia de conversión. La auditoría estructural estricta informa `22 ADR(s), 0 error(es), 0 aviso(s)`; esa evidencia no sustituye la revisión humana.
-- Acción requerida: crear un ADR nuevo si OpenAPI, migraciones, pruebas o validación operativa contradicen una decisión aceptada; ninguna para el cierre actual.
-- Revisor humano: Revisor de arquitectura
+## Condición de vigencia del cierre
 
-## Revisión de preguntas bloqueantes
-
-- Estado: listo para revisión humana
-- Evidencia: secciones `Decisiones pendientes` de los ocho diseños y tabla de decisiones y bloqueos posteriores del diseño de alto nivel.
-- Hallazgos: no quedan preguntas de producto o arquitectura sin responder. OpenAPI, migraciones, límites medidos y pruebas bloquean implementación; privacidad, dominio, proveedor y operación bloquean datos reales o producción. Todos tienen tratamiento y responsables documentados.
-- Acción requerida: no reinterpretar esos bloqueos como decisiones opcionales ni resolverlos silenciosamente durante el desarrollo.
-- Revisor humano: Revisor de producto
-
-## Revisión de criterios de aceptación
-
-- Estado: listo para revisión humana
-- Evidencia: [Criterios de aceptación de Fase 1](phase-1-acceptance-criteria.md) y secciones `Validación prevista` de cada diseño detallado.
-- Hallazgos: cada `RF-01` a `RF-20` conserva un escenario de éxito y otro de error o límite. Se alinearon `RF-02`, `RF-08` y `RF-17` con los ADRs aceptados; `RF-17` prueba extremos `1` y `5` y rechaza `0`, `6` y valores no enteros. Los diseños amplían pruebas de seguridad, concurrencia, atomicidad, privacidad y límites.
-- Acción requerida: convertir estos criterios en pruebas trazables sin afirmar que ya están ejecutadas.
-- Revisor humano: Revisores de producto y arquitectura
-
-## Revisión de cambios de alcance
-
-- Estado: listo para revisión humana
-- Evidencia: diff de la rama de cierre, exclusiones de [Requisitos de Fase 1](phase-1-requirements.md), [Mejoras futuras](future-improvements.md) y secciones de cambios de alcance de publicación, notificaciones, seguimiento y portal.
-- Hallazgos: el cierre no añade capacidades, actores, datos ni módulos. Modifica una restricción funcional ya existente: `ADR-0022` reduce la escala de esfuerzo de diez a cinco valores; los demás cambios reflejan refinamientos aceptados por `ADR-0004`, `ADR-0006` y `ADR-0009`.
-- Acción requerida: la PR debe declarar el cambio de escala, enumerar las correcciones y mantener fuera del PMV `MF-001` a `MF-005`.
-- Revisor humano: Revisor de la PR
-
-## Revisión de API HTTP
-
-- Estado: requiere artefacto antes de implementar
-- Evidencia: secciones de API HTTP de los ocho diseños, `ADR-0017` y [Guía de diseño de API HTTP](api-design-guidelines.md).
-- Hallazgos: las operaciones previstas identifican recursos en plural bajo `/api`, métodos, actores, concurrencia, idempotencia y errores; no introducen verbos, prefijos por rol ni secretos en rutas o consultas. Todavía no existe el contrato OpenAPI `3.1`, por lo que no se han podido ejecutar Spectral, `oasdiff`, generación ni pruebas de contrato.
-- Acción requerida: crear y revisar OpenAPI antes de implementar cualquier controlador o consumidor; una contradicción debe corregir el diseño o abrir un ADR, no adaptar el contrato silenciosamente.
-- Revisor humano: Revisor de arquitectura
-
-La validación de privacidad previa a producción no es un gate de cierre de Fase 2. Permanece expresamente sin satisfacer y bloquea datos personales reales y producción.
-
-## Condiciones posteriores al cierre
-
-### Antes de implementar cualquier módulo
-
-1. Crear y revisar el contrato OpenAPI `3.1` como fuente de verdad, con recursos, representaciones, seguridad, CSRF, estados, idempotencia, precondiciones y compatibilidad conforme a `ADR-0013`, `ADR-0017` y la guía de API.
-2. Fijar el catálogo común versionado de Problem Details y medir límites de páginas y lotes; no inventar códigos o límites durante la implementación.
-3. Crear migraciones Flyway, restricciones, índices y generación jOOQ respetando propiedad de esquemas y transacciones de `ADR-0012` y `ADR-0014`.
-4. Trazar pruebas de contrato, arquitectura, autorización, concurrencia, transacción, accesibilidad y retención hacia los criterios y diseños aplicables.
-5. Incorporar los comandos reales de instalación, ejecución, lint, formato y pruebas a `AGENTS.md` en el mismo cambio que introduzca el runtime.
-
-### Antes de tratar datos personales reales o salir a producción
-
-- Completar las evidencias de responsable, bases, información, consentimiento, retención, derechos, encargados, EIPD y riesgo residual de `ADR-0010` y `ADR-0018` a `ADR-0021`.
-- Aprobar dominio, remitente, `Reply-To`, DPA de Brevo, webhook, entregabilidad, supresión, alertas y runbooks exigidos por `ADR-0011` y `ADR-0016`.
-- Demostrar aislamiento, seguridad, restauración, telemetría sin datos personales y destrucción o reaplicación de supresiones mediante pruebas en el stack real.
-
-## Declaración de cierre
-
-Fase 2 queda cerrada como diseño funcional, técnico y arquitectónico del PMV. Este cierre confirma que no deben tomarse decisiones de producto o arquitectura durante la codificación de los ocho módulos.
-
-El cierre no equivale a preparación para implementar: el primer trabajo posterior es producir y revisar los artefactos contract-first y de persistencia indicados. Tampoco autoriza datos personales reales, habilitación del proveedor de correo, staging productivo ni producción.
-
-Las Skills documentales preparan evidencia, pero no aprueban la PR. En el flujo de único mantenedor, antes de fusionar la PR de cierre debe registrarse expresamente que no hubo revisión independiente y que el mantenedor acepta ese riesgo.
+Fase 2 conserva el estado `Validado` mientras las puertas aplicables correspondan a la versión vigente, no aparezcan contradicciones o bloqueos documentales sin tratamiento y la PR mantenga la evidencia de que no hubo revisión independiente y de que el mantenedor aceptó expresamente ese riesgo. Un cambio material en alcance, decisiones o trazabilidad deberá reabrir la revisión correspondiente.

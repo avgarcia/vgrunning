@@ -2,10 +2,11 @@
 
 **Estado:** Backlog
 **Fecha:** 2026-08-14
+**Última actualización:** 2026-08-24 — añadida `MF-006` tras la auditoría documental
 
 ## Propósito
 
-Registrar mejoras deliberadamente excluidas del PMV para que no reaparezcan como decisiones implícitas durante la implementación. Este documento no autoriza desarrollo, no altera los requisitos `RF-01` a `RF-20` y no sustituye un ADR cuando una mejora futura cambie la arquitectura aceptada.
+Registrar mejoras deliberadamente excluidas del PMV para que no reaparezcan como decisiones implícitas durante la implementación. Este documento no autoriza desarrollo, no altera los requisitos `RF-01` a `RF-21` y no sustituye un ADR cuando una mejora futura cambie la arquitectura aceptada.
 
 ## MF-001: MFA para cuentas privilegiadas
 
@@ -156,3 +157,35 @@ La revisión deberá decidir si se copia desde un borrador o publicación, grupo
 - `RF-07`, `RF-11`, `RF-12`, `RF-14`
 - `ADR-0006`, `ADR-0017`, `ADR-0020`
 - [Diseño detallado de planificación](phase-2-detailed-design-planning.md)
+
+## MF-006: Personalización individual del contenido de los planes
+
+**Estado:** Aplazada fuera del PMV
+
+### Problema
+
+El PMV asigna un mismo contenido publicado a todos los miembros congelados de un grupo. Las inclusiones y exclusiones individuales deciden pertenencia, no crean objetivos, cargas, días o instrucciones diferentes por corredor. Las zonas cardiacas, marcas y ritmos personales se mantienen como referencias externas acordadas con el entrenador.
+
+Una personalización real exigiría decidir si cada corredor recibe una variante de un entrenamiento, cómo se compara con la versión común, qué ocurre al republicar, qué datos deportivos personales se almacenan y cómo se explican historial, notificaciones y seguimiento.
+
+### Decisión actual
+
+El PMV no personaliza contenido por corredor y no almacena frecuencia cardiaca máxima, zonas personales, marcas ni ritmos de referencia. Un plan puede incluir o excluir corredores mediante su grupo, pero todos los destinatarios de una versión reciben la misma prescripción relativa. La interfaz explica que las referencias son externas y no garantiza que el corredor las conozca.
+
+### Criterios para reabrir la decisión
+
+- Entrenadores necesitan modificar regularmente la prescripción individual después de formar grupos.
+- La instrucción común provoca errores operativos medibles o impide ejecutar entrenamientos.
+- La validación del PMV demuestra que segmentar o reconfigurar grupos no cubre la necesidad con un coste razonable.
+- Existe una finalidad y política de privacidad defendibles para almacenar referencias deportivas personales.
+
+### Condiciones para incorporarla
+
+La revisión deberá definir granularidad de la variante, actor, herencia, precedencia, publicación, destinatarios, notificación, historial, seguimiento, concurrencia, retención y migración. Si almacena zonas, marcas o ritmos personales, requerirá revisar privacidad y aprobar un ADR que sustituya las partes incompatibles de `ADR-0018` y `ADR-0020`; no se añadirá como campo opcional aislado durante la implementación.
+
+### Trazabilidad
+
+- `RF-08`, `RF-10`, `RF-12`, `RF-15`, `RF-16`
+- `ADR-0006`, `ADR-0007`, `ADR-0010`, `ADR-0018`, `ADR-0020`, `ADR-0021`
+- [Diseño detallado de planificación](phase-2-detailed-design-planning.md)
+- [Diseño detallado del portal del corredor](phase-2-detailed-design-runner-portal.md)

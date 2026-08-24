@@ -1,6 +1,6 @@
 # Diseño detallado del portal del corredor — Fase 2
 
-**Estado:** Validado
+**Estado:** Validado como diseño — únicamente autorizada la preparación técnica con datos sintéticos
 **Fecha:** 2026-08-24
 **Fecha de validación:** 2026-08-24
 **Responsable de revisión:** Revisor de arquitectura
@@ -183,6 +183,8 @@ El detalle reproduce la versión autorizada con:
 
 El corredor no ve destinatarios, autoría, números internos de versión, entrega de correo, nombres de tablas ni metadatos administrativos. El lugar ausente se muestra como ausencia; no se inventa, reutiliza ni completa desde otro entrenamiento.
 
+Los objetivos se muestran literalmente como «Zx según las zonas que utilizas con tu entrenador» o «ritmo de distancia +/− segundos por km, usando tu marca de referencia acordada con tu entrenador». El portal no calcula, valida ni solicita zonas, marcas o ritmos personales. Desconocer la referencia no bloquea ninguna acción: el corredor la consulta por el canal externo habitual con su entrenador, sin chat ni registro adicional en el producto.
+
 Un enlace de correo abre la semana de la publicación activa. Si exige autenticación, la ruta de retorno se conserva de forma opaca y se aplica solo después de una sesión válida. El enlace nunca concede acceso: si el corredor no es destinatario `active`, el recurso sigue sin estar disponible.
 
 ## `Historial`
@@ -214,6 +216,8 @@ Estados visibles:
 | Entrenamiento retirado | `Retirado`, conservando respuesta si existía | Solo lectura o edición del registro existente mientras su ventana fijada siga abierta |
 
 El formulario es una representación completa. `Cancelar` vuelve sin petición y conserva el último registro; `Guardar` envía una sola operación con la precondición recibida. Un error de campo mantiene valores locales y no sustituye el registro anterior. Una recarga manual puede perder valores no guardados; no se incorpora borrador local persistente.
+
+Cuando `performed=true`, el formulario pregunta exactamente «¿Cuánto esfuerzo te supuso este entrenamiento?» sin preselección y ofrece `1 Muy suave`, `2 Suave`, `3 Moderado`, `4 Intenso` y `5 Muy intenso`. Las mismas etiquetas se usan en lectura e historial; la interfaz no lo presenta como máximo fisiológico ni medición clínica.
 
 Cuando el corredor intenta escribir un comentario sin consentimiento vigente, se presenta información separada, versión y advertencia para no introducir diagnósticos, lesiones ni otra información de salud. Rechazarla mantiene habilitado el guardado estructurado.
 
@@ -318,7 +322,9 @@ Se probarán acceso directo, manipulación de identificadores, cursores, retorno
 
 La interfaz se diseña primero para una columna móvil y se amplía sin perder orden semántico. Ninguna representación esencial exige desplazamiento horizontal. Las tablas administrativas no se reutilizan en el portal.
 
-Controles, estados y errores tendrán:
+Todo el PMV web cumplirá WCAG `2.2` nivel `AA`. La validación incluye reflow a `320` CSS px sin desplazamiento bidimensional salvo excepciones esenciales, zoom al `400 %`, texto al `200 %` y objetivos de puntero de al menos `24 × 24` CSS px o una excepción oficial aplicable y documentada. Controles, estados y errores tendrán:
+
+Las reglas se interpretan conforme a las explicaciones oficiales de W3C para [Reflow](https://www.w3.org/WAI/WCAG21/Understanding/reflow.html) y [Target Size (Minimum)](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html); una excepción no se presume, se documenta y prueba.
 
 - etiquetas textuales; color e iconos nunca serán la única señal;
 - navegación y activación mediante teclado;
@@ -384,14 +390,14 @@ Spring Modulith y ArchUnit verificarán `allowedDependencies = {"runner-manageme
 - Probar ubicación ausente y modalidad `en-linea` sin texto ficticio ni dato reutilizado.
 - Reproducir fases, bloques, repeticiones, cargas, recuperaciones, objetivos y aclaraciones sin pérdida ni reinterpretación.
 - Probar enlace de correo con sesión activa, sesión caducada, corredor ajeno e inactivo.
-- Verificar móvil reducido, ambas orientaciones, zoom, teclado, foco, etiquetas, errores y ausencia de desplazamiento horizontal esencial.
+- Verificar `320` CSS px, zoom `400 %`, texto `200 %`, objetivos `24 × 24` CSS px o excepción oficial documentada, ambas orientaciones, teclado, foco, etiquetas, errores y ausencia de desplazamiento bidimensional no esencial.
 
 ### `RF-17` — Seguimiento desde el portal
 
 - Presentar futuro sin acción, ventana abierta como `Pendiente de seguimiento` y ventana cerrada como `Sin seguimiento`.
 - Registrar desde `Mi plan` e `Historial`; editar dentro de ventana y dejar solo lectura después.
 - Cancelar sin petición, guardar una sola representación completa y mantener valores ante error de campo.
-- Cambiar entre `Realizado` y `No realizado` respetando esfuerzo entero `1..5`, sensación, comentario, normalización y límites de `tracking-review`.
+- Cambiar entre `Realizado` y `No realizado` respetando pregunta exacta, ausencia de valor por defecto, escala `1 Muy suave` a `5 Muy intenso`, esfuerzo entero, sensación, comentario, normalización y límites de `tracking-review`.
 - Simular republicación concurrente antes de la primera respuesta y comprobar rechazo, mensaje y recarga sin mezcla automática.
 - Comprobar que no existen guardado automático, borrador persistente, recuperación especial, polling ni WebSocket.
 

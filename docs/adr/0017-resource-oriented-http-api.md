@@ -57,6 +57,7 @@ Las transiciones se validan contra el estado actual y sus invariantes. Repetir u
 
 - Un identificador en la ruta localiza un candidato, pero nunca concede acceso.
 - Contraseñas, secretos y tokens de un solo uso solo aparecen en cuerpos protegidos; no se aceptan en rutas ni parámetros de consulta de la API.
+- Los enlaces de activación, reactivación, recuperación y verificación pueden entregar el secreto en el fragmento HTTPS conforme a `ADR-0003`. La SPA debe retirarlo antes del primer render y enviarlo después exclusivamente en el cuerpo de la API; esta excepción de navegación no autoriza secretos en una petición HTTP inicial, ruta o query.
 - Las respuestas de flujos sensibles permanecen indistinguibles cuando revelar existencia, estado o propiedad permita enumeración.
 - La autorización por rol y alcance sigue `ADR-0004` y `ADR-0015`; la misma ruta puede producir resultados distintos según las capacidades del actor sin duplicarse por rol.
 - Logs, métricas, trazas, Problem Details y ejemplos no contienen secretos ni datos personales innecesarios.
@@ -129,11 +130,11 @@ Se descarta porque una única API pública no debe reflejar fronteras internas m
 
 ## Requisitos relacionados
 
-- Todos los requisitos `RF-01` a `RF-20` que se expongan mediante HTTP.
+- Todos los requisitos `RF-01` a `RF-21` que se expongan mediante HTTP.
 
 ## Decisiones de Fase 1 relacionadas
 
-- `D-01` a `D-08`: los recursos HTTP materializan los conceptos y permisos aceptados sin cambiar sus reglas funcionales.
+- `D-01` a `D-11`: los recursos HTTP materializan los conceptos y permisos aceptados sin cambiar sus reglas funcionales.
 
 ## Validación prevista
 
@@ -143,6 +144,7 @@ Se descarta porque una única API pública no debe reflejar fronteras internas m
 - Usar `oasdiff` para bloquear un cambio incompatible no acompañado de una transición explícita.
 - Generar y compilar servidor Spring MVC y cliente TypeScript desde el contrato.
 - Probar métodos, códigos, cabeceras, idempotencia, precondiciones, seguridad y respuestas indistinguibles.
+- Probar que los secretos recibidos en fragmentos de navegación se eliminan antes del render y solo llegan a la API dentro de cuerpos HTTPS, nunca en rutas, query, logs o telemetría.
 - Registrar en cada PR de API el informe de revisión humana definido por la guía.
 
 ## Decisiones pendientes

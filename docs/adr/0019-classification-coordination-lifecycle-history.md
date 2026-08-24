@@ -154,7 +154,7 @@ Se descarta porque permitiría que cambios posteriores invalidaran la revisión 
 - `D-01`: segmentos dinámicos, grupos exclusivos y destinatarios publicados inmutables.
 - `D-02`: modalidad dentro de la taxonomía controlada.
 - `D-05`: gramática acotada y excepciones manuales.
-- `D-08`: administración y entrenador operan globalmente, con aislamiento del corredor.
+- `D-08`: el entrenador opera globalmente solo sobre corredores `active`; el administrador conserva el ciclo completo y cada corredor queda aislado.
 
 ## Validación prevista
 

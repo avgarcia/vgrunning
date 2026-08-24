@@ -1,6 +1,6 @@
 # Diseño detallado de gestión de corredores — Fase 2
 
-**Estado:** Validado para diseño y desarrollo con datos sintéticos
+**Estado:** Validado como diseño — únicamente autorizada la preparación técnica con datos sintéticos
 **Fecha:** 2026-08-17
 **Responsable de revisión:** Revisor de arquitectura
 **Restricción:** Prohibido tratar datos personales reales hasta completar la revisión especializada de privacidad exigida por `ADR-0010` y `ADR-0018`
@@ -94,9 +94,9 @@ Para búsqueda se mantienen formas derivadas sin distinguir mayúsculas ni diacr
 La cuenta continúa siendo propiedad de `identity-access`. El estado observable del corredor se proyecta a partir del perfil y de hechos confirmados de identidad, sin permitir que identidad dependa de `runner-management`.
 
 - El alta llama sincrónicamente a `ProvisionRunnerAccount` y crea ambos recursos en la misma transacción.
-- La activación de cuenta confirma primero identidad. Un evento publicado por su API permite que `runner-management` cambie idempotentemente a `active` después del commit.
+- La activación de cuenta confirma primero identidad. Un evento registrado en el `EventPublicationRegistry` JDBC de Spring Modulith permite que `runner-management` cambie idempotentemente a `active` después del commit.
 - Mientras el evento no se procese, el corredor sigue no elegible. Esta consistencia eventual produce una denegación temporal segura.
-- Una reconciliación consulta por lotes el estado publicado de las cuentas pendientes y corrige eventos retrasados o perdidos.
+- El consumidor es idempotente; las publicaciones incompletas se reintentan y generan alerta al superar el umbral operativo configurado. Una reconciliación por lotes sigue existiendo como protección suplementaria, no como sustituto del registro durable.
 - La baja y el inicio de reactivación se coordinan desde `runner-management` mediante llamadas Java síncronas a identidad dentro de la transacción que modifica el perfil.
 
 Los consumidores nunca infieren elegibilidad desde una cuenta ni desde la presencia de una fila. Usan la API canónica publicada por `runner-management`.
@@ -171,11 +171,13 @@ Reactivar antes del vencimiento cancela la tarea de supresión y elimina `retent
 
 ### Supresión por vencimiento o solicitud
 
-Una tarea idempotente reclama perfiles vencidos, deshabilita cualquier resto de acceso y elimina nombre, apellidos, formas de búsqueda y vínculo con la cuenta. Publica un hecho durable de supresión para que cada módulo propietario aplique su política sin acceso SQL cruzado.
+Una tarea idempotente reclama perfiles vencidos, deshabilita cualquier resto de acceso y elimina nombre, apellidos, formas de búsqueda y vínculo con la cuenta. Publica un hecho durable de supresión mediante el `EventPublicationRegistry` JDBC para que cada módulo propietario aplique su política sin acceso SQL cruzado.
 
 Clasificación elimina asignaciones y excepciones identificables; planificación elimina la referencia administrativa al último grupo; publicaciones y seguimiento conservan, anonimizan o suprimen según su propio evento y plazo. Un identificador opaco sin vínculo recuperable puede permanecer para integridad mientras exista historia legítimamente conservada.
 
 Una solicitud anticipada usa el procedimiento externo de derechos de `ADR-0010`; el producto no decide automáticamente excepciones jurídicas. Una decisión aprobada por el responsable encola la misma operación de supresión con su correlación y motivo.
+
+El procedimiento de restauración recalcula primero los vencimientos y reaplica las supresiones anticipadas registradas en el registro externo de solicitudes de privacidad. Solo después reabre el procesamiento y reintenta publicaciones incompletas; invertir este orden podría reexponer datos que ya debían estar suprimidos.
 
 ## Autorización
 
@@ -203,6 +205,7 @@ La política se aplica antes de leer. Para un entrenador, un identificador de co
 - iniciar o cancelar una reactivación;
 - suprimir o desvincular una identidad conforme a una decisión de privacidad aprobada;
 - consumir hechos confirmados de activación con identificador, estado y correlación, sin correo ni secretos.
+- obtener, exclusivamente para una entrega de publicación, `inactive` o `active(currentVerifiedEmail)` mediante la composición autorizada con identidad.
 
 Estos contratos amplían la API de identidad en el mismo commit de implementación y no autorizan lectura de su esquema.
 
@@ -215,6 +218,7 @@ Los demás módulos podrán:
 - obtener presentación mínima de corredores activos para interfaces autorizadas;
 - obtener, solo para administración, la presentación de un inactivo durante revisión;
 - consumir hechos de baja, reactivación y supresión para actualizar datos derivados o ejecutar retención.
+- resolver para `publication` la elegibilidad vigente y el correo verificado actual en una sola respuesta de sistema, sin almacenarlo en el perfil ni exponerlo por HTTP.
 
 Para iniciar una reactivación, `runner-management` publicará además el caso de uso interno que valida la revisión vigente y realiza la transición. Solo la implementación del puerto coordinador en `planning` lo invocará desde el adaptador HTTP; ningún controlador podrá usarlo directamente como atajo.
 
@@ -286,7 +290,7 @@ Buscar corredores por etiquetas o grupos requiere componer información de `clas
 ### Alta, activación y permisos
 
 - Probar alta atómica, idempotencia, conflicto de correo y rollback de solicitud de notificación.
-- Probar activación eventual, evento repetido, reconciliación y exclusión segura mientras exista retraso.
+- Probar activación eventual, evento repetido, reintento de publicaciones incompletas, reconciliación y exclusión segura mientras exista retraso.
 - Probar cancelación y máximo absoluto de `30` días aunque se reenvíe la invitación.
 - Probar la matriz completa de rol, estado y operación, incluidas listas y acceso directo por UUID.
 - Probar que el entrenador nunca observa pendientes o inactivos ni modifica datos identificativos.
@@ -300,6 +304,8 @@ Buscar corredores por etiquetas o grupos requiere componer información de `clas
 - Ejecutar carreras entre aceptación, cancelación, caducidad y cambios de clasificación o grupos, sin revelar reservas al entrenador.
 - Probar `24` meses exactos desde cada baja, nuevo periodo tras una reactivación real y ausencia de renovación por consultas.
 - Probar anonimización o supresión coordinada, reintentos, copias restauradas e independencia de los plazos históricos.
+- Probar que una restauración reaplica vencimientos y supresiones del registro externo antes de reanudar consumidores de eventos.
+- Probar que la resolución de entrega devuelve conjuntamente estado y correo verificado vigente, no lo expone al entrenador y no lo persiste en el perfil.
 
 ### Contrato
 

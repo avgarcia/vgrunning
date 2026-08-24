@@ -4,6 +4,7 @@
 **Fecha:** 2026-08-20
 **Fecha de aceptación:** 2026-08-21
 **Responsable de revisión:** Revisor de arquitectura
+**Refina parcialmente:** [ADR-0007](0007-atomic-publication-versioning-recipients.md), [ADR-0008](0008-transactional-publication-notifications.md), [ADR-0011](0011-transactional-email-delivery-strategy.md), [ADR-0014](0014-modular-hexagonal-ddd-architecture.md), [ADR-0018](0018-runner-lifecycle-inactivity-reactivation.md) y [ADR-0020](0020-planning-lifecycle-objectives-history.md)
 **Validación documental:** Decisiones de publicación aceptadas explícitamente por el responsable el 2026-08-21
 
 ## Contexto
@@ -17,7 +18,7 @@ También se han concretado dos reglas que las decisiones anteriores no cubren:
 - el día local determina qué entrenamientos todavía pueden publicarse o modificarse;
 - un corredor dado de baja conserva su pertenencia histórica al plan de esa semana, pero no debe recibir intentos futuros de correo mientras permanezca inactivo.
 
-Estas reglas cambian ciclo de vida, transacciones, API, integración modular, persistencia y pruebas. No pueden introducirse como una corrección editorial de ADRs aceptados. Este ADR refina únicamente las partes incompatibles de `ADR-0007`, `ADR-0008`, `ADR-0011`, `ADR-0014` y `ADR-0020`; sus demás decisiones continúan vigentes. Su materialización completa se describe en [Diseño detallado de publicación](../phase-2-detailed-design-publication.md).
+Estas reglas cambian ciclo de vida, transacciones, API, integración modular, persistencia y pruebas. No pueden introducirse como una corrección editorial de ADRs aceptados. Este ADR refina únicamente las partes incompatibles de `ADR-0007`, `ADR-0008`, `ADR-0011`, `ADR-0014` y `ADR-0020`, y precisa la elegibilidad posterior a la baja de `ADR-0018`; sus demás decisiones continúan vigentes. Su materialización completa se describe en [Diseño detallado de publicación](../phase-2-detailed-design-publication.md).
 
 ## Decisión
 
@@ -61,19 +62,23 @@ Las versiones anteriores se conservarán internamente para integridad, seguimien
 
 La primera publicación resolverá exclusivamente corredores `active` y congelará sus identificadores. Una baja posterior no reescribirá la publicación ni retirará al corredor de ese conjunto histórico. Los planes de semanas posteriores cuya primera publicación ocurra después de la baja no lo incluirán. Una reactivación tampoco recalculará destinatarios de planes ya publicados.
 
-A los efectos de `RF-15`, `RF-20` y `D-06`, **destinatario efectivo** designa la pertenencia histórica congelada, mientras **destinatario elegible para envío** designa un destinatario efectivo que continúa `active` inmediatamente antes del intento. Crear una solicitud para el primero no garantiza contactar con el proveedor: esa acción exige además la segunda condición.
+A los efectos de `RF-15`, `RF-20` y `D-06`, **miembro efectivo de la publicación** designa la pertenencia histórica congelada, mientras **miembro elegible para envío** designa uno que devuelve `active(currentVerifiedEmail)` al comenzar el primer procesamiento de su solicitud. Crear una solicitud para el primero no garantiza contactar con el proveedor: esa acción exige además la segunda condición.
 
-Cada versión seguirá creando, en su misma transacción, una solicitud lógica para cada destinatario efectivo congelado y conservará el destino de correo usado al crearla. Inmediatamente antes de cada intento real contra el proveedor, el worker comprobará mediante `runner-management` que el destinatario continúa `active`:
+Cada versión seguirá creando, en su misma transacción, una solicitud lógica para cada miembro efectivo congelado, pero no copiará todavía su correo. Al comenzar el primer procesamiento, el worker resolverá mediante `runner-management` el estado actual y el correo verificado vigente en una única respuesta:
 
-- si está activo, podrá comenzar el intento normal definido por `ADR-0011`;
+- si está activo, fijará atómicamente ese correo como destino inmutable de la solicitud y podrá comenzar el intento normal definido por `ADR-0011`; todos los reintentos y la reconciliación conservarán ese destino, y un cambio posterior de correo solo afectará a solicitudes futuras;
 - si no está activo, la solicitud pasará al estado terminal `omitido-inactivo`, liberará el orden para versiones posteriores y no admitirá reintentos ni reactivación retroactiva;
-- si no puede determinarse el estado, no se contactará con el proveedor y la solicitud seguirá recuperable como fallo técnico anterior al envío.
+- si no puede determinarse el estado, devolverá `retry-later`, no contactará con el proveedor y reintentará con backoff entre `5` segundos y `5` minutos hasta un máximo absoluto de `120` minutos desde la creación.
 
-`notification-delivery` no importará `runner-management` ni `publication`. Definirá un puerto de elegibilidad previo al intento; `publication`, que ya puede consumir ambas APIs, implementará la política para las notificaciones de planes y consultará el estado actual del corredor. La solicitud continuará autocontenida para destino, contenido e idempotencia. Esta inversión mantiene las dependencias de `ADR-0014` y evita el ciclo `notification-delivery -> runner-management -> identity-access -> notification-delivery`.
+Al vencer ese máximo, la solicitud terminará como `fallo-definitivo/elegibilidad-no-resuelta`, generará alerta y liberará la versión siguiente. No se reabrirá, recreará ni enviará manualmente. Una reconciliación de una llamada al proveedor que ya hubiera comenzado conserva su propia ventana y puede concluir después del máximo sin iniciar otro envío.
+
+`notification-delivery` no importará `runner-management` ni `publication`. Definirá un puerto de elegibilidad previo al intento; `publication`, que ya puede consumir ambas APIs, implementará la política para las notificaciones de planes y consultará conjuntamente estado y correo actual del corredor. Después de esa resolución la solicitud quedará autocontenida para destino, contenido e idempotencia. Esta inversión mantiene las dependencias de `ADR-0014` y evita el ciclo `notification-delivery -> runner-management -> identity-access -> notification-delivery`.
 
 Si el corredor se reactiva, las solicitudes que ya terminaron como `omitido-inactivo` permanecerán cerradas. Una versión del mismo plan confirmada después de la reactivación sí creará otra solicitud y podrá enviarse mientras el corredor continúe `active`, porque la reactivación recupera elegibilidad actual sin alterar el conjunto histórico.
 
 Existe una carrera inevitable entre la comprobación y la llamada externa. Si el corredor pasa a inactivo después de comprobarlo y la petición ya está en curso o ha sido aceptada por el proveedor, el mensaje todavía puede llegar. El PMV acepta expresamente ese riesgo extremo y no promete cancelar un correo en vuelo.
+
+También se acepta que una publicación errónea dirigida a un grupo, semana o conjunto de miembros equivocado no puede retirarse, corregirse para hoy o el pasado ni cancelar correos pendientes o en vuelo. La edición posterior solo permite republicar cambios futuros conforme a este ADR; no reescribe ni invalida el hecho anterior.
 
 El correo de primera publicación conservará el resumen semanal de `ADR-0008`. El de actualización incluirá también el resumen semanal completo y destacará todos los días añadidos, modificados o eliminados, sin comparación de detalle ni copia completa de los entrenamientos. El enlace abrirá siempre la versión activa autorizada.
 
@@ -82,9 +87,10 @@ El correo de primera publicación conservará el resumen semanal de `ADR-0008`. 
 Con la aceptación de este ADR quedan reemplazadas únicamente estas decisiones incompatibles:
 
 - de `ADR-0007`, el borrador de trabajo persistente después de publicar y el indicador de cambios pendientes;
-- de `ADR-0008`, la interpretación de que una solicitud para un destinatario efectivo implica necesariamente iniciar su envío aunque esté inactivo;
-- de `ADR-0011`, la máquina de estados cerrada sin `omitido-inactivo` y la ausencia de una comprobación de elegibilidad específica de publicación antes de cada intento;
+- de `ADR-0008`, la interpretación de que una solicitud para un miembro efectivo implica necesariamente iniciar su envío aunque esté inactivo;
+- de `ADR-0011`, la máquina de estados cerrada sin `omitido-inactivo`, la fijación universal del destino en la creación y la ausencia de una resolución de elegibilidad específica para el primer procesamiento de publicación;
 - de `ADR-0014`, solo la afirmación de que toda solicitud de entrega es completamente autocontenida para decidir su elegibilidad, sin añadir una dependencia modular inversa;
+- de `ADR-0018`, precisa que la pertenencia histórica no implica elegibilidad de envío y que esta se resuelve al comenzar el primer procesamiento;
 - de `ADR-0020`, la mutabilidad del nombre después de publicar, el borrador persistente publicado, `hasPendingChanges`, la restauración desde la versión activa y la consulta de historial de cambios del plan como capacidad de producto.
 
 Continuarán vigentes las instantáneas completas, destinatarios efectivos congelados, orden de versiones, atomicidad, outbox, reintentos, supresiones técnicas, permisos, retención y demás decisiones no contradichas expresamente.
@@ -109,7 +115,7 @@ Se descarta porque una baja, reactivación o reconfiguración de grupos modifica
 
 ### Alternativa E: Cancelar solicitudes al dar de baja o enviar siempre a congelados
 
-Ambas se descartan. Reescribir todas las colas durante la baja acoplaría el ciclo de vida del corredor a detalles de entrega; enviar siempre ignoraría el estado vigente. La comprobación justo antes de cada intento conserva el registro lógico y evita comenzar envíos a inactivos.
+Ambas se descartan. Reescribir todas las colas durante la baja acoplaría el ciclo de vida del corredor a detalles de entrega; enviar siempre ignoraría el estado vigente. La resolución al comenzar el procesamiento conserva el registro lógico, evita iniciar solicitudes para inactivos y fija un destino coherente para sus posibles reintentos.
 
 ### Alternativa F: Exponer historial y restauración de versiones
 
@@ -125,6 +131,7 @@ Se descartan. Un bloqueo puede quedar abandonado y exige caducidad; mezclar día
 - El flujo pierde recuperación de borradores locales ante cierres forzados. Se acepta para evitar estado persistente sin valor probado.
 - La ausencia de retirada hace simple la máquina de estados, pero una publicación al grupo equivocado no podrá ocultarse ni deshacerse desde el producto.
 - El bloqueo temporal impide corregir retrospectivamente un entrenamiento ya alcanzado; los errores de hoy o del pasado permanecerán en la publicación histórica.
+- Una publicación dirigida por error al grupo, semana o miembros incorrectos no puede retirarse, y sus correos pendientes o en vuelo no pueden corregirse ni cancelarse desde el producto.
 - Una única confirmación puede cambiar varios días y genera un solo correo por destinatario. Guardados separados pueden producir varios correos y no se agruparán.
 - Las versiones completas siguen ocupando espacio aunque no exista interfaz de historial; su retención y supresión continúan siendo obligatorias.
 - El conjunto de destinatarios conserva trazabilidad aunque un inactivo deje de recibir nuevos intentos de correo.
@@ -158,9 +165,11 @@ Se descartan. Un bloqueo puede quedar abandonado y exige caducidad; mezclar día
 - Probar altas, sustituciones y bajas de varios días, rechazo del último entrenamiento y rechazo atómico si uno de los días queda bloqueado.
 - Probar `ETag`, dos editores, conservación temporal del formulario rechazado, ausencia de mezcla y rechazo de no-op.
 - Probar la candidatura de primera publicación con lista y conteo exactos, y su invalidación ante cambios de plan, grupo, miembros o fecha.
+- Probar que el primer procesamiento fija el correo verificado vigente, que los cambios posteriores solo afectan a solicitudes futuras y que una publicación errónea no ofrece retirada ni cancelación de correos.
+- Probar backoff de elegibilidad, cierre a creación `+120` minutos, alerta, liberación del orden y reconciliación ya iniciada sin reenvío.
 - Probar ausencia de API e interfaz para historial, comparación, restauración y cambios pendientes; comprobar autoría solo para administrador y entrenador.
 - Probar que una baja no modifica destinatarios efectivos ni publicaciones y que primeras publicaciones posteriores excluyen al inactivo.
-- Probar la comprobación `active` antes de cada intento y reintento, el estado `omitido-inactivo`, su terminalidad y la liberación del orden.
+- Probar la resolución `inactive | retry-later | active(currentVerifiedEmail)` antes del primer intento, el estado `omitido-inactivo`, su terminalidad y la liberación del orden.
 - Probar que una reactivación no reabre solicitudes omitidas y que una versión posterior sí crea una solicitud nueva y enviable mientras el corredor continúe `active`.
 - Simular indisponibilidad al consultar elegibilidad y comprobar que no se llama al proveedor ni se pierde la solicitud.
 - Simular una baja después de la comprobación y documentar que un mensaje en vuelo puede ser aceptado o entregado.

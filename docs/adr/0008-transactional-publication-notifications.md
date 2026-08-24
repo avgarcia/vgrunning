@@ -3,6 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-12
 **Responsable de revisión:** Revisor de arquitectura
+**Refinado parcialmente por:** [ADR-0021](0021-publication-editing-notification-eligibility.md)
 
 ## Contexto
 
@@ -12,7 +13,7 @@
 
 Este ADR decide la semántica de las notificaciones de publicación y su vínculo con la versión publicada. `ADR-0011` define la infraestructura común de correo transaccional para acceso y publicación: proveedor, procesamiento asíncrono, política temporal de reintentos, credenciales, observabilidad técnica y operación del canal.
 
-> **Refinamiento aceptado:** `ADR-0021` conserva una solicitud por versión y destinatario congelado, pero introduce la omisión terminal del intento cuando el corredor no está `active` justo antes del proveedor. La baja no reescribe el destinatario histórico.
+> **Refinamiento aceptado:** `ADR-0021` conserva una solicitud por versión y miembro congelado, pero introduce la omisión terminal cuando el corredor no está `active` y la fijación del correo verificado vigente al comenzar el primer procesamiento elegible. La baja no reescribe la pertenencia histórica.
 
 ## Decisión
 
@@ -25,9 +26,9 @@ La misma transacción que crea y activa una versión publicada deberá crear tod
 
 Cada publicación y republicación creará una solicitud individual para cada destinatario congelado del plan. Todos ellos se considerarán afectados en cada versión; no habrá selección de subconjuntos, agrupación de direcciones, copia ni copia oculta.
 
-Cada solicitud referenciará como mínimo la versión publicada, el plan, el destinatario efectivo, el tipo de evento `publicacion` o `republicacion`, el destino de correo usado, el instante de creación y un identificador idempotente. La combinación lógica de versión, destinatario y tipo de notificación será única, de modo que reintentar el procesamiento no cree una segunda solicitud para el mismo hecho.
+Cada solicitud referenciará como mínimo la versión publicada, el plan, el miembro efectivo, el tipo de evento `publicacion` o `republicacion`, el instante de creación y un identificador idempotente. El destino no se copiará al crear una solicitud de publicación: se fijará atómicamente con el correo verificado vigente cuando el primer procesamiento confirme que el corredor continúa activo. La combinación lógica de versión, miembro y tipo de notificación será única, de modo que reintentar el procesamiento no cree una segunda solicitud para el mismo hecho.
 
-El contenido se generará exclusivamente a partir de la instantánea inmutable de la versión y de los datos conservados en la solicitud. Incluirá la semana del plan y, para cada entrenamiento, día, fecha y tipo de la parte principal, además de un enlace autenticado a la consulta del plan. No incluirá fases, bloques, objetivos, recuperaciones, aclaraciones, ubicación, datos de seguimiento ni información de otros corredores. El mensaje identificará de forma distinta una primera publicación y una actualización.
+El contenido se generará exclusivamente a partir de la instantánea inmutable de la versión y de los datos conservados en la solicitud. Una vez fijado, todos los intentos y la reconciliación de esa solicitud usarán el mismo destino; un cambio de correo posterior solo afectará a solicitudes futuras. Incluirá la semana del plan y, para cada entrenamiento, día, fecha y tipo de la parte principal, además de un enlace autenticado a la consulta del plan. No incluirá fases, bloques, objetivos, recuperaciones, aclaraciones, ubicación, datos de seguimiento ni información de otros corredores. El mensaje identificará de forma distinta una primera publicación y una actualización.
 
 El enlace abrirá el plan semanal activo del destinatario, no concederá acceso por sí mismo y aplicará la autorización de `ADR-0004`. Si existe una versión posterior cuando se abre el enlace, se mostrará la versión activa actual; el correo no crea acceso permanente a una versión histórica.
 
@@ -35,7 +36,7 @@ La solicitud conservará un estado lógico de entrega suficiente para trazabilid
 
 El PMV no ofrecerá reintento manual a administrador ni entrenador. Un reintento automático entregará una solicitud existente y no constituirá una nueva publicación, republicación ni notificación lógica. Editar un borrador, consultar un plan, cambiar un grupo o ejecutar cualquier otra acción no creará solicitudes de correo de publicación.
 
-Todas las publicaciones y republicaciones conservarán su propia solicitud y ninguna sustituirá a otra pendiente. Para cada pareja plan-destinatario, las solicitudes se procesarán por número de versión: una versión posterior no comenzará sus intentos hasta que la anterior quede `aceptado-proveedor` o alcance `fallo-definitivo` según `ADR-0011`. Esta regla garantiza orden de procesamiento, no una entrega física que ningún proveedor puede asegurar.
+Todas las publicaciones y republicaciones conservarán su propia solicitud y ninguna sustituirá a otra pendiente. Para cada pareja plan-miembro, las solicitudes se procesarán por número de versión: una versión posterior no comenzará sus intentos hasta que la anterior quede `aceptado-proveedor`, `omitido-inactivo` o alcance `fallo-definitivo` según `ADR-0011` y `ADR-0021`. Esta regla garantiza orden de procesamiento, no una entrega física que ningún proveedor puede asegurar.
 
 ## Alternativas consideradas
 
@@ -89,10 +90,11 @@ Se descarta para el PMV porque el registro de entrega es deseable, no imprescind
 
 ## Validación prevista
 
-- Probar que publicación, versión, destinatarios y solicitudes se confirman o abortan dentro de una única transacción.
+- Probar que publicación, versión, miembros efectivos y solicitudes se confirman o abortan dentro de una única transacción.
 - Inyectar un fallo al persistir cualquier solicitud y comprobar que la versión no queda visible.
 - Simular indisponibilidad del proveedor después de confirmar y comprobar que la publicación sigue activa y las solicitudes permanecen recuperables.
 - Probar unicidad e idempotencia por versión, destinatario y tipo de notificación.
+- Probar que una solicitud de publicación nace sin destino, fija el correo verificado vigente en su primer procesamiento elegible y lo conserva aunque el usuario lo cambie durante los reintentos.
 - Probar que cada solicitud usa exclusivamente datos de la versión inmutable y no del borrador actual.
 - Probar que el enlace exige autenticación y autorización y abre el plan activo propio.
 - Probar que acciones distintas de publicar o republicar no crean solicitudes.

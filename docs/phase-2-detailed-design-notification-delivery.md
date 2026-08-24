@@ -1,6 +1,6 @@
 # Diseño detallado de entrega de notificaciones — Fase 2
 
-**Estado:** Validado
+**Estado:** Validado como diseño — únicamente autorizada la preparación técnica con datos sintéticos
 **Fecha:** 2026-08-23
 **Fecha de validación:** 2026-08-23
 **Responsable de revisión:** Revisor de arquitectura
@@ -15,7 +15,7 @@ Materializar la aportación de entrega de `RF-01`, `RF-15` y `RF-20` antes de cr
 
 - Una invitación, reactivación, recuperación, verificación de correo, aviso de cambio de correo, publicación o republicación confirmada deja una solicitud recuperable en la misma transacción que su origen.
 - Los enlaces de acceso se entregan con rapidez sin permitir que una publicación masiva los bloquee.
-- Cada solicitud usa contenido, destino, plantilla, clave idempotente y correlación estables durante todos sus intentos.
+- Cada solicitud usa contenido, plantilla, clave idempotente y correlación estables. Identidad aporta el destino al crearla; publicación lo fija al comenzar el primer procesamiento elegible y lo conserva para todos los intentos.
 - Una publicación solo contacta con Brevo cuando el corredor continúa `active` inmediatamente antes de ese intento.
 - Brevo puede aceptar, entregar o rechazar el mensaje sin que una caída de la aplicación pierda la solicitud o fuerce un reenvío inseguro.
 - Ningún rol del producto consulta estados de entrega ni solicita reintentos manuales.
@@ -109,7 +109,7 @@ Quedan fuera:
 | Supresión | Bloqueo global de futuros envíos a un destino por dirección inválida, rebote duro o queja. |
 | Pausa global | Estado operativo que impide reclamar nuevos envíos por una incidencia de configuración o cuenta del proveedor. |
 | Reconciliación | Consulta y correlación que resuelve si Brevo aceptó un intento cuya respuesta se perdió. |
-| Destino congelado | Dirección concreta conservada por la solicitud; no se vuelve a resolver en un reintento. |
+| Destino fijado | Dirección concreta conservada por la solicitud. En identidad se fija al crearla; en publicación, al resolver por primera vez `active(currentVerifiedEmail)`. No se vuelve a resolver en un reintento. |
 | Destino elegible | Destino que supera supresión, vigencia y, para publicaciones, actividad actual antes del intento. |
 
 En código, OpenAPI y persistencia se usarán `notification request`, `delivery attempt`, `delivery event inbox`, `suppressed destination` y `delivery control`. No se usará `email job` como concepto de dominio ni se expondrán nombres de Brevo fuera del adaptador.
@@ -127,7 +127,7 @@ En código, OpenAPI y persistencia se usarán `notification request`, `delivery 
 
 `identity-access` decide cuándo existen invitación, reactivación, recuperación, cambio de correo o aviso de seguridad. Entrega el tipo, la generación vigente, el destino y el payload mínimo, pero no accede al esquema de notificaciones.
 
-`publication` decide cuándo existe una publicación o republicación, crea una solicitud por destinatario congelado y aporta el contenido aprobado. También implementa el puerto de elegibilidad definido por `notification-delivery` y consulta `runner-management`; entrega no importa módulos de negocio.
+`publication` decide cuándo existe una publicación o republicación, crea una solicitud por miembro efectivo sin copiar su correo y aporta el contenido aprobado. También implementa el puerto de elegibilidad definido por `notification-delivery`, consulta conjuntamente estado y correo vigente mediante `runner-management` y devuelve un resultado cerrado; entrega no importa módulos de negocio.
 
 La dependencia queda:
 
@@ -161,7 +161,7 @@ Cada solicitud conserva:
 - UUID propio, clave lógica única del productor, tipo y prioridad;
 - referencia opaca de origen y, si aplica, generación del secreto;
 - clave de orden y número de versión para publicación;
-- destino cifrado y huella HMAC de su forma canónica;
+- destino cifrado y huella HMAC de su forma canónica, obligatorios desde la creación para identidad y todavía ausentes al crear una solicitud de publicación;
 - identificador y versión de plantilla, idioma `es` y payload cifrado;
 - UUID idempotente estable y etiqueta opaca estable para Brevo;
 - estado, motivo normalizado, contador de intentos y próximo instante;
@@ -180,7 +180,7 @@ Estados:
 
 `aceptado-proveedor` es terminal para decidir un nuevo envío, pero admite una precisión posterior a `entregado` o `fallo-definitivo`. Un evento de queja o rebote permanente tiene precedencia sobre `entregado` y activa supresión; un evento atrasado de entrega nunca revierte una queja o fallo permanente. Los eventos sin transición válida se conservan como evidencia mínima y no cambian la proyección.
 
-Motivos terminales normalizados incluyen `reemplazado`, `contenido-caducado`, `destino-suprimido`, `rechazo-permanente`, `rebote-blando`, `rebote-duro`, `direccion-invalida`, `queja`, `resultado-desconocido` y `intentos-agotados`. Ningún motivo contiene dirección, contenido o respuesta completa del proveedor.
+Motivos terminales normalizados incluyen `reemplazado`, `contenido-caducado`, `destino-suprimido`, `elegibilidad-no-resuelta`, `rechazo-permanente`, `rebote-blando`, `rebote-duro`, `direccion-invalida`, `queja`, `resultado-desconocido` y `intentos-agotados`. Ningún motivo contiene dirección, contenido o respuesta completa del proveedor.
 
 ## Modelo persistente
 
@@ -200,13 +200,15 @@ Los sobres cifrados usan AEAD con versión de clave y nonce. Las claves de cifra
 
 ## Creación transaccional e inmutabilidad
 
-La API Java de creación participa en la transacción PostgreSQL del productor:
+La API Java de creación participa en la transacción PostgreSQL del productor. Para identidad:
 
 1. valida tipo, plantilla, clave lógica y payload cerrado;
 2. normaliza el destino en memoria y calcula su huella;
 3. cifra destino y payload localmente, sin llamar a Key Vault ni a Brevo;
 4. crea una solicitud con idempotencia y correlación estables;
 5. devuelve su UUID sin iniciar el envío.
+
+Para publicación valida clave lógica, miembro, orden, plantilla y payload, cifra el payload y crea la solicitud sin destino ni huella. El primer resultado `eligible(currentVerifiedEmail)` fija ambos atómicamente antes de renderizar o transmitir. Si dos workers compiten, el lease y la precondición de destino ausente permiten una sola fijación.
 
 Una repetición con la misma clave lógica y el mismo contenido devuelve la solicitud existente. La misma clave con contenido distinto es un conflicto de programación y revierte la transacción.
 
@@ -242,27 +244,27 @@ Una solicitud es reclamable si:
 
 La consulta usa `FOR UPDATE SKIP LOCKED` y ordena por prioridad ascendente, `next_attempt_at`, creación y UUID. FIFO se interpreta dentro de una prioridad y disponibilidad equivalente; un reintento programado no adelanta su instante por la llegada de trabajo nuevo.
 
-Para una pareja plan-destinatario, la versión `n+1` espera hasta que `n` alcance `aceptado-proveedor`, `entregado`, `fallo-definitivo` u `omitido-inactivo`. La prioridad nunca salta esta barrera, una supresión, la vigencia de un secreto o la elegibilidad de publicación.
+Para una pareja plan-miembro, la versión `n+1` espera hasta que `n` alcance `aceptado-proveedor`, `entregado`, `fallo-definitivo` u `omitido-inactivo`. La prioridad nunca salta esta barrera, una supresión, la vigencia de un secreto o la elegibilidad de publicación.
 
 La antigüedad de cola se mide por prioridad. Si una prioridad inferior creciera de forma sostenida se ajustaría capacidad o reparto con evidencia; no se introduce ahora un algoritmo de cuotas que la escala prevista no necesita.
 
 ## Flujo de procesamiento
 
 1. Una transacción corta reclama la fila, asigna token y vencimiento de lease y confirma.
-2. Fuera de transacción se descifran destino y payload.
-3. Se comprueba que el destino no está suprimido y que cualquier secreto sigue vigente.
-4. Para publicaciones se invoca `DeliveryEligibilityPolicy` antes de cada llamada.
-5. Si es elegible, se renderiza la versión fija de plantilla y se llama a Brevo con la misma idempotencia y correlación.
+2. Para una publicación sin destino se invoca `DeliveryEligibilityPolicy`; `eligible(currentVerifiedEmail)` fija cifrado y huella en una transacción corta protegida por el lease.
+3. Fuera de transacción se descifran destino y payload.
+4. Se comprueba que el destino no está suprimido y que cualquier secreto sigue vigente.
+5. Se renderiza la versión fija de plantilla y se llama a Brevo con la misma idempotencia y correlación.
 6. Otra transacción corta actualiza solo si el token de lease continúa vigente.
 7. El contenido sensible se elimina cuando deja de ser necesario y el ejecutor libera memoria.
 
-Una política de publicación responde `eligible`, `ineligible` o `retry-later`:
+Una política de publicación responde `eligible(currentVerifiedEmail)`, `ineligible` o `retry-later`:
 
-- `eligible` permite continuar;
+- `eligible(currentVerifiedEmail)` fija el destino si todavía está ausente y permite continuar;
 - `ineligible` termina como `omitido-inactivo`, sin contactar con Brevo;
-- `retry-later` vuelve a `pendiente`, no consume intento del proveedor y usa backoff local desde `5` segundos hasta un máximo de `5` minutos, con alerta por antigüedad.
+- `retry-later` vuelve a `pendiente`, no consume intento del proveedor y usa backoff local desde `5` segundos hasta un máximo de `5` minutos.
 
-El backoff local no tiene un máximo de intentos mientras el origen siga vigente. Los enlaces caducados terminan; las publicaciones esperan recuperación operativa. La consulta se repite antes de cada llamada nueva. Una baja después de la comprobación puede dejar llegar el correo en vuelo y ese riesgo permanece aceptado.
+La elegibilidad tiene un máximo absoluto en creación `+120` minutos. Si continúa sin resolverse, termina como `fallo-definitivo/elegibilidad-no-resuelta`, genera alerta y libera la versión siguiente; no se reabre, recrea ni envía manualmente. Una vez fijado el destino no se vuelve a consultar actividad o correo. Una baja o cambio de correo posterior puede dejar llegar el correo al destino fijado y ese riesgo permanece aceptado. La reconciliación de una llamada al proveedor ya iniciada puede concluir después del límite sin realizar un nuevo envío. La pausa global del proveedor es un incidente separado y no reinicia el plazo previo de elegibilidad.
 
 ## Adaptador de Brevo
 
@@ -372,10 +374,10 @@ NotificationRequestApi
 
 DeliveryEligibilityPolicy
   supports(notificationType)
-  evaluate(requestContext) -> eligible | ineligible | retry-later
+  evaluate(requestContext) -> eligible(currentVerifiedEmail) | ineligible | retry-later
 ```
 
-`NotificationCommand` es una jerarquía cerrada por tipo y contiene clave lógica, origen opaco, destino, plantilla, payload mínimo, caducidad y orden cuando corresponda. El consumidor no elige prioridad, estado, reintentos, idempotencia ni nombres de plantilla arbitrarios.
+`NotificationCommand` es una jerarquía cerrada por tipo. Los comandos de identidad contienen clave lógica, origen opaco, destino, plantilla, payload mínimo y caducidad; los de publicación contienen miembro efectivo y orden, pero no destino. El consumidor no elige prioridad, estado, reintentos, idempotencia ni nombres de plantilla arbitrarios.
 
 Los contratos no exponen entidades, tablas, jOOQ, tipos de Brevo, cuerpos renderizados, secretos descifrados, referencia de mensaje ni estado técnico a módulos de producto.
 
@@ -498,7 +500,9 @@ El dominio no depende de Spring, OpenAPI, jOOQ, JDBC, Brevo o Key Vault. Spring 
 - Ejecutar varios workers y comprobar distribución con `SKIP LOCKED`, lease y protección frente a worker obsoleto.
 - Detener el proceso antes, durante y después de Brevo y recuperar sin crear otra solicitud lógica.
 - Probar vigencia y reemplazo de cada generación de identidad.
-- Probar elegibilidad antes de cada intento, `omitido-inactivo`, `retry-later` y carrera posterior con baja.
+- Probar la única resolución previa al primer intento, fijación atómica del correo vigente, `omitido-inactivo`, `retry-later` y carreras con baja o cambio de correo.
+- Probar backoff entre `5` segundos y `5` minutos, cierre a creación `+120` minutos con `elegibilidad-no-resuelta`, alerta, liberación del orden y prohibición de reapertura o envío manual.
+- Probar que una reconciliación ya iniciada puede terminar después del límite sin nuevo envío y que una pausa global no reinicia el plazo previo.
 - Ejecutar cada calendario de reintentos, respetar `Retry-After` y no enviar secretos caducados.
 - Probar resultado incierto, reconciliación, clave duplicada y cierre sin reenvío después de `30` minutos.
 - Probar errores individuales, supresión, errores globales, pausa y ausencia de consumo masivo de intentos.
@@ -545,6 +549,7 @@ Riesgos aceptados:
 
 - la entrega física puede duplicarse en casos límite y nunca se promete exactamente una vez;
 - un correo en vuelo puede llegar después de una baja, reemplazo o cambio operativo;
+- un cambio de correo después de fijar el destino no altera la solicitud actual; solo las solicitudes futuras usan el nuevo;
 - priorizar acceso puede retrasar publicaciones bajo una carga anómala; se observa antes de añadir cuotas;
 - una inbox persistente añade almacenamiento y procesamiento, pero evita perder eventos por fallos internos;
 - aceptar respuestas obliga al club a atender un buzón único;
@@ -556,7 +561,7 @@ Riesgos aceptados:
 
 - La outbox conserva atomicidad y recuperabilidad sin broker ni transacción distribuida.
 - La prioridad protege acceso y el orden conserva coherencia entre versiones de publicación.
-- La solicitud permanece autocontenida y cifrada; ningún reintento reconstruye destino o contenido desde datos mutables.
+- Tras fijar su destino, la solicitud permanece autocontenida y cifrada; ningún reintento reconstruye destino o contenido desde datos mutables.
 - La inbox y una proyección monotónica separan recepción fiable de eventos y estado técnico.
 - Supresiones, pausa y comandos auditados cubren la operación sin añadir capacidades ocultas al producto.
 - El contrato HTTP se limita al evento entrante neutral; los estados y acciones operativas permanecen internos.

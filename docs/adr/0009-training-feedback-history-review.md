@@ -3,6 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
+**Refinado parcialmente por:** [ADR-0022](0022-five-point-perceived-effort-scale.md)
 
 > **Refinamiento aceptado:** `ADR-0022` reemplaza exclusivamente el intervalo de esfuerzo `1..10` por `1..5`. Las demás decisiones de este ADR continúan vigentes.
 
@@ -10,7 +11,7 @@
 
 `RF-17` exige que el corredor registre para un entrenamiento publicado si lo realizó, su esfuerzo percibido de `1` a `10`, una sensación `bien`, `normal` o `mal` y un comentario opcional. `RF-18` exige historial propio y `RF-19` una vista global para que entrenador y administrador revisen esa información por corredor, plan semanal y entrenamiento.
 
-`ADR-0004` limita la escritura al corredor propietario y concede lectura global a entrenador y administrador. `ADR-0006` modela cada entrenamiento dentro de un plan semanal y `ADR-0007` conserva versiones publicadas inmutables. Falta decidir la identidad del registro, su relación con las versiones, las reglas de actualización y qué constituye un historial y una revisión mínimos.
+`ADR-0004` limita la escritura al corredor propietario y concede lectura global a entrenador y administrador. `ADR-0018` precisa que el entrenador solo consulta corredores actualmente `active`, mientras el administrador conserva acceso auditado a inactivos. `ADR-0006` modela cada entrenamiento dentro de un plan semanal y `ADR-0007` conserva versiones publicadas inmutables. Falta decidir la identidad del registro, su relación con las versiones, las reglas de actualización y qué constituye un historial y una revisión mínimos.
 
 La información de seguimiento es dato personal declarado. El comentario libre puede contener información de salud aunque el producto no la solicite. `ADR-0010` define consentimiento explícito y separado, transparencia, retención, bloqueo, acceso, rectificación y supresión; este ADR no puede afirmar que el texto libre carece de datos sensibles.
 
@@ -38,7 +39,7 @@ Guardar o actualizar será una única operación. Una entrada inválida, una mod
 
 El corredor podrá crear el registro desde el inicio de la fecha del entrenamiento y nunca antes. La ventana permanecerá abierta durante siete días naturales contando esa fecha como día `1`, hasta el final del sexto día posterior. Dentro de esa misma ventana podrá modificar el registro; después quedará cerrado para nuevas respuestas y ediciones. El cálculo usará una única zona horaria operativa configurada para el club.
 
-Solo el corredor vinculado a la identidad autenticada podrá crear o actualizar su registro, y únicamente si fue destinatario del entrenamiento publicado. Administrador y entrenador tendrán lectura global, pero no podrán crear, corregir ni completar seguimiento en nombre del corredor. No habrá asignación a entrenador, respuestas del entrenador, notas internas, aprobación ni estado de revisión en el PMV.
+Solo el corredor vinculado a la identidad autenticada podrá crear o actualizar su registro, y únicamente si fue destinatario del entrenamiento publicado. El entrenador tendrá lectura global únicamente sobre corredores `active`; el administrador podrá consultar inactivos mediante acceso auditado. Ninguno podrá crear, corregir ni completar seguimiento en nombre del corredor. No habrá asignación a entrenador, respuestas, notas internas, prioridad, SLA, aprobación, prueba de lectura ni estado de revisión en el PMV.
 
 El historial del corredor y la revisión global se construirán desde entrenamientos publicados y registros de seguimiento, no desde borradores. Incluirán todos los entrenamientos que hayan llegado a publicarse para el corredor, aunque no exista seguimiento. La ausencia de registro se mostrará como estado derivado `sin-seguimiento`, distinto de una declaración explícita `no-realizado`.
 
@@ -122,8 +123,11 @@ Se descarta para el PMV porque `RF-19` exige consulta, no asignación, aprobaci�
 - Verificar que no existen notas, respuestas, asignación ni estados de revisión del entrenador.
 - Validar con `ADR-0010` la preparación para privacidad antes de producción.
 
+## Relaciones con decisiones posteriores
+
+- **Refinado por `ADR-0022`:** el esfuerzo percibido usa un entero de `1` a `5` con etiquetas canónicas; las referencias `1..10` anteriores conservan únicamente el contexto histórico de esta decisión.
+
 ## Decisiones pendientes
 
-- **Refinado por `ADR-0022`:** el esfuerzo percibido usa un entero de `1` a `5`; las referencias `1..10` anteriores conservan únicamente el contexto histórico de esta decisión.
 - **Tratado por `ADR-0010` (Aceptado), bloqueante para producción:** el comentario requiere consentimiento explícito y separado, retirada sin pérdida del servicio, retención y ejercicio de derechos. Responsable: responsable del tratamiento con asesoramiento de privacidad. Tratamiento: revisar la base y completar la EIPD antes de datos reales.
 - **Resuelto por `ADR-0012`:** PostgreSQL será la persistencia, los recorridos cronológicos usarán cursor estable y los índices se validarán con planes de consulta.

@@ -2,6 +2,7 @@
 
 **Estado:** Aceptado
 **Fecha:** 2026-08-11
+**Última actualización:** 2026-08-24 — transporte y eliminación temprana de secretos recibidos por navegador
 
 ## Propósito
 
@@ -28,7 +29,10 @@ Concretar los parámetros de seguridad que materializan [ADR-0003](adr/0003-iden
 | Recuperación | Caduca a la hora. Solo el último secreto emitido para la cuenta es válido. |
 | Solicitudes | Máximo 3 solicitudes por cuenta y 10 por IP en una hora; la respuesta no revela la existencia de la cuenta. |
 | Cambio de contraseña | No inicia sesión automáticamente e invalida todas las sesiones activas de la cuenta. |
-| Vistas con secreto | Las páginas de activación y recuperación usan `Referrer-Policy: no-referrer` y no cargan recursos ni analítica de terceros. |
+| Enlace recibido | Activación, reactivación, recuperación y verificación de correo incluyen el secreto solo en el fragmento de una URL HTTPS; nunca en ruta ni query. |
+| Bootstrap de la SPA | Antes de renderizar, iniciar telemetría o cargar recursos adicionales, lee el fragmento, lo conserva solo en memoria y ejecuta `history.replaceState` para retirarlo de la URL visible. |
+| Uso posterior | El secreto se envía únicamente en el cuerpo HTTPS de la operación protegida y se descarta de memoria al terminar, cancelar o abandonar el flujo. Nunca se copia a `localStorage`, `sessionStorage`, estado persistente, logs, analítica o informes de error. |
+| Vistas con secreto | Usan `Referrer-Policy: no-referrer`, `Cache-Control: no-store`, una CSP estricta y no cargan recursos, scripts ni analítica de terceros. |
 
 ## Sesiones y solicitudes de cambio de estado
 
@@ -50,4 +54,5 @@ El despliegue provisiona una única cuenta pendiente con rol administrador media
 - Probar todos los límites, caducidades, invalidaciones y mensajes genéricos definidos en esta línea base.
 - Medir en el entorno elegido el coste de Argon2id y no habilitar acceso si no cumple los parámetros mínimos.
 - Verificar atributos de cookie, protección anti-CSRF, ausencia de secretos en respuestas, URL de redirección, registros o analítica.
+- Verificar que el fragmento se elimina antes del primer render, telemetría o recurso adicional y que navegación, recarga, historial, `Referer`, almacenamiento web y errores no conservan el secreto.
 - Revisar esta línea base cuando cambie la plataforma, antes de producción y ante un incidente de seguridad.
