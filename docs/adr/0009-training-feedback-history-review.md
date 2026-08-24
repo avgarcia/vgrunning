@@ -4,6 +4,8 @@
 **Fecha:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
 
+> **Refinamiento aceptado:** `ADR-0022` reemplaza exclusivamente el intervalo de esfuerzo `1..10` por `1..5`. Las demás decisiones de este ADR continúan vigentes.
+
 ## Contexto
 
 `RF-17` exige que el corredor registre para un entrenamiento publicado si lo realizó, su esfuerzo percibido de `1` a `10`, una sensación `bien`, `normal` o `mal` y un comentario opcional. `RF-18` exige historial propio y `RF-19` una vista global para que entrenador y administrador revisen esa información por corredor, plan semanal y entrenamiento.
@@ -122,5 +124,6 @@ Se descarta para el PMV porque `RF-19` exige consulta, no asignación, aprobaci�
 
 ## Decisiones pendientes
 
+- **Refinado por `ADR-0022`:** el esfuerzo percibido usa un entero de `1` a `5`; las referencias `1..10` anteriores conservan únicamente el contexto histórico de esta decisión.
 - **Tratado por `ADR-0010` (Aceptado), bloqueante para producción:** el comentario requiere consentimiento explícito y separado, retirada sin pérdida del servicio, retención y ejercicio de derechos. Responsable: responsable del tratamiento con asesoramiento de privacidad. Tratamiento: revisar la base y completar la EIPD antes de datos reales.
 - **Resuelto por `ADR-0012`:** PostgreSQL será la persistencia, los recorridos cronológicos usarán cursor estable y los índices se validarán con planes de consulta.

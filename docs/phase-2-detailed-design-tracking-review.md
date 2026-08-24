@@ -28,7 +28,7 @@ Materializar `RF-17`, la aportación de seguimiento a `RF-18` y la revisión glo
 - [Diseño detallado de gestión de corredores](phase-2-detailed-design-runner-management.md), que define estados, inactividad, reactivación y retención del corredor.
 - [Diseño detallado de publicación](phase-2-detailed-design-publication.md), que gobierna versiones, destinatarios, visibilidad y retirada de entrenamientos mediante republicación.
 - `ADR-0004`: escritura del corredor propietario, lectura global de administrador y entrenador y aislamiento.
-- `ADR-0009`: registro único, campos cerrados, ventana, historial, versiones de referencia, retirados y revisión de solo lectura.
+- `ADR-0009`: registro único, campos cerrados, ventana, historial, versiones de referencia, retirados y revisión de solo lectura, con escala de esfuerzo refinada por `ADR-0022`.
 - `ADR-0010`: consentimiento del comentario, retirada, minimización, derechos, retención y bloqueo de producción.
 - `ADR-0012`: PostgreSQL, transacciones, restricciones, índices y cursores.
 - `ADR-0014`: propiedad de `tracking-review`, APIs Java y dependencias permitidas.
@@ -166,7 +166,7 @@ La baja del corredor bloquea inmediatamente creación y sustitución. Las filas 
 La representación completa contiene:
 
 - `performed`: booleano obligatorio;
-- `effort`: entero de `1` a `10`, obligatorio solo cuando `performed=true`;
+- `effort`: entero de `1` a `5`, obligatorio solo cuando `performed=true`;
 - `feeling`: `bien`, `normal` o `mal`, obligatorio solo cuando `performed=true`;
 - `comment`: texto plano opcional de hasta `1.000` caracteres;
 - identificadores opacos, versión de referencia, fechas y revisión expuestos según el actor.
@@ -394,10 +394,10 @@ El dominio no depende de Spring, OpenAPI, jOOQ, JDBC ni módulos consumidores. S
 
 ### `RF-17` — Registro de seguimiento
 
-- Probar primera respuesta válida `realizado` con esfuerzo `1` y `10`, sensaciones cerradas y comentario ausente o vigente.
+- Probar primera respuesta válida `realizado` con esfuerzo `1` y `5`, sensaciones cerradas y comentario ausente o vigente.
 - Probar `no-realizado` sin esfuerzo ni sensación y rechazo si alguno se envía.
 - Cambiar en ambos sentidos y comprobar sustitución completa, limpieza de campos y ausencia de historial de ediciones.
-- Rechazar esfuerzo `0` y `11`, sensación desconocida, cuerpo incompleto y comentario de `1.001` caracteres sin alterar el registro anterior.
+- Rechazar esfuerzo `0` y `6`, números no enteros, sensación desconocida, cuerpo incompleto y comentario de `1.001` caracteres sin alterar el registro anterior.
 - Aceptar `1.000` caracteres, conservar saltos interiores, quitar espacios exteriores y tratar texto vacío como ausencia.
 - Probar inicio exacto de la fecha, final del sexto día posterior, instante siguiente, cambio de horario y carrera al cruzar medianoche.
 - Rechazar entrenamiento futuro, borrador, publicación ajena, corredor inactivo y primera respuesta a un retirado.
@@ -458,7 +458,7 @@ El dominio no depende de Spring, OpenAPI, jOOQ, JDBC ni módulos consumidores. S
 
 ## Cambios de alcance y riesgos aceptados
 
-Este diseño no amplía el PMV con mensajería, revisión clínica ni analítica. Concreta comportamientos que `ADR-0009`, `ADR-0010` y `ADR-0018` exigían pero no detallaban en interfaz y contratos: consentimiento justo a tiempo, ausencia de borrado ordinario, entrada temporal al historial, presentación semanal, minimización del comentario, alcance de inactivos y conteos de retirados.
+Este diseño no amplía el PMV con mensajería, revisión clínica ni analítica. Concreta comportamientos que `ADR-0009`, `ADR-0010`, `ADR-0018` y el refinamiento de escala de `ADR-0022` exigen en interfaz y contratos: esfuerzo entero `1..5`, consentimiento justo a tiempo, ausencia de borrado ordinario, entrada temporal al historial, presentación semanal, minimización del comentario, alcance de inactivos y conteos de retirados.
 
 Riesgos aceptados:
 

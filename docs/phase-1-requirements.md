@@ -2,7 +2,7 @@
 
 **Estado:** Validado — Fase 1 cerrada
 **Fecha:** 2026-08-10
-**Última actualización:** 2026-08-24 — alineación final de `RF-02`, `RF-08` y trazabilidad con el cierre de Fase 2
+**Última actualización:** 2026-08-24 — escala de esfuerzo de `RF-17` refinada por `ADR-0022` y trazabilidad final de Fase 2
 
 ## Actores y permisos
 
@@ -34,7 +34,7 @@ El corredor solo accede a sus propios datos. Administradores y entrenadores acce
 - **RF-14.** Estados del plan: borrador y publicado.
 - **RF-15.** Administrador o entrenador puede editar uno o varios entrenamientos futuros de un plan publicado mediante una única republicación atómica; el entrenamiento de hoy y los anteriores permanecen inmutables. Cada nueva versión crea una solicitud de notificación para cada destinatario efectivo congelado y la entrega aplica la elegibilidad vigente definida en `RF-20`.
 - **RF-16.** Consulta adaptable a dispositivos móviles de planes, entrenamientos y lugar de encuentro por el corredor.
-- **RF-17.** Registro por entrenamiento: realizado/no realizado, esfuerzo percibido (1–10), sensación general con valores bien/normal/mal y comentario opcional.
+- **RF-17.** Registro por entrenamiento: realizado/no realizado, esfuerzo percibido (1–5), sensación general con valores bien/normal/mal y comentario opcional.
 - **RF-18.** Historial básico de entrenamientos e información de seguimiento del corredor.
 - **RF-19.** Vista de entrenadores para revisar información de seguimiento por corredor, plan semanal y entrenamiento, con visibilidad de estado realizado/no realizado, esfuerzo, sensación y comentario.
 - **RF-20.** Cuando administrador o entrenador confirma la publicación o republicación de un plan semanal, el sistema crea una solicitud para cada destinatario efectivo congelado. Inmediatamente antes de cada intento se contacta con el proveedor solo si el corredor continúa `active`; si no, la solicitud termina como `omitido-inactivo`, sin reintento ni reapertura retroactiva. Una reactivación permite notificar versiones futuras mientras el corredor permanezca activo, pero no recupera solicitudes ya omitidas. El correo incluye semana del plan, resumen de entrenamientos y enlace al plan publicado. No se incluyen otros eventos de notificación.

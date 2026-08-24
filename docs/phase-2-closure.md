@@ -16,7 +16,7 @@ El cierre comprende ocho módulos confirmados por `ADR-0014`: `identity-access`,
 - Los ocho módulos tienen diseño detallado validado y propietario, dependencias, datos, autorización, API prevista y validación documentados.
 - Cada requisito `RF-01` a `RF-20` tiene una fila única en la [trazabilidad de requisitos](phase-2-high-level-design.md#trazabilidad-de-requisitos), criterios de aceptación y ADR o decisión técnica equivalente.
 - Cada decisión `D-01` a `D-08` tiene tratamiento y ADR relacionado en la [trazabilidad de decisiones](phase-2-high-level-design.md#trazabilidad-de-decisiones-de-fase-1).
-- Los `21` ADRs están aceptados y el backlog inicial de Fase 2 no conserva candidatos pendientes.
+- Los `22` ADRs están aceptados y el backlog inicial de Fase 2 no conserva candidatos pendientes.
 - No quedan preguntas de producto o arquitectura abiertas dentro del diseño de los ocho módulos.
 - Las obligaciones anteriores a implementación, datos reales y producción permanecen explícitas y no se presentan como trabajo resuelto.
 
@@ -36,9 +36,10 @@ El cierre comprende ocho módulos confirmados por `ADR-0014`: `identity-access`,
 - `RF-02` y sus criterios se alinean con el rol inicial único e inmutable decidido por `ADR-0004`.
 - `RF-08` y sus criterios se alinean con `ADR-0006`: cada plan pertenece a un grupo de planificación y no se asigna directamente a segmentos o corredores.
 - Los criterios de `RF-17` distinguen `realizado`, que exige esfuerzo y sensación, de `no-realizado`, que los prohíbe; el comentario requiere consentimiento vigente.
+- `ADR-0022` cambia explícitamente la escala de esfuerzo de `1..10` a `1..5` por decisión del responsable de producto y actualiza requisito, criterios, diseño y validación.
 - Los estados y referencias que todavía describían `runner-portal`, los ADRs o los diseños detallados como pendientes se actualizan al resultado ya validado.
 
-Estas correcciones no cambian el alcance: eliminan contradicciones con decisiones aceptadas y con documentos detallados ya fusionados.
+Estas correcciones no añaden capacidades, actores, datos ni módulos al PMV. Sí cambian una restricción funcional existente al reducir la escala de esfuerzo de `1..10` a `1..5`; el resto elimina contradicciones con decisiones aceptadas y con documentos detallados ya fusionados.
 
 ## Revisión de trazabilidad
 
@@ -52,7 +53,7 @@ Estas correcciones no cambian el alcance: eliminan contradicciones con decisione
 
 - Estado: listo para revisión humana
 - Evidencia: definiciones únicas de `RF-01` a `RF-20` en [Requisitos de Fase 1](phase-1-requirements.md), criterios observables y validación prevista por módulo.
-- Hallazgos: los veinte requisitos identifican actor o capacidad autorizada, comportamiento y resultado; se corrigieron las combinaciones no observables o contradictorias de `RF-02`, `RF-08` y `RF-17`.
+- Hallazgos: los veinte requisitos identifican actor o capacidad autorizada, comportamiento y resultado; se corrigieron las combinaciones no observables o contradictorias de `RF-02`, `RF-08` y `RF-17`, cuya escala queda ahora acotada a `1..5`.
 - Acción requerida: ninguna para cerrar; los contratos y pruebas deberán conservar las restricciones documentadas.
 - Revisor humano: Revisor de producto
 
@@ -67,8 +68,8 @@ Estas correcciones no cambian el alcance: eliminan contradicciones con decisione
 ## Revisión de decisiones de diseño
 
 - Estado: listo para revisión humana
-- Evidencia: [Matriz de decisiones de Fase 1](phase-1-decision-matrix.md), `ADR-0001` a `ADR-0021` y secciones de alternativas, consecuencias y validación de cada diseño detallado.
-- Hallazgos: las decisiones activas tienen motivo, alternativas descartadas, impacto y materialización. La auditoría estructural estricta informa `21 ADR(s), 0 error(es), 0 aviso(s)`; esa evidencia no sustituye la revisión humana.
+- Evidencia: [Matriz de decisiones de Fase 1](phase-1-decision-matrix.md), `ADR-0001` a `ADR-0022` y secciones de alternativas, consecuencias y validación de cada diseño detallado.
+- Hallazgos: las decisiones activas tienen motivo, alternativas descartadas, impacto y materialización. `ADR-0022` registra la preferencia `1..5`, el coste de menor granularidad y la ausencia de conversión. La auditoría estructural estricta informa `22 ADR(s), 0 error(es), 0 aviso(s)`; esa evidencia no sustituye la revisión humana.
 - Acción requerida: crear un ADR nuevo si OpenAPI, migraciones, pruebas o validación operativa contradicen una decisión aceptada; ninguna para el cierre actual.
 - Revisor humano: Revisor de arquitectura
 
@@ -84,7 +85,7 @@ Estas correcciones no cambian el alcance: eliminan contradicciones con decisione
 
 - Estado: listo para revisión humana
 - Evidencia: [Criterios de aceptación de Fase 1](phase-1-acceptance-criteria.md) y secciones `Validación prevista` de cada diseño detallado.
-- Hallazgos: cada `RF-01` a `RF-20` conserva un escenario de éxito y otro de error o límite. Se alinearon `RF-02`, `RF-08` y `RF-17` con los ADRs aceptados; los diseños amplían pruebas de seguridad, concurrencia, atomicidad, privacidad y límites.
+- Hallazgos: cada `RF-01` a `RF-20` conserva un escenario de éxito y otro de error o límite. Se alinearon `RF-02`, `RF-08` y `RF-17` con los ADRs aceptados; `RF-17` prueba extremos `1` y `5` y rechaza `0`, `6` y valores no enteros. Los diseños amplían pruebas de seguridad, concurrencia, atomicidad, privacidad y límites.
 - Acción requerida: convertir estos criterios en pruebas trazables sin afirmar que ya están ejecutadas.
 - Revisor humano: Revisores de producto y arquitectura
 
@@ -92,8 +93,8 @@ Estas correcciones no cambian el alcance: eliminan contradicciones con decisione
 
 - Estado: listo para revisión humana
 - Evidencia: diff de la rama de cierre, exclusiones de [Requisitos de Fase 1](phase-1-requirements.md), [Mejoras futuras](future-improvements.md) y secciones de cambios de alcance de publicación, notificaciones, seguimiento y portal.
-- Hallazgos: el cierre no añade capacidades, actores, datos ni módulos. Las modificaciones semánticas reflejan refinamientos ya aceptados por `ADR-0004`, `ADR-0006` y `ADR-0009`.
-- Acción requerida: la PR debe declarar que no cambia el alcance, enumerar estas correcciones y mantener fuera del PMV `MF-001` a `MF-005`.
+- Hallazgos: el cierre no añade capacidades, actores, datos ni módulos. Modifica una restricción funcional ya existente: `ADR-0022` reduce la escala de esfuerzo de diez a cinco valores; los demás cambios reflejan refinamientos aceptados por `ADR-0004`, `ADR-0006` y `ADR-0009`.
+- Acción requerida: la PR debe declarar el cambio de escala, enumerar las correcciones y mantener fuera del PMV `MF-001` a `MF-005`.
 - Revisor humano: Revisor de la PR
 
 ## Revisión de API HTTP

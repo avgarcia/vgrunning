@@ -2,7 +2,7 @@
 
 **Estado:** Validado — Fase 1 cerrada
 **Fecha:** 2026-08-10
-**Última actualización:** 2026-08-24 — alineación final de `RF-02`, `RF-08` y `RF-17` con los ADRs aceptados
+**Última actualización:** 2026-08-24 — escala de esfuerzo de `RF-17` refinada por `ADR-0022` y alineación final con los ADRs aceptados
 
 ## Propósito
 
@@ -92,7 +92,7 @@ Definir criterios mínimos y observables de éxito y error para los requisitos i
 
 ### RF-17 — Registro de ejecución y seguimiento
 
-- **Éxito:** dado un entrenamiento publicado para el corredor dentro de la ventana, este registra `realizado` con esfuerzo de `1` a `10` y sensación `bien`, `normal` o `mal`, o registra `no-realizado` sin esfuerzo ni sensación. Puede añadir un comentario opcional solo con consentimiento vigente; el registro queda asociado al entrenamiento.
+- **Éxito:** dado un entrenamiento publicado para el corredor dentro de la ventana, este registra `realizado` con esfuerzo entero de `1` a `5` y sensación `bien`, `normal` o `mal`, o registra `no-realizado` sin esfuerzo ni sensación. Puede añadir un comentario opcional solo con consentimiento vigente; el registro queda asociado al entrenamiento.
 - **Error o límite:** un esfuerzo o sensación inválidos, `realizado` sin ambos campos, `no-realizado` con alguno de ellos o un comentario sin consentimiento vigente se rechazan por completo y no sustituyen un registro válido existente.
 
 ### RF-18 — Historial del corredor

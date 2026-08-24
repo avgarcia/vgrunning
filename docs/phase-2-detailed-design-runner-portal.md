@@ -391,7 +391,7 @@ Spring Modulith y ArchUnit verificarán `allowedDependencies = {"runner-manageme
 - Presentar futuro sin acción, ventana abierta como `Pendiente de seguimiento` y ventana cerrada como `Sin seguimiento`.
 - Registrar desde `Mi plan` e `Historial`; editar dentro de ventana y dejar solo lectura después.
 - Cancelar sin petición, guardar una sola representación completa y mantener valores ante error de campo.
-- Cambiar entre `Realizado` y `No realizado` respetando esfuerzo, sensación, comentario, normalización y límites de `tracking-review`.
+- Cambiar entre `Realizado` y `No realizado` respetando esfuerzo entero `1..5`, sensación, comentario, normalización y límites de `tracking-review`.
 - Simular republicación concurrente antes de la primera respuesta y comprobar rechazo, mensaje y recarga sin mezcla automática.
 - Comprobar que no existen guardado automático, borrador persistente, recuperación especial, polling ni WebSocket.
 
