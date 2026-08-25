@@ -9,6 +9,7 @@ El monorepo contiene un único proyecto Gradle raíz y estas fronteras:
 - `src/main/java`: producción Java, bajo `com.vgrunning`.
 - `src/main/resources`: recursos del backend.
 - `src/test/java`: pruebas Java.
+- `src/codegen/java`: runner técnico aislado para generar jOOQ desde PostgreSQL efímero.
 - `frontend/`: futura SPA y sus herramientas npm.
 - `api/openapi/`: contratos OpenAPI como fuente de verdad.
 
@@ -16,7 +17,9 @@ No mezcles código generado, credenciales locales ni notas personales con la doc
 
 El backend contiene una única aplicación Spring Boot MVC y ocho módulos Spring Modulith: `identity-access`, `runner-management`, `classification-segmentation`, `planning`, `publication`, `notification-delivery`, `tracking-review` y `runner-portal`. Los paquetes Java usan identificadores válidos sin guiones y los nombres lógicos se declaran mediante Spring Modulith. Solo los paquetes `api` son contratos entre módulos; no se puede acceder a internos.
 
-No crees casos de uso, dominio de plantilla, endpoints funcionales, tablas ni integraciones externas durante este scaffolding. Toda ruta de aplicación está cerrada por defecto. Los probes de liveness y readiness se sirven por el puerto técnico `8081`; el resto de Actuator permanece denegado hasta disponer de autenticación técnica.
+PostgreSQL 18 es el único motor admitido. Flyway mantiene una única historia en `platform.flyway_schema_history`; jOOQ genera desde una base efímera migrada y escribe solo en `build/generated`. Los tipos generados usan `org.vgrunning.generated.jooq` para quedar fuera de la detección modular y solo podrán consumirse desde el adaptador de persistencia propietario de cada módulo. `runner-portal` no posee esquema.
+
+No crees casos de uso, dominio de plantilla, endpoints funcionales, tablas de negocio ni integraciones externas durante este scaffolding. Toda ruta de aplicación está cerrada por defecto. Los probes de liveness y readiness se sirven por el puerto técnico `8081`; el resto de Actuator permanece denegado hasta disponer de autenticación técnica.
 
 ## Convenciones de documentación
 
@@ -36,21 +39,25 @@ Gradle Wrapper es la entrada canónica; no hace falta instalar Gradle globalment
 .\gradlew.bat clean build         # Compila y ejecuta los controles disponibles en Windows.
 .\gradlew.bat verifyJavaToolchain # Comprueba Java 25 Temurin.
 .\gradlew.bat -q javaToolchains   # Muestra toolchains detectados y descargados.
-.\gradlew.bat test                # Ejecuta las pruebas de arranque, seguridad y modularidad.
-.\gradlew.bat verifyRuntimeStack  # Rechaza WebFlux, R2DBC, JPA, Hibernate y Spring Data JDBC.
+.\gradlew.bat test                # Ejecuta pruebas con PostgreSQL 18 efímero; requiere Docker.
+.\gradlew.bat generateJooqFromPostgres # Migra PostgreSQL efímero y genera jOOQ bajo build/generated.
+.\gradlew.bat verifyRuntimeStack  # Rechaza motores alternativos, implementaciones R2DBC, JPA, Hibernate y Spring Data JDBC.
+docker compose up -d --wait postgres # Inicia PostgreSQL local con credenciales sintéticas.
 .\gradlew.bat bootRun             # Inicia el backend en 8080 y los probes técnicos en 8081.
+docker compose down               # Detiene PostgreSQL sin borrar el volumen local.
+docker compose down --volumes     # Elimina la base local para recrearla desde las migraciones.
 npm ci --prefix frontend           # Instala el lockfile con Node 24.19.0 y npm 11.17.0.
 git status                         # Revisa los cambios locales antes de compartirlos.
 git diff --check                   # Detecta errores de espacios en blanco.
 ```
 
-En macOS, Linux o Git Bash, usa `./gradlew clean build`, `./gradlew verifyJavaToolchain`, `./gradlew verifyRuntimeStack` y `./gradlew bootRun`.
+En macOS, Linux o Git Bash, usa `./gradlew clean build`, `./gradlew verifyJavaToolchain`, `./gradlew generateJooqFromPostgres`, `./gradlew verifyRuntimeStack` y `./gradlew bootRun`.
 
-Hay un runtime Spring Boot y pruebas iniciales de modularidad, seguridad y arranque. Aún no hay linter, formateador, cobertura ni CI; añade cada comando en el mismo cambio que incorpore su herramienta.
+Hay un runtime Spring Boot y pruebas iniciales de modularidad, seguridad, persistencia y arranque. El build completo requiere Docker para codegen y Testcontainers. Aún no hay linter, formateador, cobertura ni CI; añade cada comando en el mismo cambio que incorpore su herramienta.
 
 ## Directrices de pruebas
 
-Las pruebas Java usan JUnit 5, AssertJ, Spring Boot Test, Spring Modulith y ArchUnit. Verifican módulos, una infracción modular controlada, independencia del dominio, arranque y seguridad cerrada. Toda funcionalidad futura debe incluir pruebas que describan el comportamiento, por ejemplo `workout-assignment.spec.ts`. Documenta el umbral de cobertura cuando se adopte.
+Las pruebas Java usan JUnit 5, AssertJ, Spring Boot Test, Spring Modulith, ArchUnit y Testcontainers. Verifican módulos, una infracción modular controlada, independencia del dominio, arranque, seguridad cerrada, migraciones PostgreSQL y transacciones compartidas por Spring JDBC y jOOQ. No uses H2, SQLite, Derby, HSQLDB ni drivers o pools R2DBC. jOOQ 3.21 requiere transitivamente `r2dbc-spi` para cargar su configuración incluso en modo JDBC; ese SPI pasivo es la única excepción y no autoriza un stack reactivo. Toda funcionalidad futura debe incluir pruebas que describan el comportamiento, por ejemplo `workout-assignment.spec.ts`. Documenta el umbral de cobertura cuando se adopte.
 
 ## Directrices de commits y pull requests
 

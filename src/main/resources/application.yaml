@@ -1,6 +1,28 @@
 spring:
   application:
     name: running-coach
+  datasource:
+    url: ${RUNNING_COACH_DB_URL:jdbc:postgresql://localhost:5432/running_coach}
+    username: ${RUNNING_COACH_DB_USERNAME:running_coach}
+    password: ${RUNNING_COACH_DB_PASSWORD:running_coach}
+    hikari:
+      pool-name: running-coach
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    default-schema: platform
+    schemas:
+      - platform
+    create-schemas: true
+    clean-disabled: true
+  jooq:
+    sql-dialect: postgres
+  modulith:
+    events:
+      jdbc:
+        schema: platform
+        schema-initialization:
+          enabled: false
   autoconfigure:
     exclude:
       - org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
