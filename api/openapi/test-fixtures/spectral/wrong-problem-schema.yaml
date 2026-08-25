@@ -1,0 +1,22 @@
+openapi: 3.1.1
+info: { title: Invalid, version: 0.0.1 }
+servers: [{ url: /api }]
+security: []
+components:
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        message: { type: string }
+paths:
+  /sessions:
+    post:
+      operationId: createSession
+      responses:
+        '201': { description: Created }
+        '400':
+          description: Invalid request
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Error' }

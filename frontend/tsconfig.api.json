@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "paths": {
+      "axios": ["./node_modules/axios/index.d.ts"]
+    },
+    "strict": true,
+    "target": "ES2022"
+  },
+  "include": ["../build/generated/openapi/client/typescript/**/*.ts"]
+}

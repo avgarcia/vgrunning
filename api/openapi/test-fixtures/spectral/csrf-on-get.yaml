@@ -1,0 +1,15 @@
+openapi: 3.1.1
+info: { title: Invalid, version: 0.0.1 }
+servers: [{ url: /api }]
+components:
+  securitySchemes:
+    opaqueSession: { type: apiKey, in: cookie, name: SESSION }
+    csrfToken: { type: apiKey, in: header, name: X-CSRF-TOKEN }
+paths:
+  /plans/{planId}:
+    get:
+      operationId: getPlan
+      security: [{ opaqueSession: [], csrfToken: [] }]
+      parameters:
+        - { in: path, name: planId, required: true, schema: { type: string } }
+      responses: { '200': { description: OK }, '404': { description: Not found } }

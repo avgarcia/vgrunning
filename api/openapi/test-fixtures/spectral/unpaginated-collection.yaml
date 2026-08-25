@@ -1,0 +1,15 @@
+openapi: 3.1.1
+info: { title: Invalid, version: 0.0.1 }
+servers: [{ url: /api }]
+security: []
+paths:
+  /plans:
+    get:
+      operationId: listPlans
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { type: string } }
+        '400': { description: Invalid request }
