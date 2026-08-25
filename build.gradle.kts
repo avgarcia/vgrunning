@@ -78,6 +78,8 @@ tasks.named("check") {
     dependsOn("verifyJavaToolchain", "verifyRuntimeStack")
 }
 
+// Este control inspecciona los artefactos resueltos, incluso si nadie usa aún sus APIs.
+// forbidden-apis analiza referencias de bytecode y sería complementario, no un sustituto de esta política.
 val forbiddenRuntimeModules = setOf(
     "org.springframework:spring-webflux",
     "org.springframework.boot:spring-boot-starter-webflux",

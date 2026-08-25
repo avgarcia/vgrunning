@@ -1,3 +1,9 @@
+/**
+ * Delimita la gestión de los corredores, incluidos sus datos y su ciclo de vida.
+ *
+ * <p>Los módulos que necesiten información de un corredor usarán únicamente contratos del subpaquete
+ * {@code api}; las implementaciones internas no son una interfaz compartida.</p>
+ */
 @org.springframework.modulith.ApplicationModule(
     id = "runner-management",
     displayName = "Runner management",
