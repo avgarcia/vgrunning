@@ -1,0 +1,86 @@
+openapi: 3.1.1
+info:
+  title: Running Coach API
+  version: 0.0.1
+  description: Contrato público inicial; todavía no expone operaciones de negocio.
+  contact:
+    name: Running Coach
+servers:
+  - url: /api
+    description: SPA y API bajo el mismo origen.
+security:
+  - opaqueSession: []
+    csrfToken: []
+paths: {}
+components:
+  securitySchemes:
+    opaqueSession:
+      type: apiKey
+      in: cookie
+      name: RUNNING_COACH_SESSION
+      description: Sesión opaca emitida por el backend.
+    csrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRF-TOKEN
+      description: Token CSRF exigido en solicitudes que modifican estado.
+  schemas:
+    Problem:
+      type: object
+      description: Error conforme a RFC 9457, sin secretos ni datos personales innecesarios.
+      additionalProperties: false
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 100
+          maximum: 599
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        code:
+          type: string
+          description: Código estable de aplicación.
+    Cursor:
+      type: string
+      minLength: 1
+      description: Cursor opaco ligado al orden y filtros de una colección.
+    LocalDate:
+      type: string
+      format: date
+    OffsetDateTime:
+      type: string
+      format: date-time
+  parameters:
+    cursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/Cursor'
+  responses:
+    BadRequestProblem:
+      description: Solicitud inválida.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    ForbiddenProblem:
+      description: El actor no puede realizar la operación.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFoundProblem:
+      description: El recurso no existe o no es visible para el actor.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'

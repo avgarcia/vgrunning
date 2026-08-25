@@ -1,0 +1,13 @@
+openapi: 3.1.1
+info:
+  title: Oasdiff fixture
+  version: 0.0.1
+servers:
+  - url: /api
+paths:
+  /plans:
+    get:
+      operationId: listPlans
+      responses:
+        '200':
+          description: OK

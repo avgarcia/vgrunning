@@ -1,0 +1,49 @@
+extends:
+  - spectral:oas
+functions:
+  - operationIdUnique
+functionsDir: .
+rules:
+  # El contrato inicial declara componentes reutilizables antes de exponer operaciones.
+  oas3-unused-component: off
+  api-base-path:
+    description: La API propia se publica bajo /api sin versionado inicial.
+    given: $.servers[*].url
+    then:
+      function: pattern
+      functionOptions:
+        match: ^/api$
+  resource-path-kebab-case:
+    description: Las rutas usan segmentos en inglés, minúsculas y kebab-case.
+    given: $.paths.*~
+    then:
+      function: pattern
+      functionOptions:
+        match: ^/(?:[a-z][a-z0-9]*(?:-[a-z0-9]+)*|\{[a-z][A-Za-z0-9]*\})(?:/(?:[a-z][a-z0-9]*(?:-[a-z0-9]+)*|\{[a-z][A-Za-z0-9]*\}))*$
+  no-role-prefixes:
+    description: Las rutas no codifican roles ni mecanismos.
+    given: $.paths.*~
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: ^/(?:admin|trainer|runner|auth)(?:/|$)
+  no-secrets-in-query:
+    description: Contraseñas y secretos no se transportan en query.
+    given:
+      - $.paths.*.*.parameters[?(@.in == 'query')].name
+      - $.components.parameters.*[?(@.in == 'query')].name
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: (?i)(?:password|secret|token|api[-_]?key|authorization|credential|session|csrf)
+  no-get-request-body:
+    description: GET no recibe cuerpo.
+    given: $.paths.*.get
+    then:
+      field: requestBody
+      function: undefined
+  operation-id-unique:
+    description: Cada operación conserva un operationId único y estable.
+    given: $
+    then:
+      function: operationIdUnique

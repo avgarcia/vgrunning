@@ -33,6 +33,19 @@ docker compose up -d --wait postgres
 
 Flyway conserva una única historia en `platform.flyway_schema_history`. La tarea `generateJooqFromPostgres` crea otro PostgreSQL efímero, aplica esa misma historia y escribe los tipos en `build/generated/sources/jooq/main`; esas fuentes nunca se versionan. El build completo y las pruebas requieren Docker.
 
+## Contrato HTTP
+
+`api/openapi/running-coach.yaml` es la fuente de verdad del contrato OpenAPI 3.1. La API pública se reserva bajo `/api`, mantiene autenticación por sesión opaca y token CSRF, y todavía declara `paths: {}`: no hay endpoints de negocio ni de salud dentro de la API pública.
+
+```powershell
+.\gradlew.bat apiCheck                  # Valida el contrato, genera servidor y cliente y ejecuta sus controles.
+.\gradlew.bat validateOpenApi           # Valida la especificación OpenAPI.
+.\gradlew.bat generateOpenApiServer     # Genera interfaces y modelos Spring MVC bajo build/.
+.\gradlew.bat generateOpenApiClient     # Genera el cliente TypeScript bajo build/.
+```
+
+La generación no se versiona. Los tipos de servidor solo podrán consumirse desde `adapter.http`; los tipos generados no son contratos entre módulos ni tipos de dominio. `apiCheck` requiere Docker para comparar compatibilidad con `main` mediante `oasdiff`.
+
 ## Documentación
 
 - [Enunciado del problema — Fase 0](docs/phase-0-problem-statement.md)

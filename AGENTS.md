@@ -19,6 +19,8 @@ El backend contiene una única aplicación Spring Boot MVC y ocho módulos Sprin
 
 PostgreSQL 18 es el único motor admitido. Flyway mantiene una única historia en `platform.flyway_schema_history`; jOOQ genera desde una base efímera migrada y escribe solo en `build/generated`. Los tipos generados usan `org.vgrunning.generated.jooq` para quedar fuera de la detección modular y solo podrán consumirse desde el adaptador de persistencia propietario de cada módulo. `runner-portal` no posee esquema.
 
+`api/openapi/running-coach.yaml` es la fuente de verdad OpenAPI 3.1. Los tipos generados de servidor y cliente se escriben solo bajo `build/generated/openapi`; los primeros solo podrán consumirse desde `adapter.http`. La API inicial permanece bajo `/api`, no contiene `paths` funcionales ni endpoints de salud públicos y declara sesión opaca y CSRF como mecanismos comunes.
+
 No crees casos de uso, dominio de plantilla, endpoints funcionales, tablas de negocio ni integraciones externas durante este scaffolding. Toda ruta de aplicación está cerrada por defecto. Los probes de liveness y readiness se sirven por el puerto técnico `8081`; el resto de Actuator permanece denegado hasta disponer de autenticación técnica.
 
 ## Convenciones de documentación
@@ -42,6 +44,10 @@ Gradle Wrapper es la entrada canónica; no hace falta instalar Gradle globalment
 .\gradlew.bat test                # Ejecuta pruebas con PostgreSQL 18 efímero; requiere Docker.
 .\gradlew.bat generateJooqFromPostgres # Migra PostgreSQL efímero y genera jOOQ bajo build/generated.
 .\gradlew.bat verifyRuntimeStack  # Rechaza motores alternativos, implementaciones R2DBC, JPA, Hibernate y Spring Data JDBC.
+.\gradlew.bat apiCheck            # Valida, genera y comprueba la compatibilidad del contrato OpenAPI; requiere Docker.
+.\gradlew.bat validateOpenApi     # Valida api/openapi/running-coach.yaml.
+.\gradlew.bat generateOpenApiServer # Genera interfaces y modelos Spring MVC bajo build/generated/openapi/server.
+.\gradlew.bat generateOpenApiClient # Genera el cliente TypeScript bajo build/generated/openapi/client/typescript.
 docker compose up -d --wait postgres # Inicia PostgreSQL local con credenciales sintéticas.
 .\gradlew.bat bootRun             # Inicia el backend en 8080 y los probes técnicos en 8081.
 docker compose down               # Detiene PostgreSQL sin borrar el volumen local.
@@ -51,9 +57,9 @@ git status                         # Revisa los cambios locales antes de compart
 git diff --check                   # Detecta errores de espacios en blanco.
 ```
 
-En macOS, Linux o Git Bash, usa `./gradlew clean build`, `./gradlew verifyJavaToolchain`, `./gradlew generateJooqFromPostgres`, `./gradlew verifyRuntimeStack` y `./gradlew bootRun`.
+En macOS, Linux o Git Bash, usa `./gradlew clean build`, `./gradlew verifyJavaToolchain`, `./gradlew generateJooqFromPostgres`, `./gradlew verifyRuntimeStack`, `./gradlew apiCheck` y `./gradlew bootRun`.
 
-Hay un runtime Spring Boot y pruebas iniciales de modularidad, seguridad, persistencia y arranque. El build completo requiere Docker para codegen y Testcontainers. Aún no hay linter, formateador, cobertura ni CI; añade cada comando en el mismo cambio que incorpore su herramienta.
+Hay un runtime Spring Boot y pruebas iniciales de modularidad, seguridad, persistencia y arranque. El build completo requiere Docker para codegen y Testcontainers. Spectral valida que no haya rutas por rol, secretos en query, cuerpos en `GET` ni `operationId` duplicados. Aún no hay formateador, cobertura ni CI; añade cada comando en el mismo cambio que incorpore su herramienta.
 
 ## Directrices de pruebas
 

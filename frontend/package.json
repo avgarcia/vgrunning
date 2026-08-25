@@ -18,5 +18,17 @@
       "version": "11.17.0",
       "onFail": "error"
     }
+  },
+  "dependencies": {
+    "axios": "1.19.0"
+  },
+  "devDependencies": {
+    "@stoplight/spectral-cli": "6.16.3",
+    "typescript": "7.0.2"
+  },
+  "scripts": {
+    "api:lint": "spectral lint --ruleset ../api/openapi/.spectral.yaml ../api/openapi/running-coach.yaml",
+    "api:verify-spectral": "node scripts/verify-spectral-negative-cases.cjs",
+    "api:typecheck": "tsc --project tsconfig.api.json --noEmit"
   }
 }
