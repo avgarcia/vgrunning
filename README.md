@@ -2,6 +2,25 @@
 
 Repositorio de descubrimiento, diseño y preparación técnica del PMV de Running Coach.
 
+La preparación técnica ya incluye el esqueleto ejecutable Spring Boot, con ocho módulos lógicos verificados y sin funcionalidad de negocio ni persistencia.
+
+## Base ejecutable
+
+El backend es una única aplicación Spring MVC. Todas las rutas de aplicación quedan cerradas hasta que se implemente `identity-access`; las únicas rutas abiertas son los probes técnicos:
+
+- `http://localhost:8081/actuator/health/liveness`
+- `http://localhost:8081/actuator/health/readiness`
+
+En Windows:
+
+```powershell
+.\gradlew.bat clean build
+.\gradlew.bat bootRun
+.\gradlew.bat verifyRuntimeStack
+```
+
+En macOS, Linux o Git Bash, sustituye `.\gradlew.bat` por `./gradlew`.
+
 ## Documentación
 
 - [Enunciado del problema — Fase 0](docs/phase-0-problem-statement.md)

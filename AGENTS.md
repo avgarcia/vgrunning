@@ -14,6 +14,10 @@ El monorepo contiene un único proyecto Gradle raíz y estas fronteras:
 
 No mezcles código generado, credenciales locales ni notas personales con la documentación validada. Los generados permanecen bajo directorios de build y no se versionan.
 
+El backend contiene una única aplicación Spring Boot MVC y ocho módulos Spring Modulith: `identity-access`, `runner-management`, `classification-segmentation`, `planning`, `publication`, `notification-delivery`, `tracking-review` y `runner-portal`. Los paquetes Java usan identificadores válidos sin guiones y los nombres lógicos se declaran mediante Spring Modulith. Solo los paquetes `api` son contratos entre módulos; no se puede acceder a internos.
+
+No crees casos de uso, dominio de plantilla, endpoints funcionales, tablas ni integraciones externas durante este scaffolding. Toda ruta de aplicación está cerrada por defecto. Los probes de liveness y readiness se sirven por el puerto técnico `8081`; el resto de Actuator permanece denegado hasta disponer de autenticación técnica.
+
 ## Convenciones de documentación
 
 Redacta los documentos de producto y técnicos en Markdown y en castellano. Conserva en su idioma original los identificadores técnicos, rutas, comandos, claves de configuración, nombres de Skills y URLs. Usa nombres descriptivos en kebab-case, con un prefijo de fase o tema, como `docs/phase-1-user-flows.md` o `docs/architecture-overview.md`. Inicia cada documento con un título claro y, cuando sea útil, su estado y fecha.
@@ -32,18 +36,21 @@ Gradle Wrapper es la entrada canónica; no hace falta instalar Gradle globalment
 .\gradlew.bat clean build         # Compila y ejecuta los controles disponibles en Windows.
 .\gradlew.bat verifyJavaToolchain # Comprueba Java 25 Temurin.
 .\gradlew.bat -q javaToolchains   # Muestra toolchains detectados y descargados.
+.\gradlew.bat test                # Ejecuta las pruebas de arranque, seguridad y modularidad.
+.\gradlew.bat verifyRuntimeStack  # Rechaza WebFlux, R2DBC, JPA, Hibernate y Spring Data JDBC.
+.\gradlew.bat bootRun             # Inicia el backend en 8080 y los probes técnicos en 8081.
 npm ci --prefix frontend           # Instala el lockfile con Node 24.19.0 y npm 11.17.0.
 git status                         # Revisa los cambios locales antes de compartirlos.
 git diff --check                   # Detecta errores de espacios en blanco.
 ```
 
-En macOS, Linux o Git Bash, usa `./gradlew clean build`, `./gradlew verifyJavaToolchain` y `./gradlew -q javaToolchains`.
+En macOS, Linux o Git Bash, usa `./gradlew clean build`, `./gradlew verifyJavaToolchain`, `./gradlew verifyRuntimeStack` y `./gradlew bootRun`.
 
-No hay todavía runtime de aplicación, framework de pruebas, linter ni formateador. Añade cada comando en el mismo cambio que incorpore su herramienta.
+Hay un runtime Spring Boot y pruebas iniciales de modularidad, seguridad y arranque. Aún no hay linter, formateador, cobertura ni CI; añade cada comando en el mismo cambio que incorpore su herramienta.
 
 ## Directrices de pruebas
 
-No hay pruebas automatizadas ni requisitos de cobertura todavía. Toda funcionalidad futura debe incluir pruebas con el framework seleccionado y nombres que describan el comportamiento, por ejemplo `workout-assignment.spec.ts`. Documenta el comando de pruebas y el umbral de cobertura cuando se adopten.
+Las pruebas Java usan JUnit 5, AssertJ, Spring Boot Test, Spring Modulith y ArchUnit. Verifican módulos, una infracción modular controlada, independencia del dominio, arranque y seguridad cerrada. Toda funcionalidad futura debe incluir pruebas que describan el comportamiento, por ejemplo `workout-assignment.spec.ts`. Documenta el umbral de cobertura cuando se adopte.
 
 ## Directrices de commits y pull requests
 
