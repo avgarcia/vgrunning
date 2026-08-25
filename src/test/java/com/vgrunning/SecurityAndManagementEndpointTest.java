@@ -16,6 +16,11 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
+/**
+ * Comprueba la frontera HTTP con PostgreSQL real. {@code DirtiesContext} cierra el contexto y su
+ * pool antes de que Testcontainers destruya el contenedor estático de esta clase; así el contexto
+ * no queda reutilizable con una conexión ya cerrada en otra prueba.
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "management.server.port=0")
 @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

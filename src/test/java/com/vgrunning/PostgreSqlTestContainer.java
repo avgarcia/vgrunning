@@ -14,6 +14,7 @@ final class PostgreSqlTestContainer {
     private PostgreSqlTestContainer() {
     }
 
+    /** Crea un contenedor tipado para que cada clase de prueba disponga de una base aislada. */
     static PostgreSQLContainer create() {
         return new PostgreSQLContainer(IMAGE)
             .withDatabaseName("running_coach_test")
@@ -21,6 +22,7 @@ final class PostgreSqlTestContainer {
             .withPassword("running_coach");
     }
 
+    /** Publica la conexión del contenedor sin versionar ni compartir credenciales locales. */
     static void registerProperties(DynamicPropertyRegistry registry, PostgreSQLContainer postgres) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);

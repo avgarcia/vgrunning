@@ -52,6 +52,11 @@ public final class JooqCodeGenerator {
         }
     }
 
+    /**
+     * Aplica la misma historia Flyway que utiliza la aplicación contra el contenedor efímero.
+     *
+     * @param postgres contenedor PostgreSQL ya iniciado
+     */
     private static void migrate(PostgreSQLContainer postgres) {
         Flyway.configure()
             .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
@@ -64,6 +69,14 @@ public final class JooqCodeGenerator {
             .migrate();
     }
 
+    /**
+     * Inspecciona los ocho esquemas técnicos ya migrados y escribe los tipos jOOQ fuera del
+     * código fuente versionado.
+     *
+     * @param postgres contenedor PostgreSQL migrado
+     * @param targetDirectory directorio de salida bajo {@code build/generated}
+     * @throws Exception si jOOQ no puede generar las fuentes
+     */
     private static void generate(PostgreSQLContainer postgres, Path targetDirectory) throws Exception {
         List<SchemaMappingType> schemaMappings = SCHEMAS.stream()
             .map(schema -> new SchemaMappingType().withInputSchema(schema).withOutputSchema(schema))
