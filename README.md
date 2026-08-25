@@ -35,7 +35,7 @@ Flyway conserva una única historia en `platform.flyway_schema_history`. La tare
 
 ## Contrato HTTP
 
-`api/openapi/running-coach.yaml` es la fuente de verdad del contrato OpenAPI 3.1. La API pública se reserva bajo `/api`, mantiene autenticación por sesión opaca y token CSRF, y todavía declara `paths: {}`: no hay endpoints de negocio ni de salud dentro de la API pública.
+`api/openapi/running-coach.yaml` es la fuente de verdad del contrato OpenAPI 3.1. La API pública se reserva bajo `/api`, hereda autenticación por sesión opaca y exige además CSRF solo en operaciones protegidas que modifican estado. Todavía declara `paths: {}`: no hay endpoints de negocio ni de salud dentro de la API pública.
 
 ```powershell
 .\gradlew.bat apiCheck                  # Valida el contrato, genera servidor y cliente y ejecuta sus controles.
@@ -44,7 +44,7 @@ Flyway conserva una única historia en `platform.flyway_schema_history`. La tare
 .\gradlew.bat generateOpenApiClient     # Genera el cliente TypeScript bajo build/.
 ```
 
-La generación no se versiona. Los tipos de servidor solo podrán consumirse desde `adapter.http`; los tipos generados no son contratos entre módulos ni tipos de dominio. `apiCheck` requiere Docker para comparar compatibilidad con `main` mediante `oasdiff`.
+La generación no se versiona. Los tipos de servidor solo podrán consumirse desde `adapter.http`; los tipos generados no son contratos entre módulos ni tipos de dominio. Spectral bloquea las infracciones automatizables de ADR-0017, entre ellas errores sin Problem Details, escrituras protegidas sin CSRF, colecciones sin paginación acotada, objetos abiertos y ejemplos con secretos plausibles. `apiCheck` requiere Docker para comparar compatibilidad con `main` mediante `oasdiff`.
 
 ## Documentación
 

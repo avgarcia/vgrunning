@@ -19,7 +19,7 @@ El backend contiene una única aplicación Spring Boot MVC y ocho módulos Sprin
 
 PostgreSQL 18 es el único motor admitido. Flyway mantiene una única historia en `platform.flyway_schema_history`; jOOQ genera desde una base efímera migrada y escribe solo en `build/generated`. Los tipos generados usan `org.vgrunning.generated.jooq` para quedar fuera de la detección modular y solo podrán consumirse desde el adaptador de persistencia propietario de cada módulo. `runner-portal` no posee esquema.
 
-`api/openapi/running-coach.yaml` es la fuente de verdad OpenAPI 3.1. Los tipos generados de servidor y cliente se escriben solo bajo `build/generated/openapi`; los primeros solo podrán consumirse desde `adapter.http`. La API inicial permanece bajo `/api`, no contiene `paths` funcionales ni endpoints de salud públicos y declara sesión opaca y CSRF como mecanismos comunes.
+`api/openapi/running-coach.yaml` es la fuente de verdad OpenAPI 3.1. Los tipos generados de servidor y cliente se escriben solo bajo `build/generated/openapi`; los primeros solo podrán consumirse desde `adapter.http`. La API inicial permanece bajo `/api`, no contiene `paths` funcionales ni endpoints de salud públicos y declara sesión opaca como seguridad heredada. CSRF se exige además, en la misma alternativa de seguridad, solo en operaciones protegidas que modifican estado.
 
 No crees casos de uso, dominio de plantilla, endpoints funcionales, tablas de negocio ni integraciones externas durante este scaffolding. Toda ruta de aplicación está cerrada por defecto. Los probes de liveness y readiness se sirven por el puerto técnico `8081`; el resto de Actuator permanece denegado hasta disponer de autenticación técnica.
 
@@ -59,7 +59,7 @@ git diff --check                   # Detecta errores de espacios en blanco.
 
 En macOS, Linux o Git Bash, usa `./gradlew clean build`, `./gradlew verifyJavaToolchain`, `./gradlew generateJooqFromPostgres`, `./gradlew verifyRuntimeStack`, `./gradlew apiCheck` y `./gradlew bootRun`.
 
-Hay un runtime Spring Boot y pruebas iniciales de modularidad, seguridad, persistencia y arranque. El build completo requiere Docker para codegen y Testcontainers. Spectral valida que no haya rutas por rol, secretos en query, cuerpos en `GET` ni `operationId` duplicados. Aún no hay formateador, cobertura ni CI; añade cada comando en el mismo cambio que incorpore su herramienta.
+Hay un runtime Spring Boot y pruebas iniciales de modularidad, seguridad, persistencia y arranque. El build completo requiere Docker para codegen y Testcontainers. Spectral aplica los controles automatizables de ADR-0017: rutas y versiones, secretos en URL, `operationId`, semántica HTTP mínima, Problem Details, seguridad de sesión y CSRF, parámetros de ruta, paginación acotada, objetos cerrados y ejemplos sin secretos. La revisión humana sigue siendo obligatoria para semántica de recursos, idempotencia, compatibilidad y excepciones justificadas. Aún no hay formateador, cobertura ni CI; añade cada comando en el mismo cambio que incorpore su herramienta.
 
 ## Directrices de pruebas
 

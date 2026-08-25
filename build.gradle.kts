@@ -197,7 +197,11 @@ val lintOpenApi = tasks.register<Exec>("lintOpenApi") {
     dependsOn(installFrontendDependencies)
     workingDir(file("frontend"))
     commandLine(npmExecutable, "run", "api:lint")
-    inputs.files(openApiSpec, file("api/openapi/.spectral.yaml"), file("api/openapi/operationIdUnique.js"))
+    inputs.files(
+        openApiSpec,
+        file("api/openapi/.spectral.yaml"),
+        fileTree("api/openapi") { include("*.js") },
+    )
 }
 
 val verifySpectralNegativeCases = tasks.register<Exec>("verifySpectralNegativeCases") {

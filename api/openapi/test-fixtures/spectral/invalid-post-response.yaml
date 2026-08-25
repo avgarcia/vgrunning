@@ -1,0 +1,11 @@
+openapi: 3.1.1
+info: { title: Invalid, version: 0.0.1 }
+servers: [{ url: /api }]
+security: []
+paths:
+  /sessions:
+    post:
+      operationId: createSession
+      responses:
+        '200': { description: Wrong success status }
+        '400': { description: Invalid request }

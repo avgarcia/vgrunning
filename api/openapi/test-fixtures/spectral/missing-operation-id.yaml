@@ -1,0 +1,9 @@
+openapi: 3.1.1
+info: { title: Invalid, version: 0.0.1 }
+servers: [{ url: /api }]
+paths:
+  /plans/{planId}:
+    get:
+      parameters:
+        - { in: path, name: planId, required: true, schema: { type: string } }
+      responses: { '200': { description: OK }, '404': { description: Not found } }

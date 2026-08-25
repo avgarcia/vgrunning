@@ -1,6 +1,9 @@
 extends:
   - spectral:oas
 functions:
+  - closedSchemas
+  - exampleSafety
+  - httpSemantics
   - operationIdUnique
 functionsDir: .
 rules:
@@ -8,6 +11,7 @@ rules:
   oas3-unused-component: off
   api-base-path:
     description: La API propia se publica bajo /api sin versionado inicial.
+    severity: error
     given: $.servers[*].url
     then:
       function: pattern
@@ -15,6 +19,7 @@ rules:
         match: ^/api$
   resource-path-kebab-case:
     description: Las rutas usan segmentos en inglés, minúsculas y kebab-case.
+    severity: error
     given: $.paths.*~
     then:
       function: pattern
@@ -22,28 +27,77 @@ rules:
         match: ^/(?:[a-z][a-z0-9]*(?:-[a-z0-9]+)*|\{[a-z][A-Za-z0-9]*\})(?:/(?:[a-z][a-z0-9]*(?:-[a-z0-9]+)*|\{[a-z][A-Za-z0-9]*\}))*$
   no-role-prefixes:
     description: Las rutas no codifican roles ni mecanismos.
+    severity: error
     given: $.paths.*~
     then:
       function: pattern
       functionOptions:
         notMatch: ^/(?:admin|trainer|runner|auth)(?:/|$)
-  no-secrets-in-query:
-    description: Contraseñas y secretos no se transportan en query.
-    given:
-      - $.paths.*.*.parameters[?(@.in == 'query')].name
-      - $.components.parameters.*[?(@.in == 'query')].name
+  no-version-prefix:
+    description: La API inicial no introduce segmentos de versión.
+    severity: error
+    given: $.paths.*~
     then:
       function: pattern
       functionOptions:
-        notMatch: (?i)(?:password|secret|token|api[-_]?key|authorization|credential|session|csrf)
+        notMatch: ^/v[0-9]+(?:/|$)
+  no-secrets-in-url:
+    description: Contraseñas y secretos no se transportan en path ni query.
+    severity: error
+    given:
+      - $.paths.*.*.parameters[?(@.in == 'query')].name
+      - $.paths.*.*.parameters[?(@.in == 'path')].name
+      - $.paths.*.parameters[?(@.in == 'query')].name
+      - $.paths.*.parameters[?(@.in == 'path')].name
+      - $.components.parameters.*[?(@.in == 'query')].name
+      - $.components.parameters.*[?(@.in == 'path')].name
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: (?:[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Tt][Oo][Kk][Ee][Nn]|[Aa][Pp][Ii][-_]?[Kk][Ee][Yy]|[Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]|[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll]|[Ss][Ee][Ss][Ss][Ii][Oo][Nn]|[Cc][Ss][Rr][Ff])
   no-get-request-body:
     description: GET no recibe cuerpo.
+    severity: error
     given: $.paths.*.get
     then:
       field: requestBody
       function: undefined
+  operation-id-required:
+    description: Toda operación declara un operationId estable.
+    severity: error
+    given:
+      - $.paths.*.get
+      - $.paths.*.post
+      - $.paths.*.put
+      - $.paths.*.patch
+      - $.paths.*.delete
+      - $.paths.*.head
+      - $.paths.*.options
+      - $.paths.*.trace
+    then:
+      field: operationId
+      function: truthy
   operation-id-unique:
     description: Cada operación conserva un operationId único y estable.
+    severity: error
     given: $
     then:
       function: operationIdUnique
+  http-semantics:
+    description: Métodos, errores, parámetros, paginación y seguridad respetan ADR-0017.
+    severity: error
+    given: $
+    then:
+      function: httpSemantics
+  closed-object-schemas:
+    description: Los objetos del contrato son cerrados por defecto y no admiten propiedades no documentadas.
+    severity: error
+    given: $
+    then:
+      function: closedSchemas
+  safe-examples:
+    description: Los ejemplos no contienen credenciales o secretos plausibles.
+    severity: error
+    given: $
+    then:
+      function: exampleSafety

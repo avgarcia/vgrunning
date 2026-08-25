@@ -1,0 +1,59 @@
+openapi: 3.1.1
+info: { title: Valid, version: 0.0.1 }
+servers: [{ url: /api }]
+security:
+  - opaqueSession: []
+components:
+  securitySchemes:
+    opaqueSession: { type: apiKey, in: cookie, name: SESSION }
+    csrfToken: { type: apiKey, in: header, name: X-CSRF-TOKEN }
+  schemas:
+    Problem:
+      type: object
+      additionalProperties: false
+      required: [type, title, status]
+      properties:
+        type: { type: string, format: uri-reference }
+        title: { type: string }
+        status: { type: integer, minimum: 100, maximum: 599 }
+    PlanPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        title: { type: string, example: Synthetic plan }
+    PageLimit: { type: integer, minimum: 1, maximum: 100, default: 50 }
+  parameters:
+    cursor: { in: query, name: cursor, required: false, schema: { type: string } }
+    limit: { in: query, name: limit, required: false, schema: { $ref: '#/components/schemas/PageLimit' } }
+  responses:
+    Problem:
+      description: Invalid request
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+paths:
+  /plans:
+    get:
+      operationId: listPlans
+      parameters:
+        - { $ref: '#/components/parameters/cursor' }
+        - { $ref: '#/components/parameters/limit' }
+      responses:
+        '200': { description: OK }
+        '400': { $ref: '#/components/responses/Problem' }
+  /plans/{planId}:
+    patch:
+      operationId: updatePlan
+      security:
+        - opaqueSession: []
+          csrfToken: []
+      parameters:
+        - { in: path, name: planId, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PlanPatch' }
+      responses:
+        '204': { description: Updated }
+        '400': { $ref: '#/components/responses/Problem' }
