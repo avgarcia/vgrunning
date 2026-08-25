@@ -14,7 +14,13 @@ import org.jooq.meta.jaxb.Target;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
-/** Genera los tipos jOOQ desde la misma historia Flyway que ejecuta la aplicación. */
+/**
+ * Genera los tipos jOOQ desde la misma historia Flyway que ejecuta la aplicación.
+ *
+ * <p>Se ejecuta exclusivamente durante el build, en desarrollo o CI, contra PostgreSQL efímero.
+ * No forma parte del {@code bootJar}, no arranca contenedores en el entorno desplegado y no se
+ * ejecuta al iniciar la aplicación.
+ */
 public final class JooqCodeGenerator {
 
     private static final String POSTGRES_IMAGE =
