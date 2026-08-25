@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres@sha256:1957b2ff3137e4ef7f3bc813e74fff50b1e1ffddc85c8b9d6f14ade972be8687
+    environment:
+      POSTGRES_DB: running_coach
+      POSTGRES_USER: running_coach
+      POSTGRES_PASSWORD: running_coach
+    ports:
+      - "${RUNNING_COACH_DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U running_coach -d running_coach"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - running-coach-postgres-data:/var/lib/postgresql
+
+volumes:
+  running-coach-postgres-data:

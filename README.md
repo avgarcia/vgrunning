@@ -2,11 +2,11 @@
 
 Repositorio de descubrimiento, diseño y preparación técnica del PMV de Running Coach.
 
-La preparación técnica ya incluye el esqueleto ejecutable Spring Boot, con ocho módulos lógicos verificados y sin funcionalidad de negocio ni persistencia.
+La preparación técnica ya incluye el esqueleto ejecutable Spring Boot, ocho módulos lógicos verificados y persistencia técnica reproducible sobre PostgreSQL 18. No hay todavía funcionalidad ni tablas de negocio.
 
 ## Base ejecutable
 
-El backend es una única aplicación Spring MVC. Todas las rutas de aplicación quedan cerradas hasta que se implemente `identity-access`; las únicas rutas abiertas son los probes técnicos:
+El backend es una única aplicación Spring MVC. Requiere PostgreSQL local antes de arrancar. Todas las rutas de aplicación quedan cerradas hasta que se implemente `identity-access`; las únicas rutas abiertas son los probes técnicos:
 
 - `http://localhost:8081/actuator/health/liveness`
 - `http://localhost:8081/actuator/health/readiness`
@@ -14,12 +14,24 @@ El backend es una única aplicación Spring MVC. Todas las rutas de aplicación 
 En Windows:
 
 ```powershell
+docker compose up -d --wait postgres
 .\gradlew.bat clean build
 .\gradlew.bat bootRun
+.\gradlew.bat generateJooqFromPostgres
 .\gradlew.bat verifyRuntimeStack
+docker compose down
 ```
 
 En macOS, Linux o Git Bash, sustituye `.\gradlew.bat` por `./gradlew`.
+
+Compose publica PostgreSQL en `localhost:5432` con la base, usuario y contraseña sintéticos `running_coach`. La aplicación admite `RUNNING_COACH_DB_URL`, `RUNNING_COACH_DB_USERNAME` y `RUNNING_COACH_DB_PASSWORD`; sus valores locales por defecto coinciden con Compose. Si `5432` ya está ocupado, se puede cambiar solo el puerto publicado con `RUNNING_COACH_DB_PORT` y ajustar `RUNNING_COACH_DB_URL` al mismo valor. Para borrar el volumen local y reconstruir la base desde todas las migraciones:
+
+```powershell
+docker compose down --volumes
+docker compose up -d --wait postgres
+```
+
+Flyway conserva una única historia en `platform.flyway_schema_history`. La tarea `generateJooqFromPostgres` crea otro PostgreSQL efímero, aplica esa misma historia y escribe los tipos en `build/generated/sources/jooq/main`; esas fuentes nunca se versionan. El build completo y las pruebas requieren Docker.
 
 ## Documentación
 

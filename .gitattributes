@@ -9,6 +9,7 @@ gradlew text eol=lf
 *.java text eol=lf
 *.kts text eol=lf
 *.properties text eol=lf
+*.sql text eol=lf
 *.lockfile text eol=lf
 *.toml text eol=lf
 *.json text eol=lf

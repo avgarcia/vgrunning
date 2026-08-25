@@ -9,9 +9,25 @@ import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.annotation.DirtiesContext;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "management.server.port=0")
+@Testcontainers
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class SecurityAndManagementEndpointTest {
+
+    @Container
+    private static final PostgreSQLContainer POSTGRES = PostgreSqlTestContainer.create();
+
+    @DynamicPropertySource
+    static void registerDatabaseProperties(DynamicPropertyRegistry registry) {
+        PostgreSqlTestContainer.registerProperties(registry, POSTGRES);
+    }
 
     @LocalServerPort
     private int applicationPort;
