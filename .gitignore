@@ -12,6 +12,8 @@ out/
 # Frontend output and local package installation
 **/node_modules/
 frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
 
 # Generated sources and local configuration
 **/generated/

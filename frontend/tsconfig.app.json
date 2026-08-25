@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+      "@running-coach/api-client": ["../build/generated/openapi/client/typescript/index.ts"],
+      "@running-coach/api-client/*": ["../build/generated/openapi/client/typescript/*"],
+      "axios": ["./node_modules/axios/index.d.ts"]
+    },
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022",
+    "useDefineForClassFields": true
+  },
+  "include": ["src", "../build/generated/openapi/client/typescript/**/*.ts"]
+}
