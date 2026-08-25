@@ -21,6 +21,22 @@ components:
       additionalProperties: false
       properties:
         title: { type: string, example: Synthetic plan }
+    PlanSummary:
+      type: object
+      additionalProperties: false
+      required: [id, title]
+      properties:
+        id: { type: string }
+        title: { type: string }
+    PlanPage:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/PlanSummary' }
+        nextCursor: { type: string }
     PageLimit: { type: integer, minimum: 1, maximum: 100, default: 50 }
   parameters:
     cursor: { in: query, name: cursor, required: false, schema: { type: string } }
@@ -39,7 +55,11 @@ paths:
         - { $ref: '#/components/parameters/cursor' }
         - { $ref: '#/components/parameters/limit' }
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlanPage' }
         '400': { $ref: '#/components/responses/Problem' }
   /plans/{planId}:
     patch:
@@ -57,3 +77,15 @@ paths:
       responses:
         '204': { description: Updated }
         '400': { $ref: '#/components/responses/Problem' }
+  /plans/{planId}/summary:
+    get:
+      operationId: getPlanSummary
+      parameters:
+        - { in: path, name: planId, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlanSummary' }
+        '404': { $ref: '#/components/responses/Problem' }

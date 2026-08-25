@@ -6,4 +6,10 @@ paths:
   /plans:
     get:
       operationId: listPlans
-      responses: { '200': { description: OK }, '400': { description: Invalid request } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { type: string } }
+        '400': { description: Invalid request }

@@ -35,13 +35,19 @@ function hasCombinedSecurity(security, first, second) {
     Object.hasOwn(requirement ?? {}, first) && Object.hasOwn(requirement ?? {}, second));
 }
 
-function isCollectionPath(path) {
-  const lastSegment = path.split("/").filter(Boolean).at(-1);
-  return Boolean(lastSegment) && !lastSegment.startsWith("{") && !["me", "current"].includes(lastSegment);
-}
-
 function parameterSchema(document, parameter) {
   return resolveLocalReference(document, parameter?.schema);
+}
+
+function isCollectionResponse(document, responseCandidate) {
+  const response = resolveLocalReference(document, responseCandidate);
+  const schemaCandidate = response?.content?.["application/json"]?.schema;
+  const schema = resolveLocalReference(document, schemaCandidate);
+  if (schema?.type === "array") {
+    return true;
+  }
+  const items = resolveLocalReference(document, schema?.properties?.items);
+  return schema?.type === "object" && items?.type === "array";
 }
 
 function isProblemDetailsSchema(document, schemaCandidate) {
@@ -131,7 +137,7 @@ module.exports = (document) => {
         });
       }
 
-      if (method === "get" && isCollectionPath(path)) {
+      if (method === "get" && isCollectionResponse(document, responses["200"])) {
         const cursor = parameters.find((parameter) => parameter.in === "query" && parameter.name === "cursor");
         const limit = parameters.find((parameter) => parameter.in === "query" && parameter.name === "limit");
         const limitSchema = parameterSchema(document, limit);
