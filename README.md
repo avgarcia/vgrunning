@@ -2,11 +2,11 @@
 
 Repositorio de descubrimiento, diseño y preparación técnica del PMV de Running Coach.
 
-La preparación técnica ya incluye el esqueleto ejecutable Spring Boot, ocho módulos lógicos verificados y persistencia técnica reproducible sobre PostgreSQL 18. No hay todavía funcionalidad ni tablas de negocio.
+La preparación técnica ya incluye el esqueleto ejecutable Spring Boot, ocho módulos lógicos verificados, persistencia técnica reproducible sobre PostgreSQL 18 y una SPA React mínima empaquetada. No hay todavía funcionalidad ni tablas de negocio.
 
 ## Base ejecutable
 
-El backend es una única aplicación Spring MVC. Requiere PostgreSQL local antes de arrancar. Todas las rutas de aplicación quedan cerradas hasta que se implemente `identity-access`; las únicas rutas abiertas son los probes técnicos:
+El backend es una única aplicación Spring MVC. Requiere PostgreSQL local antes de arrancar. El shell y las rutas de cliente de la SPA son públicos, pero `/api` permanece cerrado hasta que se implemente `identity-access`; también están abiertos los probes técnicos:
 
 - `http://localhost:8081/actuator/health/liveness`
 - `http://localhost:8081/actuator/health/readiness`
@@ -32,6 +32,24 @@ docker compose up -d --wait postgres
 ```
 
 Flyway conserva una única historia en `platform.flyway_schema_history`. La tarea `generateJooqFromPostgres` crea otro PostgreSQL efímero, aplica esa misma historia y escribe los tipos en `build/generated/sources/jooq/main`; esas fuentes nunca se versionan. El build completo y las pruebas requieren Docker.
+
+## Frontend
+
+La SPA usa React 19, TypeScript estricto y Vite. Node y Chromium solo participan en desarrollo, build y pruebas; el despliegue contiene exclusivamente los recursos Vite dentro del ejecutable Spring Boot. El cliente generado usa `/api` como ruta relativa y no existe configuración CORS.
+
+```powershell
+npm ci --prefix frontend
+npm --prefix frontend run playwright:install
+npm --prefix frontend run typecheck
+npm --prefix frontend run lint
+npm --prefix frontend run test:unit
+npm --prefix frontend run build
+npm --prefix frontend run test:e2e
+.\gradlew.bat frontendCheck
+.\gradlew.bat verifySpaPackaging
+```
+
+Vitest cubre el shell y la configuración del cliente; Playwright ejecuta un smoke sintético contra Vite preview. Las pruebas Spring verifican por separado el fallback de rutas, recursos, errores, API cerrada, ausencia de CORS y empaquetado bajo el mismo origen.
 
 ## Contrato HTTP
 

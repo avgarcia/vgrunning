@@ -3,9 +3,12 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.jvm.toolchain.JvmVendorSpec
+import org.gradle.language.jvm.tasks.ProcessResources
 import nu.studer.gradle.jooq.JooqEdition
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 import org.openapitools.generator.gradle.plugin.tasks.ValidateTask
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+import java.util.zip.ZipFile
 
 plugins {
     java
@@ -45,6 +48,7 @@ val generatedJooqDirectory = layout.buildDirectory.dir("generated/sources/jooq/m
 val openApiSpec = layout.projectDirectory.file("api/openapi/running-coach.yaml")
 val generatedOpenApiServerDirectory = layout.buildDirectory.dir("generated/openapi/server")
 val generatedOpenApiClientDirectory = layout.buildDirectory.dir("generated/openapi/client/typescript")
+val generatedFrontendDirectory = layout.buildDirectory.dir("generated/frontend")
 val oasdiffImage =
     "tufin/oasdiff@sha256:6065c16a4c9ce12504752f444d4981091e58c2a35436fac90b649be47d833db3"
 val npmExecutable = if (System.getProperty("os.name").startsWith("Windows")) "npm.cmd" else "npm"
@@ -222,6 +226,118 @@ val typecheckGeneratedOpenApiClient = tasks.register<Exec>("typecheckGeneratedOp
     inputs.files(openApiSpec, file("frontend/tsconfig.api.json"))
 }
 
+val frontendTypecheck = tasks.register<Exec>("frontendTypecheck") {
+    group = "frontend"
+    description = "Comprueba en modo estricto la SPA y sus herramientas TypeScript."
+    dependsOn(installFrontendDependencies, generateOpenApiClient)
+    workingDir(file("frontend"))
+    commandLine(npmExecutable, "run", "typecheck")
+    inputs.files(
+        fileTree("frontend/src"),
+        fileTree("frontend/e2e"),
+        fileTree("frontend") { include("*.config.ts", "tsconfig*.json") },
+        generatedOpenApiClientDirectory,
+    )
+}
+
+val frontendLint = tasks.register<Exec>("frontendLint") {
+    group = "frontend"
+    description = "Aplica ESLint tipado, reglas React y controles de accesibilidad."
+    dependsOn(installFrontendDependencies, generateOpenApiClient)
+    workingDir(file("frontend"))
+    commandLine(npmExecutable, "run", "lint")
+    inputs.files(
+        fileTree("frontend/src"),
+        fileTree("frontend/e2e"),
+        fileTree("frontend/scripts"),
+        fileTree("frontend") { include("*.config.js", "*.config.ts", "tsconfig*.json") },
+        generatedOpenApiClientDirectory,
+    )
+}
+
+val frontendUnitTest = tasks.register<Exec>("frontendUnitTest") {
+    group = "frontend"
+    description = "Ejecuta las pruebas unitarias Vitest de la SPA."
+    dependsOn(installFrontendDependencies, generateOpenApiClient)
+    workingDir(file("frontend"))
+    commandLine(npmExecutable, "run", "test:unit")
+    inputs.files(fileTree("frontend/src"), file("frontend/vite.config.ts"))
+}
+
+val frontendBuild = tasks.register<Exec>("frontendBuild") {
+    group = "frontend"
+    description = "Construye con Vite los recursos estáticos que se empaquetan en Spring Boot."
+    dependsOn(installFrontendDependencies, generateOpenApiClient)
+    workingDir(file("frontend"))
+    commandLine(npmExecutable, "run", "build")
+    inputs.files(
+        file("frontend/index.html"),
+        fileTree("frontend/src"),
+        file("frontend/vite.config.ts"),
+        file("frontend/tsconfig.app.json"),
+        generatedOpenApiClientDirectory,
+    )
+    outputs.dir(generatedFrontendDirectory)
+}
+
+val installPlaywrightChromium = tasks.register<Exec>("installPlaywrightChromium") {
+    group = "frontend"
+    description = "Instala el Chromium fijado por la versión de Playwright del lockfile."
+    dependsOn(installFrontendDependencies)
+    workingDir(file("frontend"))
+    commandLine(npmExecutable, "run", "playwright:install")
+}
+
+val frontendPlaywright = tasks.register<Exec>("frontendPlaywright") {
+    group = "frontend"
+    description = "Ejecuta el smoke test sintético de la SPA sobre Vite preview."
+    dependsOn(frontendBuild, installPlaywrightChromium)
+    workingDir(file("frontend"))
+    commandLine(npmExecutable, "run", "test:e2e")
+    inputs.files(
+        fileTree("frontend/e2e"),
+        file("frontend/playwright.config.ts"),
+        generatedFrontendDirectory,
+    )
+}
+
+val frontendCheck = tasks.register("frontendCheck") {
+    group = "verification"
+    description = "Agrega typecheck, ESLint, Vitest, build Vite y Playwright."
+    dependsOn(frontendTypecheck, frontendLint, frontendUnitTest, frontendBuild, frontendPlaywright)
+}
+
+tasks.named<ProcessResources>("processResources") {
+    dependsOn(frontendBuild)
+    from(generatedFrontendDirectory) {
+        into("static")
+    }
+}
+
+val bootJar = tasks.named<BootJar>("bootJar")
+val verifySpaPackaging = tasks.register("verifySpaPackaging") {
+    group = "verification"
+    description = "Comprueba que bootJar contiene la SPA y no contiene dependencias Node."
+    dependsOn(bootJar)
+    inputs.file(bootJar.flatMap { it.archiveFile })
+
+    doLast {
+        val archive = bootJar.get().archiveFile.get().asFile
+        ZipFile(archive).use { zip ->
+            val entries = zip.entries().asSequence().map { it.name }.toList()
+            check("BOOT-INF/classes/static/index.html" in entries) {
+                "bootJar no contiene BOOT-INF/classes/static/index.html."
+            }
+            check(entries.any { it.matches(Regex("BOOT-INF/classes/static/assets/.+-[A-Za-z0-9_-]+\\.(?:js|css)")) }) {
+                "bootJar no contiene recursos Vite con hash."
+            }
+            check(entries.none { "/node_modules/" in it || it.startsWith("node_modules/") }) {
+                "bootJar contiene dependencias Node."
+            }
+        }
+    }
+}
+
 fun runOasdiff(arguments: List<String>): Int {
     return ProcessBuilder(listOf("docker", "run", "--rm") + arguments)
         .directory(projectDir)
@@ -350,7 +466,7 @@ tasks.register("verifyJavaToolchain") {
 }
 
 tasks.named("check") {
-    dependsOn("verifyJavaToolchain", "verifyRuntimeStack", apiCheck)
+    dependsOn("verifyJavaToolchain", "verifyRuntimeStack", apiCheck, frontendCheck, verifySpaPackaging)
 }
 
 // Este control inspecciona los artefactos resueltos, incluso si nadie usa aún sus APIs.
