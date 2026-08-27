@@ -12,6 +12,8 @@ El monorepo contiene un único proyecto Gradle raíz y estas fronteras:
 - `src/codegen/java`: runner técnico aislado para generar jOOQ desde PostgreSQL efímero.
 - `frontend/`: SPA React, pruebas y herramientas npm.
 - `api/openapi/`: contratos OpenAPI como fuente de verdad.
+- `.env.example`: valores exclusivamente sintéticos para configuración local.
+- `docs/local-development.md`: guía canónica de instalación, ejecución, recreación y límites del entorno local.
 
 No mezcles código generado, credenciales locales ni notas personales con la documentación validada. Los generados permanecen bajo directorios de build y no se versionan.
 
@@ -51,6 +53,7 @@ Gradle Wrapper es la entrada canónica; no hace falta instalar Gradle globalment
 .\gradlew.bat frontendCheck      # Ejecuta typecheck, ESLint, Vitest, build Vite y Playwright.
 .\gradlew.bat verifySpaPackaging # Comprueba la SPA dentro de bootJar y la ausencia de node_modules.
 .\gradlew.bat check              # Ejecuta todos los controles locales de calidad.
+.\gradlew.bat verifyDocumentationLinks # Comprueba enlaces Markdown relativos y anclas locales.
 .\gradlew.bat fastGate           # Gate obligatorio de PR: check, PIT condicional y Gitleaks.
 .\gradlew.bat toolingGate        # Autopruebas de los propios gates; se ejecuta al cambiar tooling, en main y por la noche.
 .\gradlew.bat qualityGate        # Gate integral local: fastGate, autopruebas, imagen OCI, SBOM, Trivy y reproducibilidad.
@@ -72,7 +75,9 @@ git status                         # Revisa los cambios locales antes de compart
 git diff --check                   # Detecta errores de espacios en blanco.
 ```
 
-En macOS, Linux o Git Bash, usa `./gradlew clean build`, `./gradlew verifyJavaToolchain`, `./gradlew generateJooqFromPostgres`, `./gradlew verifyRuntimeStack`, `./gradlew apiCheck`, `./gradlew frontendCheck` y `./gradlew bootRun`.
+Para preparar, detener o recrear el entorno local, sigue `docs/local-development.md`. Copia `.env.example` a `.env` solo para valores locales; el ejemplo contiene exclusivamente valores sintéticos y Spring Boot lo importa como propiedades. `server.shutdown=graceful` permite hasta `30s` por fase de cierre al detener el backend. No introduzcas seeds de negocio mientras no exista una slice vertical que defina contrato, migración, autorización y pruebas.
+
+En macOS, Linux o Git Bash, usa `./gradlew clean build`, `./gradlew verifyJavaToolchain`, `./gradlew generateJooqFromPostgres`, `./gradlew verifyRuntimeStack`, `./gradlew apiCheck`, `./gradlew frontendCheck`, `./gradlew verifyDocumentationLinks` y `./gradlew bootRun`.
 
 Hay un runtime Spring Boot y pruebas de modularidad, seguridad, persistencia, arranque y entrega de la SPA. El build completo requiere Docker para codegen, Testcontainers, Gitleaks, Trivy e imagen OCI, además del Chromium fijado por Playwright. `check` incluye compilación estricta propia, Spotless AOSP, Error Prone, NullAway, SpotBugs, arquitectura, cobertura condicional, contrato y frontend; `fastGate` añade PIT condicional y Gitleaks; `toolingGate` ejecuta las autopruebas negativas de las herramientas; `qualityGate` añade toolingGate, imagen, SBOM, Trivy y reproducibilidad. En CI, `quality-gate` ejecuta `fastGate` en las PR con cambios de código; `tooling-gate` se ejecuta cuando cambia la propia cadena de calidad, en `main` y por la noche; la seguridad de imagen se ejecuta en cambios que pueden alterar el artefacto y la reproducibilidad se reserva para `main` y la ejecución nocturna. Las fuentes jOOQ y OpenAPI se compilan en source sets técnicos aislados y quedan excluidas de las métricas y análisis de código mantenido. Spectral aplica los controles automatizables de ADR-0017: rutas y versiones, secretos en URL, `operationId`, semántica HTTP mínima, Problem Details, seguridad de sesión y CSRF, parámetros de ruta, paginación acotada, objetos cerrados y ejemplos sin secretos. La revisión humana sigue siendo obligatoria para semántica de recursos, idempotencia, compatibilidad y excepciones justificadas.
 

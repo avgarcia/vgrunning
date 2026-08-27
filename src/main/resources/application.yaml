@@ -1,6 +1,10 @@
 spring:
   application:
     name: running-coach
+  config:
+    import: optional:file:.env[.properties]
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   datasource:
     url: ${RUNNING_COACH_DB_URL:jdbc:postgresql://localhost:5432/running_coach}
     username: ${RUNNING_COACH_DB_USERNAME:running_coach}
@@ -31,6 +35,9 @@ logging:
   structured:
     format:
       console: logstash
+
+server:
+  shutdown: graceful
 
 management:
   server:

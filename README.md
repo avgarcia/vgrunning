@@ -4,6 +4,21 @@ Repositorio de descubrimiento, diseño y preparación técnica del PMV de Runnin
 
 La preparación técnica ya incluye el esqueleto ejecutable Spring Boot, ocho módulos lógicos verificados, persistencia técnica reproducible sobre PostgreSQL 18 y una SPA React mínima empaquetada. No hay todavía funcionalidad ni tablas de negocio.
 
+## Inicio rápido
+
+La guía completa y reproducible está en la [guía del entorno local](docs/local-development.md). No uses datos reales, proveedores externos ni credenciales reales durante esta preparación técnica.
+
+En Windows:
+
+```powershell
+Copy-Item .env.example .env
+npm ci --prefix frontend
+docker compose up -d --wait postgres
+.\gradlew.bat bootRun
+```
+
+Detén el backend con `Ctrl+C` y PostgreSQL con `docker compose down`. Para reconstruir la base local, consulta el procedimiento de recreación de la guía.
+
 ## Base ejecutable
 
 El backend es una única aplicación Spring MVC. Requiere PostgreSQL local antes de arrancar. El shell y las rutas de cliente de la SPA son públicos, pero `/api` permanece cerrado hasta que se implemente `identity-access`; también están abiertos los probes técnicos:
@@ -102,3 +117,4 @@ Los mínimos de cobertura global son 80 % de líneas y 70 % de ramas; para paque
 - [Architecture Decision Records](docs/adr/README.md)
 - [Mejoras futuras](docs/future-improvements.md)
 - [Controles de calidad documental](docs/documentation-quality-gates.md)
+- [Guía del entorno local](docs/local-development.md)
