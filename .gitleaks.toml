@@ -1,0 +1,15 @@
+title = "Running Coach secret scanning"
+
+[[rules]]
+id = "running-coach-synthetic-secret"
+description = "Rejects the synthetic credential marker used by the permanent gate test."
+regex = '''RC_SECRET_[A-Za-z0-9]{32}'''
+secretGroup = 0
+
+[allowlist]
+description = "Generated and dependency directories are not source owned by the project."
+paths = [
+  '''(^|.*/)\.gradle/''',
+  '''(^|.*/)build/''',
+  '''(^|.*/)frontend/node_modules/''',
+]

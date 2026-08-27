@@ -1,8 +1,8 @@
 package com.vgrunning.runnerportal.adapter.http;
 
 import java.io.IOException;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.resource.PathResourceResolver;
 
 /** Sirve recursos reales y limita el fallback de la SPA a rutas de cliente. */
@@ -28,7 +28,8 @@ final class SpaResourceResolver extends PathResourceResolver {
     }
 
     private static boolean isClientRoute(String resourcePath) {
-        String normalizedPath = resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath;
+        String normalizedPath =
+                resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath;
         if (isReservedPath(normalizedPath)) {
             return false;
         }
@@ -37,10 +38,15 @@ final class SpaResourceResolver extends PathResourceResolver {
     }
 
     private static boolean isReservedPath(String path) {
-        return path.equals("api") || path.startsWith("api/")
-            || path.equals("actuator") || path.startsWith("actuator/")
-            || path.equals("assets") || path.startsWith("assets/")
-            || path.equals("error") || path.startsWith("error/")
-            || path.equals("webjars") || path.startsWith("webjars/");
+        return path.equals("api")
+                || path.startsWith("api/")
+                || path.equals("actuator")
+                || path.startsWith("actuator/")
+                || path.equals("assets")
+                || path.startsWith("assets/")
+                || path.equals("error")
+                || path.startsWith("error/")
+                || path.equals("webjars")
+                || path.startsWith("webjars/");
     }
 }

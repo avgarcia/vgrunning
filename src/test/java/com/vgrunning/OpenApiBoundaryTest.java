@@ -12,8 +12,12 @@ import com.tngtech.archunit.lang.ArchRule;
 class OpenApiBoundaryTest {
 
     @ArchTest
-    static final ArchRule openApiTypesMustStayInsideHttpAdapters = noClasses()
-        .that().resideOutsideOfPackages("..adapter.http..")
-        .should().dependOnClassesThat().resideInAnyPackage("org.vgrunning.generated.openapi..")
-        .allowEmptyShould(true);
+    static final ArchRule openApiTypesMustStayInsideHttpAdapters =
+            noClasses()
+                    .that()
+                    .resideOutsideOfPackages("..adapter.http..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage("org.vgrunning.generated.openapi..")
+                    .allowEmptyShould(true);
 }
