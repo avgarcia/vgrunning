@@ -72,6 +72,7 @@ val trivyImage =
 val temurinRuntimeImage =
     "eclipse-temurin:25.0.4_7-jre-noble@sha256:8c6736fa623090b057a5bbd36d42f90c9de4c7d2d4b6c285921a4f85ce65a445"
 val npmExecutable = if (System.getProperty("os.name").startsWith("Windows")) "npm.cmd" else "npm"
+val nodeExecutable = if (System.getProperty("os.name").startsWith("Windows")) "node.exe" else "node"
 
 val codegen = sourceSets.create("codegen") {
     java.srcDir("src/codegen/java")
@@ -1199,6 +1200,47 @@ tasks.register("verifyJavaToolchain") {
     }
 }
 
+tasks.register<Exec>("verifyDocumentationLinks") {
+    group = "verification"
+    description = "Comprueba enlaces Markdown locales y anclas GFM de la documentación versionada."
+    commandLine(nodeExecutable, "scripts/verify-documentation-links.cjs")
+    inputs.dir("docs")
+    inputs.file("README.md")
+    inputs.file("AGENTS.md")
+    inputs.file("scripts/verify-documentation-links.cjs")
+}
+
+val verifyDocumentationLinkChecker = tasks.register<Exec>("verifyDocumentationLinkChecker") {
+    group = "verification"
+    description = "Demuestra que el verificador documental rechaza enlaces rotos y acepta anclas válidas."
+    commandLine(nodeExecutable, "scripts/test-verify-documentation-links.cjs")
+    inputs.file("scripts/verify-documentation-links.cjs")
+    inputs.file("scripts/test-verify-documentation-links.cjs")
+}
+
+toolingGate.configure {
+    dependsOn(verifyDocumentationLinkChecker)
+}
+
+val verifyLocalRuntimeConfiguration = tasks.register("verifyLocalRuntimeConfiguration") {
+    group = "verification"
+    description = "Comprueba el apagado graceful y su límite explícito para desarrollo local."
+    inputs.file("src/main/resources/application.yaml")
+
+    doLast {
+        val configuration = file("src/main/resources/application.yaml").readText()
+        check("server:\n  shutdown: graceful" in configuration) {
+            "El runtime local debe configurar server.shutdown=graceful."
+        }
+        check("lifecycle:\n    timeout-per-shutdown-phase: 30s" in configuration) {
+            "El runtime local debe limitar cada fase de apagado graceful a 30 segundos."
+        }
+        check("config:\n    import: optional:file:.env[.properties]" in configuration) {
+            "El runtime local debe importar opcionalmente la configuración sintética de .env."
+        }
+    }
+}
+
 tasks.named("check") {
     dependsOn(
         "verifyJavaToolchain",
@@ -1211,6 +1253,8 @@ tasks.named("check") {
         apiCheck,
         frontendCheck,
         verifySpaPackaging,
+        "verifyDocumentationLinks",
+        verifyLocalRuntimeConfiguration,
     )
 }
 
