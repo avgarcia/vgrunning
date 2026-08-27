@@ -12,8 +12,12 @@ import com.tngtech.archunit.lang.ArchRule;
 class JooqBoundaryTest {
 
     @ArchTest
-    static final ArchRule jooqMustStayInsidePersistenceAdapters = noClasses()
-        .that().resideOutsideOfPackages("..adapter.persistence..")
-        .should().dependOnClassesThat().resideInAnyPackage("org.jooq..")
-        .allowEmptyShould(true);
+    static final ArchRule jooqMustStayInsidePersistenceAdapters =
+            noClasses()
+                    .that()
+                    .resideOutsideOfPackages("..adapter.persistence..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage("org.jooq..")
+                    .allowEmptyShould(true);
 }

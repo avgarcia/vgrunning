@@ -64,6 +64,20 @@ Vitest cubre el shell y la configuración del cliente; Playwright ejecuta un smo
 
 La generación no se versiona. Los tipos de servidor solo podrán consumirse desde `adapter.http`; los tipos generados no son contratos entre módulos ni tipos de dominio. Spectral bloquea las infracciones automatizables de ADR-0017, entre ellas errores sin Problem Details, escrituras protegidas sin CSRF, colecciones sin paginación acotada, objetos abiertos y ejemplos con secretos plausibles. `apiCheck` requiere Docker para comparar compatibilidad con `main` mediante `oasdiff`.
 
+## Calidad y seguridad de suministro
+
+`check` es el gate local de compilación, formato AOSP, Error Prone, NullAway, SpotBugs, pruebas, arquitectura, cobertura, contrato y frontend. El código generado por jOOQ y OpenAPI se compila en source sets técnicos aislados: debe compilar, pero no se formatea ni se mide como código mantenido por el equipo. La suite usa JUnit 6.0.3 alineado explícitamente mediante su BOM, porque Spring Boot 4.1.1 gestiona un launcher anterior incompatible con su propia versión de Jupiter.
+
+```powershell
+.\gradlew.bat check              # Gate local de calidad.
+.\gradlew.bat qualityGate        # check, PIT condicional, Gitleaks, autopruebas, imagen, SBOM y Trivy.
+.\gradlew.bat buildOciImage      # Construye la imagen linux/amd64 local.
+.\gradlew.bat generateSbom       # Genera el SBOM SPDX JSON bajo build/reports/security.
+.\gradlew.bat trivy              # Bloquea vulnerabilidades CRITICAL sin excepción temporal documentada.
+```
+
+Los mínimos de cobertura global son 80 % de líneas y 70 % de ramas; para paquetes futuros `domain` y `application` son 90 % y 80 %. PIT exige 70 % cuando exista código crítico. Hasta entonces, los gates críticos se registran como no aplicables. Gitleaks, Trivy y los casos negativos se ejecutan con credenciales sintéticas bajo `build/`, nunca versionadas. La imagen canónica se publicará desde `main` en GHCR identificada por commit y digest; esta tarea no despliega infraestructura.
+
 ## Documentación
 
 - [Enunciado del problema — Fase 0](docs/phase-0-problem-statement.md)

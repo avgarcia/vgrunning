@@ -50,6 +50,11 @@ Gradle Wrapper es la entrada canónica; no hace falta instalar Gradle globalment
 .\gradlew.bat generateOpenApiClient # Genera el cliente TypeScript bajo build/generated/openapi/client/typescript.
 .\gradlew.bat frontendCheck      # Ejecuta typecheck, ESLint, Vitest, build Vite y Playwright.
 .\gradlew.bat verifySpaPackaging # Comprueba la SPA dentro de bootJar y la ausencia de node_modules.
+.\gradlew.bat check              # Ejecuta todos los controles locales de calidad.
+.\gradlew.bat qualityGate        # Añade seguridad, autopruebas e imagen OCI a check.
+.\gradlew.bat buildOciImage      # Construye la imagen OCI linux/amd64 local.
+.\gradlew.bat generateSbom       # Genera el SBOM SPDX JSON de la imagen.
+.\gradlew.bat trivy              # Analiza CRITICAL en la imagen con las excepciones documentadas.
 docker compose up -d --wait postgres # Inicia PostgreSQL local con credenciales sintéticas.
 .\gradlew.bat bootRun             # Inicia el backend en 8080 y los probes técnicos en 8081.
 docker compose down               # Detiene PostgreSQL sin borrar el volumen local.
@@ -67,11 +72,28 @@ git diff --check                   # Detecta errores de espacios en blanco.
 
 En macOS, Linux o Git Bash, usa `./gradlew clean build`, `./gradlew verifyJavaToolchain`, `./gradlew generateJooqFromPostgres`, `./gradlew verifyRuntimeStack`, `./gradlew apiCheck`, `./gradlew frontendCheck` y `./gradlew bootRun`.
 
-Hay un runtime Spring Boot y pruebas de modularidad, seguridad, persistencia, arranque y entrega de la SPA. El build completo requiere Docker para codegen y Testcontainers, además del Chromium fijado por Playwright. Spectral aplica los controles automatizables de ADR-0017: rutas y versiones, secretos en URL, `operationId`, semántica HTTP mínima, Problem Details, seguridad de sesión y CSRF, parámetros de ruta, paginación acotada, objetos cerrados y ejemplos sin secretos. La revisión humana sigue siendo obligatoria para semántica de recursos, idempotencia, compatibilidad y excepciones justificadas. Aún no hay formateador, cobertura ni CI; añade cada comando en el mismo cambio que incorpore su herramienta.
+Hay un runtime Spring Boot y pruebas de modularidad, seguridad, persistencia, arranque y entrega de la SPA. El build completo requiere Docker para codegen, Testcontainers, Gitleaks, Trivy e imagen OCI, además del Chromium fijado por Playwright. `check` incluye compilación estricta propia, Spotless AOSP, Error Prone, NullAway, SpotBugs, arquitectura, cobertura condicional, contrato y frontend; `qualityGate` añade PIT condicional, autopruebas negativas, Gitleaks, imagen, SBOM y Trivy. Las fuentes jOOQ y OpenAPI se compilan en source sets técnicos aislados y quedan excluidas de las métricas y análisis de código mantenido. Spectral aplica los controles automatizables de ADR-0017: rutas y versiones, secretos en URL, `operationId`, semántica HTTP mínima, Problem Details, seguridad de sesión y CSRF, parámetros de ruta, paginación acotada, objetos cerrados y ejemplos sin secretos. La revisión humana sigue siendo obligatoria para semántica de recursos, idempotencia, compatibilidad y excepciones justificadas.
+
+## Estrategia de validación incremental
+
+Durante la implementación, ejecuta únicamente los controles afectados por el cambio. No ejecutes `qualityGate` de forma repetida para diagnosticar fallos.
+
+Orden obligatorio:
+
+1. Ejecutar el control dirigido al cambio: compilación, formato, pruebas Java, API, frontend, imagen o seguridad.
+2. Si falla, aislar y corregir la tarea concreta.
+3. Repetir solo esa validación dirigida.
+4. Ejecutar `qualityGate` una única vez como evidencia final, cuando todos los controles dirigidos hayan pasado.
+
+Tras un fallo de `qualityGate`, no debe repetirse hasta identificar y corregir su causa raíz mediante una tarea concreta.
+
+Las autopruebas negativas deben usar fixtures mínimos. No podrán iniciar PostgreSQL, jOOQ, OpenAPI, Playwright ni clonar el repositorio salvo que el control validado lo exija directamente.
+
+Las cachés de Gradle, npm, Playwright y Trivy se reutilizarán. El análisis completo de Trivy puede ser costoso en su primera ejecución; no se reiniciará ni se repetirá sin una modificación relevante de la imagen o de sus dependencias.
 
 ## Directrices de pruebas
 
-Las pruebas Java usan JUnit 5, AssertJ, Spring Boot Test, Spring Modulith, ArchUnit y Testcontainers. Verifican módulos, una infracción modular controlada, independencia del dominio, arranque, seguridad, entrega de la SPA, migraciones PostgreSQL y transacciones compartidas por Spring JDBC y jOOQ. El frontend usa Vitest, Testing Library y Playwright; no mezcles sus conjuntos de pruebas ni uses datos reales. No uses H2, SQLite, Derby, HSQLDB ni drivers o pools R2DBC. jOOQ 3.21 requiere transitivamente `r2dbc-spi` para cargar su configuración incluso en modo JDBC; ese SPI pasivo es la única excepción y no autoriza un stack reactivo. Toda funcionalidad futura debe incluir pruebas que describan el comportamiento, por ejemplo `workout-assignment.spec.ts`. Documenta el umbral de cobertura cuando se adopte.
+Las pruebas Java usan JUnit 6.0.3, AssertJ, Spring Boot Test, Spring Modulith, ArchUnit y Testcontainers. El BOM JUnit se fuerza solo en pruebas para mantener API, motor, plataforma y launcher alineados; no se rebajan dependencias de Spring. Verifican módulos, una infracción modular controlada, independencia del dominio, arranque, seguridad, entrega de la SPA, migraciones PostgreSQL y transacciones compartidas por Spring JDBC y jOOQ. El frontend usa Vitest, Testing Library y Playwright; no mezcles sus conjuntos de pruebas ni uses datos reales. No uses H2, SQLite, Derby, HSQLDB ni drivers o pools R2DBC. jOOQ 3.21 requiere transitivamente `r2dbc-spi` para cargar su configuración incluso en modo JDBC; ese SPI pasivo es la única excepción y no autoriza un stack reactivo. La cobertura global mínima es 80 % de líneas y 70 % de ramas; `domain` y `application` exigirán 90 % y 80 %, y PIT 70 %, en cuanto existan. Toda funcionalidad futura debe incluir pruebas que describan el comportamiento, por ejemplo `workout-assignment.spec.ts`.
 
 ## Directrices de commits y pull requests
 
