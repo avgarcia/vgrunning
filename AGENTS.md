@@ -51,7 +51,9 @@ Gradle Wrapper es la entrada canónica; no hace falta instalar Gradle globalment
 .\gradlew.bat frontendCheck      # Ejecuta typecheck, ESLint, Vitest, build Vite y Playwright.
 .\gradlew.bat verifySpaPackaging # Comprueba la SPA dentro de bootJar y la ausencia de node_modules.
 .\gradlew.bat check              # Ejecuta todos los controles locales de calidad.
-.\gradlew.bat qualityGate        # Añade seguridad, autopruebas e imagen OCI a check.
+.\gradlew.bat fastGate           # Gate obligatorio de PR: check, PIT condicional y Gitleaks.
+.\gradlew.bat toolingGate        # Autopruebas de los propios gates; se ejecuta al cambiar tooling, en main y por la noche.
+.\gradlew.bat qualityGate        # Gate integral local: fastGate, autopruebas, imagen OCI, SBOM, Trivy y reproducibilidad.
 .\gradlew.bat buildOciImage      # Construye la imagen OCI linux/amd64 local.
 .\gradlew.bat generateSbom       # Genera el SBOM SPDX JSON de la imagen.
 .\gradlew.bat trivy              # Analiza CRITICAL en la imagen con las excepciones documentadas.
@@ -72,7 +74,7 @@ git diff --check                   # Detecta errores de espacios en blanco.
 
 En macOS, Linux o Git Bash, usa `./gradlew clean build`, `./gradlew verifyJavaToolchain`, `./gradlew generateJooqFromPostgres`, `./gradlew verifyRuntimeStack`, `./gradlew apiCheck`, `./gradlew frontendCheck` y `./gradlew bootRun`.
 
-Hay un runtime Spring Boot y pruebas de modularidad, seguridad, persistencia, arranque y entrega de la SPA. El build completo requiere Docker para codegen, Testcontainers, Gitleaks, Trivy e imagen OCI, además del Chromium fijado por Playwright. `check` incluye compilación estricta propia, Spotless AOSP, Error Prone, NullAway, SpotBugs, arquitectura, cobertura condicional, contrato y frontend; `qualityGate` añade PIT condicional, autopruebas negativas, Gitleaks, imagen, SBOM y Trivy. Las fuentes jOOQ y OpenAPI se compilan en source sets técnicos aislados y quedan excluidas de las métricas y análisis de código mantenido. Spectral aplica los controles automatizables de ADR-0017: rutas y versiones, secretos en URL, `operationId`, semántica HTTP mínima, Problem Details, seguridad de sesión y CSRF, parámetros de ruta, paginación acotada, objetos cerrados y ejemplos sin secretos. La revisión humana sigue siendo obligatoria para semántica de recursos, idempotencia, compatibilidad y excepciones justificadas.
+Hay un runtime Spring Boot y pruebas de modularidad, seguridad, persistencia, arranque y entrega de la SPA. El build completo requiere Docker para codegen, Testcontainers, Gitleaks, Trivy e imagen OCI, además del Chromium fijado por Playwright. `check` incluye compilación estricta propia, Spotless AOSP, Error Prone, NullAway, SpotBugs, arquitectura, cobertura condicional, contrato y frontend; `fastGate` añade PIT condicional y Gitleaks; `toolingGate` ejecuta las autopruebas negativas de las herramientas; `qualityGate` añade toolingGate, imagen, SBOM, Trivy y reproducibilidad. En CI, `quality-gate` ejecuta `fastGate` en las PR con cambios de código; `tooling-gate` se ejecuta cuando cambia la propia cadena de calidad, en `main` y por la noche; la seguridad de imagen se ejecuta en cambios que pueden alterar el artefacto y la reproducibilidad se reserva para `main` y la ejecución nocturna. Las fuentes jOOQ y OpenAPI se compilan en source sets técnicos aislados y quedan excluidas de las métricas y análisis de código mantenido. Spectral aplica los controles automatizables de ADR-0017: rutas y versiones, secretos en URL, `operationId`, semántica HTTP mínima, Problem Details, seguridad de sesión y CSRF, parámetros de ruta, paginación acotada, objetos cerrados y ejemplos sin secretos. La revisión humana sigue siendo obligatoria para semántica de recursos, idempotencia, compatibilidad y excepciones justificadas.
 
 ## Estrategia de validación incremental
 

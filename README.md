@@ -70,7 +70,9 @@ La generación no se versiona. Los tipos de servidor solo podrán consumirse des
 
 ```powershell
 .\gradlew.bat check              # Gate local de calidad.
-.\gradlew.bat qualityGate        # check, PIT condicional, Gitleaks, autopruebas, imagen, SBOM y Trivy.
+.\gradlew.bat fastGate           # Gate de PR: check, PIT condicional y Gitleaks.
+.\gradlew.bat toolingGate        # Autopruebas de los propios gates de calidad y seguridad.
+.\gradlew.bat qualityGate        # Gate integral: fastGate, toolingGate, imagen, SBOM, Trivy y reproducibilidad.
 .\gradlew.bat buildOciImage      # Construye la imagen linux/amd64 local.
 .\gradlew.bat generateSbom       # Genera el SBOM SPDX JSON bajo build/reports/security.
 .\gradlew.bat trivy              # Bloquea vulnerabilidades CRITICAL sin excepción temporal documentada.
