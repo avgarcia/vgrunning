@@ -811,11 +811,27 @@ val trivy = tasks.register("trivy") {
 val qualityGate = tasks.register("qualityGate") {
     group = "verification"
     description = "Ejecuta todos los controles obligatorios de calidad, contrato y seguridad de suministro."
+}
+
+val fastGate = tasks.register("fastGate") {
+    group = "verification"
+    description = "Ejecuta los controles obligatorios de PR sin autopruebas de tooling ni análisis de imagen OCI."
     dependsOn(
         tasks.named("check"),
         tasks.named("pitest"),
         verifyCriticalQualityScope,
         gitleaks,
+    )
+}
+
+val toolingGate = tasks.register("toolingGate") {
+    group = "verification"
+    description = "Ejecuta las autopruebas de las herramientas de calidad y seguridad."
+}
+
+qualityGate.configure {
+    dependsOn(
+        fastGate,
         trivy,
         verifyOciReproducibility,
     )
@@ -1026,8 +1042,12 @@ val verifyQualityNegativeCases = tasks.register("verifyQualityNegativeCases") {
     }
 }
 
-qualityGate.configure {
+toolingGate.configure {
     dependsOn(verifyQualityNegativeCases)
+}
+
+qualityGate.configure {
+    dependsOn(toolingGate)
 }
 val verifySpaPackaging = tasks.register("verifySpaPackaging") {
     group = "verification"
