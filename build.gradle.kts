@@ -796,8 +796,8 @@ val trivy = tasks.register("trivy") {
             runCommandCapturing(
                 listOf(
                     "docker", "run", "--rm", "--mount", mount, "--mount", cacheMount, trivyImage, "image", "--timeout",
-                    "30m", "--skip-db-update", "--input", "/reports/vgrunning-image.tar", "--scanners", "vuln", "--severity",
-                    "CRITICAL", "--exit-code", "1", "--no-progress",
+                    "30m", "--input", "/reports/vgrunning-image.tar", "--scanners", "vuln", "--severity", "CRITICAL",
+                    "--exit-code", "1", "--no-progress",
                 ),
             )
         check(
