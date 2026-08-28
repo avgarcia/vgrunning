@@ -56,6 +56,7 @@ Gradle Wrapper es la entrada canónica; no hace falta instalar Gradle globalment
 .\gradlew.bat check              # Ejecuta todos los controles locales de calidad.
 .\gradlew.bat verifyDocumentationLinks # Comprueba enlaces Markdown relativos y anclas locales.
 .\gradlew.bat verifyAiGovernance # Verifica la política local y su copia operativa para Linear Agent.
+node scripts/collect-validation-baseline.cjs --repo avgarcia/vgrunning --pr-limit 6 --main-limit 4 # Genera la línea base inicial efímera de GitHub Actions; requiere gh autenticado.
 .\gradlew.bat fastGate           # Gate obligatorio de PR: check, PIT condicional y Gitleaks.
 .\gradlew.bat toolingGate        # Autopruebas de los propios gates; se ejecuta al cambiar tooling, en main y por la noche.
 .\gradlew.bat qualityGate        # Gate integral local: fastGate, autopruebas, imagen OCI, SBOM, Trivy y reproducibilidad.
