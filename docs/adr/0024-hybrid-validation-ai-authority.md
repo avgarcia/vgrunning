@@ -1,6 +1,6 @@
 # ADR-0024: Estrategia híbrida de validación y autoridad de la IA
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-08-28
 **Responsable de revisión:** Revisor de arquitectura
 **Refina parcialmente:** [ADR-0013](0013-application-runtime-framework.md)
@@ -61,5 +61,5 @@ Se propone. Mantiene el gate completo ante incertidumbre y en contextos de alto 
 
 ## Decisiones pendientes
 
-- **Aceptación formal de este ADR — bloqueante para `TECH-02.2`.** Responsable: Revisor de arquitectura. Tratamiento: revisión humana de la PR de `TECH-02.1`; esta PR no acepta la decisión ni el riesgo de ausencia de revisión independiente.
+- **Resuelto — aceptación formal.** ADR-0024 fue aceptado el 2026-08-28 por el Revisor de arquitectura. `TECH-02.2` queda autorizado respecto de esta decisión, aunque mantiene sus propias dependencias y validaciones.
 - **Ampliación de la línea base inicial — no bloqueante.** Responsable: Revisor de arquitectura. Tratamiento: la muestra queda limitada a seis PRs completas y cuatro conjuntos de `main` porque GitHub solo conserva ese historial completo al 2026-08-28; la siguiente medición se ampliará a diez PRs y cinco de `main` cuando exista historial suficiente.

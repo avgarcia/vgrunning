@@ -3,7 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
-**Refinado parcialmente por:** [ADR-0024](0024-hybrid-validation-ai-authority.md) — Propuesto; estrategia de activación y autoridad de validación, sin cambio de umbrales ni herramientas.
+**Refinado parcialmente por:** [ADR-0024](0024-hybrid-validation-ai-authority.md) — Aceptado; estrategia de activación y autoridad de validación, sin cambio de umbrales ni herramientas.
 
 ## Contexto
 
