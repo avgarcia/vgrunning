@@ -1218,8 +1218,31 @@ val verifyDocumentationLinkChecker = tasks.register<Exec>("verifyDocumentationLi
     inputs.file("scripts/test-verify-documentation-links.cjs")
 }
 
+val verifyAiGovernance = tasks.register<Exec>("verifyAiGovernance") {
+    group = "verification"
+    description = "Comprueba la política versionada de autoridad y límites operativos de la IA."
+    commandLine(nodeExecutable, "scripts/verify-ai-governance.cjs")
+    inputs.file("AGENTS.md")
+    inputs.file("docs/ai-governance.md")
+    inputs.dir(".agents/skills/implementar-slice")
+    inputs.dir("config/linear-agent")
+    inputs.file("scripts/verify-ai-governance.cjs")
+}
+
+val verifyAiGovernanceChecker = tasks.register<Exec>("verifyAiGovernanceChecker") {
+    group = "verification"
+    description = "Demuestra con fixtures mínimos que la política rechaza invocación implícita y autorización de merge."
+    commandLine(nodeExecutable, "scripts/test-verify-ai-governance.cjs")
+    inputs.file("scripts/verify-ai-governance.cjs")
+    inputs.file("scripts/test-verify-ai-governance.cjs")
+    inputs.file("AGENTS.md")
+    inputs.file("docs/ai-governance.md")
+    inputs.dir(".agents/skills/implementar-slice")
+    inputs.dir("config/linear-agent")
+}
+
 toolingGate.configure {
-    dependsOn(verifyDocumentationLinkChecker)
+    dependsOn(verifyDocumentationLinkChecker, verifyAiGovernanceChecker)
 }
 
 val verifyLocalRuntimeConfiguration = tasks.register("verifyLocalRuntimeConfiguration") {
@@ -1254,6 +1277,7 @@ tasks.named("check") {
         frontendCheck,
         verifySpaPackaging,
         "verifyDocumentationLinks",
+        verifyAiGovernance,
         verifyLocalRuntimeConfiguration,
     )
 }
