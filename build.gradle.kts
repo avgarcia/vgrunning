@@ -503,7 +503,7 @@ val frontendCheck = tasks.register("frontendCheck") {
 }
 
 tasks.named<ProcessResources>("processResources") {
-    dependsOn(frontendBuild)
+    mustRunAfter(frontendBuild)
     from(generatedFrontendDirectory) {
         into("static")
     }
@@ -511,6 +511,7 @@ tasks.named<ProcessResources>("processResources") {
 
 val bootJar = tasks.named<BootJar>("bootJar")
 bootJar.configure {
+    dependsOn(frontendBuild)
     from(jooqGenerated.output)
     from(openApiGenerated.output)
 }
@@ -1162,9 +1163,7 @@ val apiCheck = tasks.register("apiCheck") {
         generateOpenApiClient,
         tasks.named("compileJava"),
         lintOpenApi,
-        verifySpectralNegativeCases,
         typecheckGeneratedOpenApiClient,
-        verifyOasdiffBreakingCase,
         checkOpenApiCompatibility,
     )
 }
@@ -1273,14 +1272,10 @@ tasks.named("check") {
         "jacocoTestReport",
         "jacocoTestCoverageVerification",
         verifyGeneratedSourceIsolation,
-        apiCheck,
-        frontendCheck,
-        verifySpaPackaging,
-        "verifyDocumentationLinks",
-        verifyAiGovernance,
-        verifyLocalRuntimeConfiguration,
     )
 }
+
+apply(from = "gradle/validation/quality-gates.gradle.kts")
 
 // Este control inspecciona los artefactos resueltos, incluso si nadie usa aún sus APIs.
 // forbidden-apis analiza referencias de bytecode y sería complementario, no un sustituto de esta política.

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": 1,
+  "default": {
+    "surface": "unknown",
+    "gates": ["qualityGate"],
+    "semanticReview": false,
+    "reason": "Ruta sin clasificación explícita: se aplica qualityGate de forma conservadora."
+  },
+  "surfaces": [
+    {
+      "name": "documentation",
+      "patterns": ["docs/**", "README.md", "AGENTS.md", "docs/ai-governance.md", "config/linear-agent/**"],
+      "gates": ["docsCheck", "gitleaks"],
+      "semanticReview": true
+    },
+    {
+      "name": "backend",
+      "patterns": ["src/main/java/**", "src/test/java/**", "src/main/resources/**"],
+      "gates": ["backendCheck", "codeql-java", "gitleaks"],
+      "semanticReview": false
+    },
+    {
+      "name": "persistence",
+      "patterns": ["src/codegen/**", "src/main/resources/db/migration/**", "compose.yaml"],
+      "gates": ["backendCheck", "postgresql-tests", "gitleaks"],
+      "semanticReview": false
+    },
+    {
+      "name": "api",
+      "patterns": ["api/openapi/**", "src/main/java/**/adapter/http/**"],
+      "gates": ["backendCheck", "apiCheck", "frontendCheck", "codeql-java", "codeql-javascript-typescript", "gitleaks"],
+      "semanticReview": true
+    },
+    {
+      "name": "frontend",
+      "patterns": ["frontend/**"],
+      "gates": ["frontendCheck", "codeql-javascript-typescript", "gitleaks"],
+      "semanticReview": false
+    },
+    {
+      "name": "spa-delivery",
+      "patterns": ["src/main/java/**/runnerportal/adapter/http/**", "src/test/java/**/runnerportal/**", "src/main/resources/static/**", "frontend/e2e/**"],
+      "gates": ["backendCheck", "frontendCheck", "verifySpaPackaging", "gitleaks"],
+      "semanticReview": false
+    },
+    {
+      "name": "tooling-supply-chain",
+      "patterns": ["build.gradle.kts", "settings.gradle.kts", "gradle/**", "gradle.properties", "gradle.lockfile", "frontend/package.json", "frontend/package-lock.json", "frontend/.npmrc", "Dockerfile", ".dockerignore", "security/**", ".gitleaks.toml", ".github/workflows/**", "config/validation-matrix.json", "scripts/classify-validation-scope.mjs", "scripts/test-classify-validation-scope.mjs"],
+      "gates": ["qualityGate"],
+      "semanticReview": false
+    }
+  ]
+}

@@ -8,6 +8,8 @@ La preparación técnica ya incluye el esqueleto ejecutable Spring Boot, ocho m�
 
 La guía completa y reproducible está en la [guía del entorno local](docs/local-development.md). No uses datos reales, proveedores externos ni credenciales reales durante esta preparación técnica.
 
+La validación se organiza por superficie con `backendCheck`, `apiCheck`, `frontendCheck`, `docsCheck`, `toolingGate` y `supplyChainCheck`; `qualityGate` conserva el inventario integral. `classifyValidationScope` genera únicamente evidencia en shadow mode y nunca reduce los controles aplicados.
+
 En Windows:
 
 ```powershell

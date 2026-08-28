@@ -48,6 +48,29 @@ jobs:
             echo "tooling=false" >> "$GITHUB_OUTPUT"
           fi
 
+  validation-scope:
+    name: validation-scope-shadow
+    needs: changes
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24.19.0'
+      - name: Classify pull request in shadow mode
+        if: github.event_name == 'pull_request'
+        run: node scripts/classify-validation-scope.mjs --base "origin/${{ github.base_ref }}"
+      - name: Classify complete inventory outside pull requests
+        if: github.event_name != 'pull_request'
+        run: node scripts/classify-validation-scope.mjs --all
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: validation-plan
+          path: build/reports/validation/plan.json
+          if-no-files-found: error
+
   quality-gate:
     name: quality-gate
     needs: changes
