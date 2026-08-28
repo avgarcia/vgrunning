@@ -1,0 +1,7 @@
+interface:
+  display_name: "Implementar slice"
+  short_description: "Implementa una slice lista sin fusionarla"
+  default_prompt: "Usa $implementar-slice para implementar una slice de Running Coach preparada y dejar una PR borrador con evidencia."
+
+policy:
+  allow_implicit_invocation: false

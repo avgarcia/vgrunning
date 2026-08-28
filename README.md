@@ -87,6 +87,7 @@ La generación no se versiona. Los tipos de servidor solo podrán consumirse des
 .\gradlew.bat check              # Gate local de calidad.
 .\gradlew.bat fastGate           # Gate de PR: check, PIT condicional y Gitleaks.
 .\gradlew.bat toolingGate        # Autopruebas de los propios gates de calidad y seguridad.
+.\gradlew.bat verifyAiGovernance # Verifica Skills, guidance y límites de autoridad de la IA.
 .\gradlew.bat qualityGate        # Gate integral: fastGate, toolingGate, imagen, SBOM, Trivy y reproducibilidad.
 .\gradlew.bat buildOciImage      # Construye la imagen linux/amd64 local.
 .\gradlew.bat generateSbom       # Genera el SBOM SPDX JSON bajo build/reports/security.
@@ -94,6 +95,10 @@ La generación no se versiona. Los tipos de servidor solo podrán consumirse des
 ```
 
 Los mínimos de cobertura global son 80 % de líneas y 70 % de ramas; para paquetes futuros `domain` y `application` son 90 % y 80 %. PIT exige 70 % cuando exista código crítico. Hasta entonces, los gates críticos se registran como no aplicables. Gitleaks, Trivy y los casos negativos se ejecutan con credenciales sintéticas bajo `build/`, nunca versionadas. La imagen canónica se publicará desde `main` en GHCR identificada por commit y digest; esta tarea no despliega infraestructura.
+
+## Gobierno de la IA
+
+La asistencia de IA coordina el trabajo y prepara evidencia, pero no sustituye gates ejecutables ni autoridad humana. La Skill local `$implementar-slice` exige una Definition of Ready completa, validación incremental, una única ejecución final de `qualityGate` y una PR borrador; nunca autoriza fusionar. Consulta el [gobierno operativo de la IA](docs/ai-governance.md).
 
 ## Documentación
 
@@ -118,3 +123,4 @@ Los mínimos de cobertura global son 80 % de líneas y 70 % de ramas; para paque
 - [Mejoras futuras](docs/future-improvements.md)
 - [Controles de calidad documental](docs/documentation-quality-gates.md)
 - [Guía del entorno local](docs/local-development.md)
+- [Gobierno operativo de la IA](docs/ai-governance.md)
