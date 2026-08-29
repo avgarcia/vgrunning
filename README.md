@@ -120,6 +120,7 @@ La asistencia de IA coordina el trabajo y prepara evidencia, pero no sustituye g
 - [Diseño detallado del portal del corredor — Fase 2](docs/phase-2-detailed-design-runner-portal.md)
 - [Línea base de acceso y seguridad — Fase 2](docs/phase-2-access-security-baseline.md)
 - [Cierre documental — Fase 2](docs/phase-2-closure.md)
+- [Especificación UX-01 del portal del corredor](docs/ux-01-runner-portal-specification.md)
 - [Guía de diseño de API HTTP](docs/api-design-guidelines.md)
 - [Architecture Decision Records](docs/adr/README.md)
 - [Mejoras futuras](docs/future-improvements.md)
