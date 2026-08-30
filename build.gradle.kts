@@ -110,9 +110,12 @@ sourceSets.named("test") {
 }
 
 dependencies {
+    compileOnly("org.projectlombok:lombok:1.18.44")
+    annotationProcessor("org.projectlombok:lombok:1.18.44")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
@@ -142,6 +145,8 @@ dependencies {
     compileOnly("org.jspecify:jspecify:1.0.1")
     compileOnly("com.github.spotbugs:spotbugs-annotations:4.10.4")
     testCompileOnly("org.jspecify:jspecify:1.0.1")
+    testCompileOnly("org.projectlombok:lombok:1.18.44")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.44")
 
     errorprone("com.google.errorprone:error_prone_core:2.50.0")
     errorprone("com.uber.nullaway:nullaway:0.14.0")
@@ -337,6 +342,9 @@ val generateOpenApiServer = tasks.register<GenerateTask>("generateOpenApiServer"
     )
     globalProperties.set(
         mapOf(
+            "apis" to "",
+            "models" to "",
+            "supportingFiles" to "",
             "apiDocs" to "false",
             "apiTests" to "false",
             "modelDocs" to "false",

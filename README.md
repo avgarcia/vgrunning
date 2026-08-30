@@ -23,7 +23,7 @@ Detén el backend con `Ctrl+C` y PostgreSQL con `docker compose down`. Para reco
 
 ## Base ejecutable
 
-El backend es una única aplicación Spring MVC. Requiere PostgreSQL local antes de arrancar. El shell y las rutas de cliente de la SPA son públicos, pero `/api` permanece cerrado hasta que se implemente `identity-access`; también están abiertos los probes técnicos:
+El backend es una única aplicación Spring MVC. Requiere PostgreSQL local antes de arrancar. El shell y las rutas de cliente de la SPA son públicos. En `/api` solo están disponibles las operaciones de sesión opaca y CSRF de `identity-access`; el resto permanece cerrado. También están abiertos los probes técnicos:
 
 - `http://localhost:8081/actuator/health/liveness`
 - `http://localhost:8081/actuator/health/readiness`

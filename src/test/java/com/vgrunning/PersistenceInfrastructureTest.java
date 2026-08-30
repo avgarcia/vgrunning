@@ -125,7 +125,7 @@ class PersistenceInfrastructureTest {
                         jdbc.queryForObject(
                                 "SELECT count(*) FROM platform.flyway_schema_history WHERE success AND version IS NOT NULL",
                                 Integer.class))
-                .isEqualTo(2);
+                .isEqualTo(3);
         assertThat(eventColumns)
                 .containsExactlyInAnyOrder(
                         "id",
@@ -152,6 +152,79 @@ class PersistenceInfrastructureTest {
             """,
                                 Integer.class))
                 .isZero();
+    }
+
+    @Test
+    void createsIdentityAccessTablesWithSemanticTimesAndPartialIndexes() {
+        Set<String> identityTables =
+                Set.copyOf(
+                        jdbc.queryForList(
+                                """
+                                SELECT table_name FROM information_schema.tables
+                                 WHERE table_schema = 'identity_access' AND table_type = 'BASE TABLE'
+                                """,
+                                String.class));
+        Set<String> accountColumns =
+                Set.copyOf(
+                        jdbc.queryForList(
+                                """
+                                SELECT column_name FROM information_schema.columns
+                                 WHERE table_schema = 'identity_access' AND table_name = 'account'
+                                """,
+                                String.class));
+        Set<String> timestampColumns =
+                Set.copyOf(
+                        jdbc.queryForList(
+                                """
+                                SELECT table_name || '.' || column_name
+                                  FROM information_schema.columns
+                                 WHERE table_schema = 'identity_access'
+                                   AND data_type = 'timestamp with time zone'
+                                """,
+                                String.class));
+        Set<String> indexes =
+                Set.copyOf(
+                        jdbc.queryForList(
+                                """
+                                SELECT indexname FROM pg_indexes
+                                 WHERE schemaname = 'identity_access'
+                                """,
+                                String.class));
+
+        assertThat(identityTables)
+                .containsExactlyInAnyOrder(
+                        "account",
+                        "account_email",
+                        "access_session",
+                        "auth_rate_limit_bucket",
+                        "security_event");
+        assertThat(accountColumns)
+                .contains(
+                        "created_at",
+                        "updated_at",
+                        "status_changed_at",
+                        "password_changed_at",
+                        "version");
+        assertThat(timestampColumns)
+                .contains(
+                        "account.created_at",
+                        "account.updated_at",
+                        "account.status_changed_at",
+                        "account_email.confirmed_at",
+                        "account_email.expires_at",
+                        "account_email.released_at",
+                        "access_session.absolute_expires_at",
+                        "access_session.revoked_at",
+                        "auth_rate_limit_bucket.window_started_at",
+                        "auth_rate_limit_bucket.window_ends_at",
+                        "security_event.occurred_at",
+                        "security_event.retention_until");
+        assertThat(indexes)
+                .contains(
+                        "account_email_live_canonical_usage_key",
+                        "account_email_account_usage_reservation_key",
+                        "access_session_active_account_idx",
+                        "access_session_verifier_sha256_key");
     }
 
     @Test
