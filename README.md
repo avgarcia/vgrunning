@@ -122,6 +122,7 @@ La asistencia de IA coordina el trabajo y prepara evidencia, pero no sustituye g
 - [Cierre documental — Fase 2](docs/phase-2-closure.md)
 - [Especificación UX-01 del portal del corredor](docs/ux-01-runner-portal-specification.md)
 - [Plan de prueba de usabilidad UX-01](docs/ux-01-usability-test-plan.md)
+- [Recorridos cognitivos sintéticos UX-01](docs/ux-01-cognitive-walkthroughs/README.md)
 - [Guía de diseño de API HTTP](docs/api-design-guidelines.md)
 - [Architecture Decision Records](docs/adr/README.md)
 - [Mejoras futuras](docs/future-improvements.md)

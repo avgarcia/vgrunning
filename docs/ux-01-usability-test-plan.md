@@ -1,8 +1,8 @@
 # UX-01 — Plan de prueba de usabilidad
 
-**Estado:** Propuesto — listo para revisión humana
-**Versión:** 0.1
-**Fecha:** 2026-08-29
+**Estado:** Aprobado — revisión experta ejecutada; validación con corredores aplazada
+**Versión:** 0.2
+**Fecha:** 2026-08-30
 **Responsable:** Revisor de producto
 **Ámbito:** Prototipo interactivo del portal web de un corredor `active`
 
@@ -11,6 +11,20 @@
 Este plan define una primera ronda moderada para comprobar si corredores reales o potenciales pueden completar los recorridos críticos de [UX-01](ux-01-runner-portal-specification.md) y comprender sus estados sin ayuda del equipo.
 
 La prueba genera evidencia cualitativa para corregir la experiencia antes de implementar. No demuestra conformidad WCAG, significación estadística, licitud del tratamiento ni preparación para producción. La evaluación con participantes complementa, pero no sustituye, los gates técnicos y la revisión de accesibilidad exigidos por el proyecto.
+
+## Decisión de ejecución para el MVP
+
+El Revisor de producto aprobó la especificación y este plan el `2026-08-30`, y confirmó que no dispone actualmente de seis corredores para ejecutar la ronda moderada. La validación con corredores se aplaza deliberadamente hasta la primera beta cerrada del MVP y conserva al Revisor de producto como responsable.
+
+Para no fabricar evidencia, los seis perfiles previstos se utilizan antes de la beta únicamente en [recorridos cognitivos sintéticos](ux-01-cognitive-walkthroughs/README.md) ejecutados por revisión experta contra la maqueta v0.2. Estos recorridos:
+
+- comprueban que tareas, estados, controles y respuestas observables existen y pueden recorrerse;
+- registran evidencia reproducible del prototipo y riesgos como hipótesis;
+- no inventan tiempos, citas, preferencias, errores humanos ni porcentajes de éxito;
+- no se presentan como sesiones con participantes ni validan comprensión o utilidad real;
+- no sustituyen pruebas con tecnologías de asistencia reales ni autorizan producción.
+
+El riesgo residual de usabilidad se acepta exclusivamente para continuar la preparación del MVP. La experiencia no podrá declararse validada con corredores hasta disponer de evidencia de la beta cerrada.
 
 Fuentes metodológicas de referencia:
 
@@ -31,7 +45,7 @@ Fuentes metodológicas de referencia:
 9. ¿Puede cerrar la sesión sin confundir la acción con cerrar el menú o abandonar la página?
 10. ¿La experiencia se percibe sobria, clara, confiable y deportiva sin sacrificar legibilidad?
 
-## Método
+## Método previsto para la beta cerrada
 
 - Prueba de usabilidad moderada, individual y basada en tareas.
 - `6` participantes en la primera ronda.
@@ -44,6 +58,19 @@ Fuentes metodológicas de referencia:
 - Un piloto interno previo comprueba tiempos, consignas y estados, pero sus resultados no cuentan como evidencia con usuarios.
 
 Una ronda pequeña sirve para localizar problemas, no para inferir porcentajes sobre toda la población. Los resultados se expresarán como conteos y evidencia observada, no como significación estadística.
+
+## Revisión experta previa al MVP
+
+El `2026-08-30` se ejecutaron seis recorridos cognitivos sintéticos sobre una única apertura controlada de la maqueta v0.2:
+
+1. las siete tareas `T-UX01-01..07` completaron sus resultados observables;
+2. los estados `ES-UX01-02..09` reprodujeron el mensaje y las acciones definidos;
+3. el reflow a `320` y `736` píxeles no presentó desbordamiento horizontal;
+4. no se detectaron identificadores duplicados, controles visibles sin etiqueta ni objetivos de interacción menores de `24` píxeles;
+5. el orden de teclado avanzó desde correo a contraseña y después a `Iniciar sesión`;
+6. no se registraron errores de consola.
+
+Esta evidencia demuestra que el instrumento y el prototipo son recorribles. No demuestra que un corredor encuentre, comprenda o acepte esos recorridos sin ayuda.
 
 ## Participantes
 
@@ -246,25 +273,34 @@ El informe no presenta porcentajes de éxito como representativos de todos los c
 
 ## Precondiciones para ejecutar
 
-- [ ] Revisor de producto aprueba preguntas, tareas y criterios de salida.
-- [ ] Se confirma el canal de reclutamiento.
-- [ ] Se aprueban información, consentimiento y conservación de datos de investigación.
-- [ ] Se decide expresamente cualquier grabación; por defecto queda deshabilitada.
-- [ ] El prototipo v0.2 contiene y permite reiniciar los nueve escenarios sintéticos.
-- [ ] Un piloto interno completa todas las tareas sin defectos del prototipo.
-- [ ] Dispositivo, navegador y ayudas técnicas se registran sin identificar a la persona.
-- [ ] Moderador y persona de notas conocen el protocolo de intervención.
+- [x] Revisor de producto aprueba preguntas, tareas y criterios de salida.
+- [x] El prototipo v0.2 contiene y permite reiniciar los nueve escenarios sintéticos.
+- [x] La revisión experta completa las tareas y estados sin defectos técnicos bloqueantes del prototipo.
+- [x] La revisión experta registra tamaño de referencia, teclado y límites de accesibilidad sin atribuirlos a personas.
+- [ ] Antes de la beta se confirma el canal de reclutamiento.
+- [ ] Antes de la beta se aprueban información, consentimiento y conservación de datos de investigación.
+- [ ] Antes de la beta se decide expresamente cualquier grabación; por defecto queda deshabilitada.
+- [ ] Antes de la beta el moderador y la persona de notas conocen el protocolo de intervención.
 
 ## Revisión de criterios de aceptación
 
-- Estado: requiere decisión
-- Evidencia: tareas `T-UX01-01..07`, escenarios `ES-UX01-01..09` y trazabilidad con `CA-UX01-01..12`.
-- Hallazgos: el plan cubre éxito, error y límite; su ejecución depende todavía de reclutamiento, tratamiento de datos de investigación y aprobación humana del protocolo.
-- Acción requerida: aprobar las precondiciones antes de contactar participantes o registrar una sesión.
+- Estado: listo para revisión humana
+- Evidencia: tareas `T-UX01-01..07`, escenarios `ES-UX01-01..09`, trazabilidad con `CA-UX01-01..12` y recorridos cognitivos sintéticos ejecutados.
+- Hallazgos: la evidencia experta cubre éxito, error y límite sin presentarse como prueba con usuarios; reclutamiento, tratamiento de datos y comprensión real permanecen aplazados hasta la beta cerrada.
+- Acción requerida: ejecutar las precondiciones pendientes antes de contactar participantes y no declarar validación con corredores hasta analizar esa beta.
 - Revisor humano: Revisores de producto y arquitectura
+
+## Revisión de preguntas bloqueantes
+
+- Estado: listo para revisión humana
+- Evidencia: decisión del Revisor de producto del `2026-08-30` y sección `Decisión de ejecución para el MVP`.
+- Hallazgos: la falta de participantes se aplaza deliberadamente a la beta cerrada con responsable y trigger explícitos; no bloquea la documentación ni convierte la evidencia sintética en validación humana.
+- Acción requerida: mantener visible el riesgo residual y reabrir este plan al incorporar al primer corredor de la beta.
+- Revisor humano: Revisor de producto
 
 ## Historial de versiones
 
 | Versión | Fecha | Cambio |
 | --- | --- | --- |
+| 0.2 | 2026-08-30 | Registra la aprobación humana, ejecuta seis recorridos cognitivos sintéticos y aplaza la validación con corredores a la beta cerrada del MVP. |
 | 0.1 | 2026-08-29 | Primera versión para revisión humana; define método, muestra, tareas, escenarios, evidencia y criterios de salida. |
