@@ -1,0 +1,33 @@
+openapi: 3.1.1
+info: { title: Invalid, version: 0.0.1 }
+servers: [{ url: /api }]
+components:
+  securitySchemes:
+    opaqueSession: { type: apiKey, in: cookie, name: SESSION }
+    csrfCookie: { type: apiKey, in: cookie, name: CSRF }
+    csrfToken: { type: apiKey, in: header, name: X-CSRF-TOKEN }
+  schemas:
+    Problem:
+      type: object
+      additionalProperties: false
+      required: [type, title, status]
+      properties:
+        type: { type: string, format: uri-reference }
+        title: { type: string }
+        status: { type: integer, minimum: 100, maximum: 599 }
+  responses:
+    Problem:
+      description: Invalid request
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+paths:
+  /sessions/current:
+    delete:
+      operationId: deleteCurrentSession
+      security:
+        - opaqueSession: []
+          csrfToken: []
+      responses:
+        '204': { description: Deleted }
+        '403': { $ref: '#/components/responses/Problem' }

@@ -326,6 +326,7 @@ val generateOpenApiServer = tasks.register<GenerateTask>("generateOpenApiServer"
         mapOf(
             "interfaceOnly" to "true",
             "library" to "spring-boot",
+            "requestMappingMode" to "api_interface",
             "useSpringBoot3" to "true",
             "useJakartaEe" to "true",
             "documentationProvider" to "none",
