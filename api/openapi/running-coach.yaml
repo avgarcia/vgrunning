@@ -2,17 +2,15 @@ openapi: 3.1.1
 info:
   title: Running Coach API
   version: 0.0.1
-  description: Contrato público inicial del PMV para la SPA de Running Coach.
+  description: Contrato público de Running Coach.
   contact:
     name: Running Coach
 servers:
   - url: /api
-    description: SPA y API bajo el mismo origen.
+    description: API bajo el mismo origen.
 tags:
   - name: Access
     description: Protección CSRF y ciclo de vida de la sesión actual.
-security:
-  - opaqueSession: []
 paths:
   /csrf-tokens/current:
     get:
@@ -20,23 +18,12 @@ paths:
       tags: [Access]
       summary: Obtener el token CSRF del contexto actual
       description: >-
-        Devuelve el token que la SPA debe reenviar en X-CSRF-TOKEN y emite la cookie
+        Devuelve el token que la aplicación cliente debe reenviar en X-CSRF-TOKEN y emite la cookie
         __Host-pmv_csrf del mismo origen. No crea estado de negocio.
       security: []
       responses:
         '200':
-          description: Token CSRF vigente para el contexto actual.
-          headers:
-            Set-Cookie:
-              $ref: '#/components/headers/SetCookie'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CsrfToken'
-              examples:
-                synthetic:
-                  value:
-                    token: <synthetic-csrf-token>
+          $ref: '#/components/responses/CsrfTokenResponse'
         '500':
           $ref: '#/components/responses/InternalServerErrorProblem'
   /sessions:
@@ -51,31 +38,10 @@ paths:
         - csrfCookie: []
           csrfToken: []
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SessionCreation'
-            examples:
-              synthetic:
-                value:
-                  email: runner.synthetic@example.invalid
-                  password: <synthetic-password>
+        $ref: '#/components/requestBodies/SessionCreationRequest'
       responses:
         '201':
-          description: Sesión creada y cookies de sesión y CSRF rotadas.
-          headers:
-            Location:
-              $ref: '#/components/headers/CurrentSessionLocation'
-            Set-Cookie:
-              $ref: '#/components/headers/SetCookie'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CurrentSession'
-              examples:
-                syntheticRunner:
-                  $ref: '#/components/examples/SyntheticRunnerSession'
+          $ref: '#/components/responses/SessionCreatedResponse'
         '400':
           $ref: '#/components/responses/BadRequestProblem'
         '401':
@@ -98,14 +64,7 @@ paths:
         - opaqueSession: []
       responses:
         '200':
-          description: Representación mínima de la sesión actual.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CurrentSession'
-              examples:
-                syntheticRunner:
-                  $ref: '#/components/examples/SyntheticRunnerSession'
+          $ref: '#/components/responses/CurrentSessionResponse'
         '401':
           $ref: '#/components/responses/AuthenticationRequiredProblem'
         '500':
@@ -123,10 +82,7 @@ paths:
           csrfToken: []
       responses:
         '204':
-          description: Sesión revocada; la respuesta no contiene cuerpo.
-          headers:
-            Set-Cookie:
-              $ref: '#/components/headers/SetCookie'
+          $ref: '#/components/responses/SessionRevokedResponse'
         '401':
           $ref: '#/components/responses/AuthenticationRequiredProblem'
         '403':
@@ -147,7 +103,7 @@ components:
       in: cookie
       name: __Host-pmv_csrf
       description: >-
-        Valor CSRF legible por la SPA, emitido con Secure, SameSite=Lax, Path=/ y sin
+        Valor CSRF legible por la aplicación cliente, emitido con Secure, SameSite=Lax, Path=/ y sin
         Domain. Debe coincidir con X-CSRF-TOKEN.
     csrfToken:
       type: apiKey
@@ -159,7 +115,7 @@ components:
   schemas:
     CsrfToken:
       type: object
-      description: Token CSRF del contexto actual que la SPA devuelve en una cabecera.
+      description: Token CSRF del contexto actual que la aplicación cliente devuelve en una cabecera.
       additionalProperties: false
       required: [token]
       properties:
@@ -256,6 +212,19 @@ components:
       required: false
       schema:
         $ref: '#/components/schemas/PageLimit'
+  requestBodies:
+    SessionCreationRequest:
+      description: Credenciales para crear una sesión opaca.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SessionCreation'
+          examples:
+            synthetic:
+              value:
+                email: runner.synthetic@example.invalid
+                password: <synthetic-password>
   headers:
     CurrentSessionLocation:
       description: URI del recurso contextual que representa la sesión recién creada.
@@ -279,6 +248,47 @@ components:
         role: corredor
         accountStatus: active
   responses:
+    CsrfTokenResponse:
+      description: Token CSRF vigente para el contexto actual.
+      headers:
+        Set-Cookie:
+          $ref: '#/components/headers/SetCookie'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CsrfToken'
+          examples:
+            synthetic:
+              value:
+                token: <synthetic-csrf-token>
+    SessionCreatedResponse:
+      description: Sesión creada y cookies de sesión y CSRF rotadas.
+      headers:
+        Location:
+          $ref: '#/components/headers/CurrentSessionLocation'
+        Set-Cookie:
+          $ref: '#/components/headers/SetCookie'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CurrentSession'
+          examples:
+            syntheticRunner:
+              $ref: '#/components/examples/SyntheticRunnerSession'
+    CurrentSessionResponse:
+      description: Representación mínima de la sesión actual.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CurrentSession'
+          examples:
+            syntheticRunner:
+              $ref: '#/components/examples/SyntheticRunnerSession'
+    SessionRevokedResponse:
+      description: Sesión revocada; la respuesta no contiene cuerpo.
+      headers:
+        Set-Cookie:
+          $ref: '#/components/headers/SetCookie'
     BadRequestProblem:
       description: Solicitud inválida.
       content:
