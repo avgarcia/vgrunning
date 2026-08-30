@@ -1,12 +1,14 @@
 # UX-01 — Recorridos cognitivos sintéticos
 
-**Estado:** Ejecutados — listos para revisión humana
+**Estado:** Validados documentalmente — evidencia experta, no prueba con participantes
 
 **Fecha:** 2026-08-30
 
 **Prototipo:** Maqueta interactiva UX-01 v0.2
 
 **Responsable:** Revisor de producto
+
+**Fecha de validación:** 2026-08-30
 
 ## Naturaleza de la evidencia
 
@@ -18,6 +20,8 @@ Estos documentos registran una revisión experta del prototipo mediante seis per
 - no demuestran usabilidad, accesibilidad con tecnología de asistencia ni preparación para producción.
 
 La decisión y el trabajo pendiente se mantienen en el [plan de prueba v0.2](../ux-01-usability-test-plan.md).
+
+El Revisor de producto validó el conjunto documental el `2026-08-30`. Esta decisión acepta los recorridos como evidencia experta reproducible y mantiene expresamente aplazada la validación con corredores hasta la beta cerrada.
 
 ## Evidencia común de las tareas aprobadas
 

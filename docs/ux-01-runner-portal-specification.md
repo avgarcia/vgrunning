@@ -1,7 +1,8 @@
 # UX-01 — Especificación de experiencia del portal del corredor
 
-**Estado:** Propuesto — listo para revisión humana
+**Estado:** Validado documentalmente — no valida usabilidad con corredores ni autoriza implementación
 **Fecha:** 2026-08-29
+**Fecha de validación:** 2026-08-30
 **Responsable de decisión:** Revisor de producto
 **Revisión requerida en implementación:** Revisores de producto, arquitectura, accesibilidad y privacidad según el gate aplicable
 
@@ -19,6 +20,12 @@ Esta especificación consolida la dirección visual y el comportamiento de UX co
 Los documentos anteriores conservan autoridad sobre producto, datos, permisos, API y arquitectura. Esta especificación gobierna presentación, interacción y contenido visible dentro de UX-01. Si aparece una contradicción, la implementación debe detenerse y resolverla en la fuente normativa; no puede elegir silenciosamente una interpretación.
 
 La aprobación de este documento no autoriza por sí sola una slice, datos personales reales, proveedores reales, staging productivo ni producción. Cada slice seguirá la Definition of Ready y los gates del [gobierno operativo de la IA](ai-governance.md).
+
+## Validación documental
+
+El Revisor de producto validó esta especificación, el plan de prueba v0.2 y los seis recorridos cognitivos sintéticos el `2026-08-30`. La validación confirma alcance, decisiones, criterios, trazabilidad y límites documentales. No convierte la revisión experta en evidencia con participantes, no demuestra conformidad WCAG de una implementación y no autoriza una slice, merge, datos reales ni producción.
+
+La validación corrigió una incoherencia de contraste sin cambiar la dirección `Atlántico sereno`: `#AABDBD` queda limitado a separación decorativa y `#6F8585` identifica los límites de controles cuando sean necesarios. La implementación deberá volver a medir cada combinación y estado sobre el código real.
 
 ## Resultado confirmado
 
@@ -214,14 +221,15 @@ Retirar vacía los comentarios operativos, conserva los campos estructurados y e
 | Texto secundario | `#4A616A` | Contexto y metadatos no esenciales. |
 | Acción primaria | `#164E63` | Acción principal y cabecera. |
 | Acción activa | `#0F3E50` | Estado interactivo de la acción primaria. |
-| Acento | `#C45C36` | Énfasis energético contenido. |
+| Acento | `#C45C36` | Énfasis energético contenido en elementos no textuales; no se usa para texto normal ni como único indicador. |
 | Foco | `#005FCC` | Indicador de foco visible. |
 | Éxito | `#2E6659` | Confirmación acompañada por texto. |
 | Aviso | `#80531A` | Advertencia acompañada por texto. |
 | Error | `#A33131` | Error acompañado por texto y asociación al campo. |
-| Borde | `#AABDBD` | Separación de superficies y controles. |
+| Separador | `#AABDBD` | Separación decorativa; no identifica por sí sola un control o estado. |
+| Borde de control | `#6F8585` | Límite de un control cuando sea necesario para identificarlo. |
 
-Los valores son referencias de diseño, no una dispensa de contraste. La implementación debe verificar cada combinación, incluido texto, foco, estados interactivos, deshabilitados y mensajes, contra WCAG `2.2 AA`.
+Los valores son referencias de diseño, no una dispensa de contraste. En la validación documental, `#6F8585` ofrece aproximadamente `3,49:1` sobre el canvas y `3,86:1` sobre la superficie; `#AABDBD` no alcanza `3:1` y por eso no puede aportar información visual necesaria. La implementación debe verificar cada combinación, incluido texto, foco, estados interactivos, deshabilitados y mensajes, contra WCAG `2.2 AA`.
 
 ### Tipografía, escala y forma
 

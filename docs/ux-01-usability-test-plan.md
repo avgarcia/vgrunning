@@ -1,8 +1,9 @@
 # UX-01 — Plan de prueba de usabilidad
 
-**Estado:** Aprobado — revisión experta ejecutada; validación con corredores aplazada
+**Estado:** Validado documentalmente — revisión experta ejecutada; validación con corredores aplazada
 **Versión:** 0.2
 **Fecha:** 2026-08-30
+**Fecha de validación:** 2026-08-30
 **Responsable:** Revisor de producto
 **Ámbito:** Prototipo interactivo del portal web de un corredor `active`
 
@@ -14,7 +15,7 @@ La prueba genera evidencia cualitativa para corregir la experiencia antes de imp
 
 ## Decisión de ejecución para el MVP
 
-El Revisor de producto aprobó la especificación y este plan el `2026-08-30`, y confirmó que no dispone actualmente de seis corredores para ejecutar la ronda moderada. La validación con corredores se aplaza deliberadamente hasta la primera beta cerrada del MVP y conserva al Revisor de producto como responsable.
+El Revisor de producto validó la especificación, este plan y los seis recorridos cognitivos sintéticos el `2026-08-30`, y confirmó que no dispone actualmente de seis corredores para ejecutar la ronda moderada. La validación con corredores se aplaza deliberadamente hasta la primera beta cerrada del MVP y conserva al Revisor de producto como responsable.
 
 Para no fabricar evidencia, los seis perfiles previstos se utilizan antes de la beta únicamente en [recorridos cognitivos sintéticos](ux-01-cognitive-walkthroughs/README.md) ejecutados por revisión experta contra la maqueta v0.2. Estos recorridos:
 
