@@ -15,7 +15,7 @@ class OpenApiBoundaryTest {
     static final ArchRule openApiTypesMustStayInsideHttpAdapters =
             noClasses()
                     .that()
-                    .resideOutsideOfPackages("..adapter.http..")
+                    .resideOutsideOfPackages("..adapter.in.web..")
                     .should()
                     .dependOnClassesThat()
                     .resideInAnyPackage("org.vgrunning.generated.openapi..")

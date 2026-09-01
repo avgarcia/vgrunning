@@ -15,9 +15,9 @@ class JooqBoundaryTest {
     static final ArchRule jooqMustStayInsidePersistenceAdapters =
             noClasses()
                     .that()
-                    .resideOutsideOfPackages("..adapter.persistence..")
+                    .resideOutsideOfPackages("..adapter.out.persistence.jooq..")
                     .should()
                     .dependOnClassesThat()
-                    .resideInAnyPackage("org.jooq..")
+                    .resideInAnyPackage("org.jooq..", "org.vgrunning.generated.jooq..")
                     .allowEmptyShould(true);
 }

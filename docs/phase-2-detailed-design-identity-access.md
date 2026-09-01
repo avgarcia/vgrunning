@@ -317,10 +317,21 @@ com.vgrunning.identityaccess/
   adapter/in/web/
   adapter/in/command/
   adapter/out/persistence/jooq/
-  adapter/out/security/
+  infrastructure/configuration/       configuración Spring, propiedades y Problem Details
+  infrastructure/security/            CSRF, cookies, SecurityContext y criptografía
 ```
 
-El dominio no depende de Spring, OpenAPI, jOOQ o JDBC. El adaptador web mapea el contrato generado; el adaptador de comando aloja bootstrap y recuperación excepcional. No se crean repositorios CRUD genéricos ni un modelo de dominio espejo de las tablas.
+El dominio no depende de Spring, OpenAPI, jOOQ o JDBC. El adaptador web mapea el contrato generado; el adaptador de comando aloja bootstrap y recuperación excepcional. La configuración y los componentes propios de Spring Security residen en `infrastructure`, nunca en aplicación o dominio. No se crean repositorios CRUD genéricos ni un modelo de dominio espejo de las tablas.
+
+### Decisión de implementación F01.1: infraestructura Spring separada
+
+La configuración de Spring MVC y Spring Security, las propiedades tipadas, CSRF, cookies, `SecurityContextRepository`, criptografía y traducción global de excepciones se ubican en `infrastructure`. El motivo es impedir que los casos de uso y el dominio conozcan APIs o ciclos de vida del framework. Se mantiene `adapter/in/web` para adaptar OpenAPI y `adapter/out/persistence/jooq` como propietario exclusivo de los tipos generados.
+
+Se descarta alojar `@Configuration`, `@Value`, `CsrfTokenRepository`, `SecurityContextHolder` o implementaciones criptográficas en `application`: simplificaría inicialmente el wiring, pero invertiría dependencias y haría que las pruebas de los casos de uso necesitaran Spring. También se descarta convertir CSRF en un caso de uso de identidad, porque no representa estado ni una regla de negocio.
+
+El impacto de F01.1 es una composición explícita mediante clases de configuración, puertos de salida para reloj, persistencia, hashing y tokens, y fitness functions que impiden dependencias desde aplicación o dominio hacia `infrastructure`. Esta separación se aplica en la PR backend de F01.1 y deberá conservarse en las siguientes slices de `identity-access`. La decisión ha sido indicada por el revisor de arquitectura y queda pendiente de su revisión final en la PR.
+
+La clave HMAC, las contraseñas sintéticas y la duración local de retención se enlazan mediante `@ConfigurationProperties` desde variables de entorno. La retención incluida en `.env.example` es solo un valor sintético ejecutable y no decide la política productiva pendiente. Los parámetros mínimos Argon2id, los nombres y atributos de cookies y los límites de sesión aprobados no son properties libremente modificables: la infraestructura crea objetos de política tipados con esos valores para evitar una configuración de despliegue que rebaje silenciosamente el baseline de seguridad.
 
 ## Observabilidad y conservación
 

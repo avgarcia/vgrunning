@@ -8,11 +8,13 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 /** Fitness functions de las fronteras de identidad definidas por ADR-0015. */
-@AnalyzeClasses(packages = "com.vgrunning.identityaccess", importOptions = ImportOption.DoNotIncludeTests.class)
+@AnalyzeClasses(
+        packages = "com.vgrunning.identityaccess",
+        importOptions = ImportOption.DoNotIncludeTests.class)
 class IdentityAccessLayeringTest {
 
     @ArchTest
-    static final ArchRule applicationMustNotDependOnAdaptersOrHttpSecurity =
+    static final ArchRule applicationMustNotDependOnInfrastructureOrHttpSecurity =
             noClasses()
                     .that()
                     .resideInAnyPackage("..identityaccess.application..")
@@ -20,20 +22,38 @@ class IdentityAccessLayeringTest {
                     .dependOnClassesThat()
                     .resideInAnyPackage(
                             "..identityaccess.adapter..",
+                            "..identityaccess.infrastructure..",
                             "jakarta.servlet..",
+                            "org.springframework.beans..",
+                            "org.springframework.boot.context.properties..",
+                            "org.springframework.context.annotation..",
                             "org.springframework.security..",
+                            "org.springframework.stereotype..",
                             "org.springframework.web..",
                             "org.jooq..",
                             "org.springframework.jdbc..")
                     .allowEmptyShould(false);
 
     @ArchTest
-    static final ArchRule domainMustNotDependOnApplicationOrAdapters =
+    static final ArchRule domainMustNotDependOnApplicationOrOuterLayers =
             noClasses()
                     .that()
                     .resideInAnyPackage("..identityaccess.domain..")
                     .should()
                     .dependOnClassesThat()
-                    .resideInAnyPackage("..identityaccess.application..", "..identityaccess.adapter..")
+                    .resideInAnyPackage(
+                            "..identityaccess.application..",
+                            "..identityaccess.adapter..",
+                            "..identityaccess.infrastructure..")
                     .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule identityAccessMustNotUseSpringJdbcAsPersistenceAbstraction =
+            noClasses()
+                    .that()
+                    .resideInAnyPackage("..identityaccess..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage("org.springframework.jdbc.core..")
+                    .allowEmptyShould(false);
 }

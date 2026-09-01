@@ -79,7 +79,7 @@ Vitest cubre el shell y la configuración del cliente; Playwright ejecuta un smo
 .\gradlew.bat generateOpenApiClient     # Genera el cliente TypeScript bajo build/.
 ```
 
-La generación no se versiona. Los tipos de servidor solo podrán consumirse desde `adapter.http`; los tipos generados no son contratos entre módulos ni tipos de dominio. Spectral bloquea las infracciones automatizables de ADR-0017, entre ellas errores sin Problem Details, escrituras protegidas sin CSRF, colecciones sin paginación acotada, objetos abiertos y ejemplos con secretos plausibles. `apiCheck` requiere Docker para comparar compatibilidad con `main` mediante `oasdiff`.
+La generación no se versiona. Los tipos de servidor solo podrán consumirse desde `adapter.in.web`; los tipos generados no son contratos entre módulos ni tipos de dominio. Spectral bloquea las infracciones automatizables de ADR-0017, entre ellas errores sin Problem Details, escrituras protegidas sin CSRF, colecciones sin paginación acotada, objetos abiertos y ejemplos con secretos plausibles. `apiCheck` requiere Docker para comparar compatibilidad con `main` mediante `oasdiff`.
 
 ## Calidad y seguridad de suministro
 

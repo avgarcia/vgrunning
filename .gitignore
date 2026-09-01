@@ -2,7 +2,7 @@
 .gradle/
 **/build/
 *.class
-out/
+/out/
 *.log
 
 # The Wrapper is executable build infrastructure and must be versioned.

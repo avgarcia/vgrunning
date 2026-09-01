@@ -39,6 +39,14 @@ logging:
 server:
   shutdown: graceful
 
+pmv:
+  identity:
+    rate-limit-hmac-key: ${PMV_IDENTITY_RATE_LIMIT_HMAC_KEY}
+    security-event-retention: ${PMV_IDENTITY_SECURITY_EVENT_RETENTION}
+    synthetic:
+      administrator-password: ${PMV_IDENTITY_SYNTHETIC_ADMINISTRATOR_PASSWORD:}
+      runner-password: ${PMV_IDENTITY_SYNTHETIC_RUNNER_PASSWORD:}
+
 management:
   server:
     port: 8081

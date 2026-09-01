@@ -1,40 +1,37 @@
 package com.vgrunning.identityaccess.application;
 
-import com.vgrunning.identityaccess.adapter.persistence.IdentityAccessRepository;
-import com.vgrunning.identityaccess.adapter.persistence.PostgresTimeProvider;
+import com.vgrunning.identityaccess.application.port.out.CurrentTimeProvider;
+import com.vgrunning.identityaccess.application.port.out.IdentityAccessRepository;
+import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
+import com.vgrunning.identityaccess.domain.account.AccountRole;
+import com.vgrunning.identityaccess.domain.account.EmailAddress;
 import java.util.UUID;
-import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Provisiona solo las cuentas explícitamente sintéticas habilitadas para desarrollo local. */
-@Service
 public class SyntheticAccountProvisioner {
     private final IdentityAccessRepository repository;
-    private final PostgresTimeProvider timeProvider;
-    private final IdentityNormalizer normalizer;
-    private final Argon2PasswordEncoder passwordEncoder;
+    private final CurrentTimeProvider timeProvider;
+    private final PasswordHasher passwordHasher;
 
     public SyntheticAccountProvisioner(
             IdentityAccessRepository repository,
-            PostgresTimeProvider timeProvider,
-            IdentityNormalizer normalizer,
-            Argon2PasswordEncoder passwordEncoder) {
+            CurrentTimeProvider timeProvider,
+            PasswordHasher passwordHasher) {
         this.repository = repository;
         this.timeProvider = timeProvider;
-        this.normalizer = normalizer;
-        this.passwordEncoder = passwordEncoder;
+        this.passwordHasher = passwordHasher;
     }
 
     @Transactional
-    public void provision(UUID id, String role, String email, String password) {
-        String canonicalEmail = normalizer.canonicalEmail(email);
+    public void provision(UUID id, AccountRole role, String email, String password) {
+        String canonicalEmail = EmailAddress.from(email).canonicalValue();
         repository.provisionSyntheticAccount(
                 id,
                 role,
                 email,
                 canonicalEmail,
-                passwordEncoder.encode(normalizer.normalizedPassword(password)),
+                passwordHasher.hash(PasswordNormalizer.normalize(password)),
                 timeProvider.now());
     }
 }

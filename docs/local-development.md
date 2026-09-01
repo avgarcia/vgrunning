@@ -26,6 +26,7 @@ Copy-Item .env.example .env
 | `RUNNING_COACH_DB_USERNAME` | Usuario JDBC local. | No; por defecto coincide con Compose. | No. | `running_coach` |
 | `RUNNING_COACH_DB_PASSWORD` | Contraseña JDBC local. | No; por defecto coincide con Compose. | Sí, aunque el valor de ejemplo es deliberadamente sintético. | `running_coach` |
 | `PMV_IDENTITY_RATE_LIMIT_HMAC_KEY` | Clave Base64 local para derivar los contadores HMAC de acceso. | Sí para arrancar el backend. | Sí. | Valor exclusivamente sintético de `.env.example`. |
+| `PMV_IDENTITY_SECURITY_EVENT_RETENTION` | Duración ISO-8601 usada para calcular `retention_until` en local. | Sí para arrancar el backend. | Sí. | Valor sintético; no aprueba la política productiva de retención. |
 | `PMV_IDENTITY_SYNTHETIC_ADMINISTRATOR_PASSWORD` | Contraseña de la cuenta administradora sintética. | Solo con `synthetic-accounts`. | Sí. | Valor exclusivamente sintético de `.env.example`. |
 | `PMV_IDENTITY_SYNTHETIC_RUNNER_PASSWORD` | Contraseña de la cuenta de corredor sintética. | Solo con `synthetic-accounts`. | Sí. | Valor exclusivamente sintético de `.env.example`. |
 

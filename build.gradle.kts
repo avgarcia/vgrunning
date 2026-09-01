@@ -197,6 +197,7 @@ jacoco {
 
 extensions.configure<PitestPluginExtension>("pitest") {
     pitestVersion.set("1.22.1")
+    junit5PluginVersion.set("1.2.3")
     targetClasses.set(listOf("com.vgrunning.*.domain.*", "com.vgrunning.*.application.*"))
     outputFormats.set(setOf("XML", "HTML"))
     timestampedReports.set(false)
