@@ -1,22 +1,25 @@
 package com.vgrunning.identityaccess.infrastructure.configuration;
 
-import com.vgrunning.identityaccess.application.SessionService;
-import com.vgrunning.identityaccess.application.SyntheticAccountProvisioner;
-import com.vgrunning.identityaccess.application.port.out.CurrentTimeProvider;
-import com.vgrunning.identityaccess.application.port.out.IdentityAccessRepository;
+import com.vgrunning.identityaccess.application.port.in.ResolveSessionUseCase;
+import com.vgrunning.identityaccess.application.port.out.AccountRepository;
+import com.vgrunning.identityaccess.application.port.out.DatabaseTransactionClock;
+import com.vgrunning.identityaccess.application.port.out.LoginRateLimitRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
 import com.vgrunning.identityaccess.application.port.out.RateLimitKeyDeriver;
+import com.vgrunning.identityaccess.application.port.out.SecurityEventRepository;
+import com.vgrunning.identityaccess.application.port.out.SessionRepository;
 import com.vgrunning.identityaccess.application.port.out.SessionTokenService;
-import com.vgrunning.identityaccess.domain.securityevent.SecurityEventRetention;
+import com.vgrunning.identityaccess.application.usecase.SessionUseCaseHandler;
 import com.vgrunning.identityaccess.domain.session.SessionSecurityPolicy;
 import com.vgrunning.identityaccess.infrastructure.security.Argon2PasswordHasher;
+import com.vgrunning.identityaccess.infrastructure.security.CsrfTokenRotator;
 import com.vgrunning.identityaccess.infrastructure.security.CurrentSessionIdentityResolver;
 import com.vgrunning.identityaccess.infrastructure.security.HmacRateLimitKeyDeriver;
 import com.vgrunning.identityaccess.infrastructure.security.OpaqueSessionSecurityContextRepository;
 import com.vgrunning.identityaccess.infrastructure.security.OriginValidationFilter;
 import com.vgrunning.identityaccess.infrastructure.security.SecureSessionTokenService;
 import com.vgrunning.identityaccess.infrastructure.security.SessionCookieManager;
-import com.vgrunning.identityaccess.infrastructure.security.SpringCsrfTokenManager;
+import com.vgrunning.identityaccess.infrastructure.transaction.TransactionalSessionUseCases;
 import java.time.Duration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +27,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /** Compone los casos de uso con sus adaptadores técnicos sin contaminar la aplicación. */
@@ -54,33 +58,34 @@ public class IdentityAccessInfrastructureConfiguration {
     }
 
     @Bean
-    SecurityEventRetention securityEventRetention(IdentityAccessProperties properties) {
-        return new SecurityEventRetention(properties.securityEventRetention());
-    }
-
-    @Bean
-    SessionService sessionService(
-            IdentityAccessRepository repository,
-            CurrentTimeProvider timeProvider,
+    TransactionalSessionUseCases sessionUseCases(
+            AccountRepository accounts,
+            SessionRepository sessions,
+            LoginRateLimitRepository rateLimits,
+            SecurityEventRepository events,
+            DatabaseTransactionClock clock,
             RateLimitKeyDeriver rateLimitKeys,
             PasswordHasher passwordHasher,
             SessionTokenService sessionTokens,
-            SessionSecurityPolicy policy) {
-        return new SessionService(
-                repository, timeProvider, rateLimitKeys, passwordHasher, sessionTokens, policy);
+            SessionSecurityPolicy policy,
+            TransactionTemplate transactions) {
+        SessionUseCaseHandler handler =
+                new SessionUseCaseHandler(
+                        accounts,
+                        sessions,
+                        rateLimits,
+                        events,
+                        clock,
+                        rateLimitKeys,
+                        passwordHasher,
+                        sessionTokens,
+                        policy);
+        return new TransactionalSessionUseCases(handler, transactions);
     }
 
     @Bean
-    SyntheticAccountProvisioner syntheticAccountProvisioner(
-            IdentityAccessRepository repository,
-            CurrentTimeProvider timeProvider,
-            PasswordHasher passwordHasher) {
-        return new SyntheticAccountProvisioner(repository, timeProvider, passwordHasher);
-    }
-
-    @Bean
-    SpringCsrfTokenManager springCsrfTokenManager(CsrfTokenRepository repository) {
-        return new SpringCsrfTokenManager(repository);
+    CsrfTokenRotator csrfTokenRotator(CsrfTokenRepository repository) {
+        return new CsrfTokenRotator(repository);
     }
 
     @Bean
@@ -94,7 +99,8 @@ public class IdentityAccessInfrastructureConfiguration {
     }
 
     @Bean
-    SecurityContextRepository opaqueSessionSecurityContextRepository(SessionService sessions) {
+    SecurityContextRepository opaqueSessionSecurityContextRepository(
+            ResolveSessionUseCase sessions) {
         return new OpaqueSessionSecurityContextRepository(sessions);
     }
 

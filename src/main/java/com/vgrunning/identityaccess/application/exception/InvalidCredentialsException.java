@@ -1,4 +1,4 @@
-package com.vgrunning.identityaccess.application;
+package com.vgrunning.identityaccess.application.exception;
 
 /** Respuesta deliberadamente indistinguible para cualquier fallo de credenciales. */
 public final class InvalidCredentialsException extends IdentityAccessException {

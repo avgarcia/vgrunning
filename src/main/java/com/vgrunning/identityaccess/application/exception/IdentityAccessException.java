@@ -1,4 +1,4 @@
-package com.vgrunning.identityaccess.application;
+package com.vgrunning.identityaccess.application.exception;
 
 /** Fallo semántico de identity-access que no conoce su representación HTTP. */
 public abstract class IdentityAccessException extends RuntimeException {

@@ -1,4 +1,4 @@
-package com.vgrunning.identityaccess.application;
+package com.vgrunning.identityaccess.application.exception;
 
 import java.time.Duration;
 

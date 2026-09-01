@@ -1,6 +1,6 @@
 package com.vgrunning.identityaccess.infrastructure.security;
 
-import com.vgrunning.identityaccess.application.SessionIdentity;
+import com.vgrunning.identityaccess.application.model.SessionIdentity;
 import java.util.Optional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

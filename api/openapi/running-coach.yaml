@@ -10,22 +10,8 @@ servers:
     description: API bajo el mismo origen.
 tags:
   - name: Access
-    description: Protección CSRF y ciclo de vida de la sesión actual.
+    description: Ciclo de vida de la sesión actual.
 paths:
-  /csrf-tokens/current:
-    get:
-      operationId: getCurrentCsrfToken
-      tags: [Access]
-      summary: Obtener el token CSRF del contexto actual
-      description: >-
-        Devuelve el token que la aplicación cliente debe reenviar en X-CSRF-TOKEN y emite la cookie
-        __Host-pmv_csrf del mismo origen. No crea estado de negocio.
-      security: []
-      responses:
-        '200':
-          $ref: '#/components/responses/CsrfTokenResponse'
-        '500':
-          $ref: '#/components/responses/InternalServerErrorProblem'
   /sessions:
     post:
       operationId: createSession
@@ -113,16 +99,6 @@ components:
         Token CSRF exigido en solicitudes que modifican estado. Debe coincidir con la
         cookie __Host-pmv_csrf y nunca se transporta en la URL.
   schemas:
-    CsrfToken:
-      type: object
-      description: Token CSRF del contexto actual que la aplicación cliente devuelve en una cabecera.
-      additionalProperties: false
-      required: [token]
-      properties:
-        token:
-          type: string
-          minLength: 1
-          description: Valor opaco vinculado al contexto actual del navegador.
     SessionCreation:
       type: object
       description: Credenciales presentadas para crear una sesión opaca.
@@ -248,19 +224,6 @@ components:
         role: corredor
         accountStatus: active
   responses:
-    CsrfTokenResponse:
-      description: Token CSRF vigente para el contexto actual.
-      headers:
-        Set-Cookie:
-          $ref: '#/components/headers/SetCookie'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/CsrfToken'
-          examples:
-            synthetic:
-              value:
-                token: <synthetic-csrf-token>
     SessionCreatedResponse:
       description: Sesión creada y cookies de sesión y CSRF rotadas.
       headers:

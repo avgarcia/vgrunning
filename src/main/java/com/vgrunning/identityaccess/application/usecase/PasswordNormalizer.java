@@ -1,8 +1,8 @@
-package com.vgrunning.identityaccess.application;
+package com.vgrunning.identityaccess.application.usecase;
 
 import java.text.Normalizer;
 
-/** Normalización efímera aplicada a la contraseña antes de verificarla o codificarla. */
+/** Normalización efímera aplicada antes de verificar una contraseña. */
 final class PasswordNormalizer {
     private PasswordNormalizer() {}
 

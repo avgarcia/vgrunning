@@ -1,7 +1,14 @@
 package com.vgrunning.identityaccess.infrastructure.configuration.synthetic;
 
-import com.vgrunning.identityaccess.application.SyntheticAccountProvisioner;
+import com.vgrunning.identityaccess.application.port.out.DatabaseTransactionClock;
+import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
+import com.vgrunning.identityaccess.application.port.out.SecurityEventRepository;
+import com.vgrunning.identityaccess.application.port.out.SyntheticAccountRepository;
+import com.vgrunning.identityaccess.application.securityevent.SecurityEvent;
 import com.vgrunning.identityaccess.domain.account.AccountRole;
+import com.vgrunning.identityaccess.domain.account.EmailAddress;
+import java.text.Normalizer;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
@@ -11,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /** Perfil opt-in para datos de demostración; nunca aprovisiona cuentas fuera de local o test. */
 @Configuration(proxyBeanMethods = false)
@@ -24,24 +32,58 @@ public class SyntheticAccountsConfiguration {
     @Bean
     ApplicationRunner provisionSyntheticAccounts(
             Environment environment,
-            SyntheticAccountProvisioner provisioner,
+            SyntheticAccountRepository accounts,
+            SecurityEventRepository events,
+            DatabaseTransactionClock clock,
+            PasswordHasher passwordHasher,
+            TransactionTemplate transactions,
             SyntheticAccountProperties properties) {
         Set<String> profiles = Set.copyOf(Arrays.asList(environment.getActiveProfiles()));
         if (!profiles.contains("local") && !profiles.contains("test")) {
             throw new IllegalStateException(
                     "El perfil synthetic-accounts solo se puede usar junto con local o test.");
         }
-        return arguments -> {
-            provisioner.provision(
-                    ADMINISTRATOR_ID,
-                    AccountRole.ADMINISTRADOR,
-                    "administrator@running-coach.invalid",
-                    properties.administratorPassword());
-            provisioner.provision(
-                    RUNNER_ID,
-                    AccountRole.CORREDOR,
-                    "runner@running-coach.invalid",
-                    properties.runnerPassword());
-        };
+        String administratorHash =
+                passwordHasher.hash(normalize(properties.administratorPassword()));
+        String runnerHash = passwordHasher.hash(normalize(properties.runnerPassword()));
+        return arguments ->
+                transactions.executeWithoutResult(
+                        status -> {
+                            OffsetDateTime now = clock.now();
+                            provision(
+                                    accounts,
+                                    events,
+                                    ADMINISTRATOR_ID,
+                                    AccountRole.ADMINISTRADOR,
+                                    "administrator@running-coach.invalid",
+                                    administratorHash,
+                                    now);
+                            provision(
+                                    accounts,
+                                    events,
+                                    RUNNER_ID,
+                                    AccountRole.CORREDOR,
+                                    "runner@running-coach.invalid",
+                                    runnerHash,
+                                    now);
+                        });
+    }
+
+    private static void provision(
+            SyntheticAccountRepository accounts,
+            SecurityEventRepository events,
+            UUID id,
+            AccountRole role,
+            String email,
+            String passwordHash,
+            OffsetDateTime now) {
+        String canonicalEmail = EmailAddress.from(email).canonicalValue();
+        if (accounts.provision(id, role, email, canonicalEmail, passwordHash, now)) {
+            events.append(SecurityEvent.syntheticAccountProvisioned(id, now, UUID.randomUUID()));
+        }
+    }
+
+    private static String normalize(String password) {
+        return Normalizer.normalize(password, Normalizer.Form.NFC);
     }
 }

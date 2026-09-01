@@ -145,7 +145,7 @@ Cada inicio correcto crea una sesión opaca independiente. No se cuentan ni limi
 - Cambiar o recuperar contraseña, confirmar un cambio de correo, desactivar o iniciar una reactivación revoca todas las sesiones de la cuenta.
 - La sesión referencia la cuenta, pero el rol, estado y permisos se consultan de nuevo para cada operación protegida.
 
-Las operaciones que cambian estado requieren un token CSRF asociado al contexto del navegador y validación de origen cuando el navegador lo envía. La SPA obtiene el token mediante una operación del mismo origen y lo devuelve en `X-CSRF-TOKEN`; el valor no se incluye en URL ni logs. Para peticiones anónimas se emite una cookie `__Host-pmv_csrf`, `Secure`, `SameSite=Lax`, `Path=/`, sin `Domain` y legible por la SPA. El servidor exige que cookie y cabecera coincidan y rota el valor al autenticar y cerrar sesión. Activación, recuperación e inicio de sesión usan esta protección sin deshabilitar CSRF globalmente.
+Las operaciones que cambian estado requieren un token CSRF asociado al contexto del navegador y validación de origen cuando el navegador lo envía. Spring Security aplica su integración oficial para SPA y emite la cookie `__Host-pmv_csrf`, `Secure`, `SameSite=Lax`, `Path=/`, sin `Domain` y legible por la SPA durante una petición segura del mismo origen; no existe un recurso HTTP propio para obtenerla. La SPA devuelve su valor en `X-CSRF-TOKEN`; el servidor exige que cookie y cabecera coincidan y rota el valor al autenticar y cerrar sesión. El token no se incluye en URL ni logs. Activación, recuperación e inicio de sesión usan esta protección sin deshabilitar CSRF globalmente.
 
 ## Límites de abuso
 
@@ -164,7 +164,7 @@ La tabla define la semántica que deberá materializar OpenAPI `3.1`. No sustitu
 
 La API será REST y seguirá estas reglas:
 
-- las rutas representan cuentas, sesiones, invitaciones, credenciales, direcciones de correo, desafíos de acceso y tokens CSRF mediante nombres en plural;
+- las rutas representan cuentas, sesiones, invitaciones, credenciales, direcciones de correo y desafíos de acceso mediante nombres en plural; CSRF permanece como protección técnica de Spring Security y no se expone como recurso;
 - las rutas no contienen verbos, nombres de acciones, roles ni mecanismos de autenticación como `/admin` o `/auth`;
 - `GET` consulta sin cambiar estado, `POST` crea un recurso subordinado, `PATCH` modifica parcialmente un recurso y `DELETE` elimina la sesión actual;
 - las transiciones se expresan modificando el estado del recurso correspondiente, no creando recursos nominales de activación, restablecimiento o confirmación;
@@ -173,7 +173,6 @@ La API será REST y seguirá estas reglas:
 
 | Actor | Operación | Propósito |
 | --- | --- | --- |
-| Anónimo | `GET /api/csrf-tokens/current` | Obtener la representación del token CSRF del contexto actual. |
 | Anónimo | `POST /api/sessions` | Crear una sesión con respuesta genérica ante credenciales o estado inválidos. |
 | Anónimo | `PATCH /api/invitations/{invitationId}` | Cambiar la invitación a `accepted` consumiendo el secreto, la declaración de mayoría de edad y la contraseña; cubre activación y reactivación. |
 | Anónimo | `POST /api/access-challenges` | Crear un desafío con `purpose: password_reset`; responde `202` de forma indistinguible. |

@@ -3,7 +3,7 @@ package com.vgrunning.identityaccess.infrastructure.security;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.vgrunning.identityaccess.application.SessionIdentity;
+import com.vgrunning.identityaccess.application.model.SessionIdentity;
 import com.vgrunning.identityaccess.domain.account.AccountRole;
 import com.vgrunning.identityaccess.domain.account.AccountStatus;
 import java.util.UUID;
@@ -44,7 +44,7 @@ class CurrentSessionIdentityResolverTest {
     }
 
     private static SessionIdentity identity() {
-        return new SessionIdentity(
+        return SessionIdentity.restore(
                 UUID.fromString("20000000-0000-0000-0000-000000000001"),
                 UUID.fromString("10000000-0000-0000-0000-000000000001"),
                 AccountRole.CORREDOR,

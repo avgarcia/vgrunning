@@ -1,7 +1,7 @@
 package com.vgrunning.identityaccess.infrastructure.security;
 
-import com.vgrunning.identityaccess.application.SessionIdentity;
-import com.vgrunning.identityaccess.application.SessionService;
+import com.vgrunning.identityaccess.application.model.SessionIdentity;
+import com.vgrunning.identityaccess.application.port.in.ResolveSessionUseCase;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,9 +18,9 @@ import org.springframework.security.web.context.SecurityContextRepository;
 
 /** Resuelve la cookie opaca mediante la aplicación sin utilizar una sesión HTTP de Spring. */
 public final class OpaqueSessionSecurityContextRepository implements SecurityContextRepository {
-    private final SessionService sessions;
+    private final ResolveSessionUseCase sessions;
 
-    public OpaqueSessionSecurityContextRepository(SessionService sessions) {
+    public OpaqueSessionSecurityContextRepository(ResolveSessionUseCase sessions) {
         this.sessions = sessions;
     }
 
@@ -28,7 +28,7 @@ public final class OpaqueSessionSecurityContextRepository implements SecurityCon
     @SuppressWarnings("deprecation")
     public SecurityContext loadContext(HttpRequestResponseHolder holder) {
         return findSessionCookie(holder.getRequest())
-                .flatMap(sessions::authenticate)
+                .flatMap(sessions::resolve)
                 .map(OpaqueSessionSecurityContextRepository::authenticatedContext)
                 .orElseGet(SecurityContextHolder::createEmptyContext);
     }

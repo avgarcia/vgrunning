@@ -2,8 +2,8 @@ package com.vgrunning.identityaccess.infrastructure.configuration.error;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.vgrunning.identityaccess.application.InvalidCredentialsException;
-import com.vgrunning.identityaccess.application.RateLimitedException;
+import com.vgrunning.identityaccess.application.exception.InvalidCredentialsException;
+import com.vgrunning.identityaccess.application.exception.RateLimitedException;
 import com.vgrunning.identityaccess.infrastructure.security.AuthenticationRequiredException;
 import com.vgrunning.identityaccess.infrastructure.security.CsrfValidationException;
 import java.time.Duration;

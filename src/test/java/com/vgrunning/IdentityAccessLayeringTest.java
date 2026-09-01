@@ -24,14 +24,9 @@ class IdentityAccessLayeringTest {
                             "..identityaccess.adapter..",
                             "..identityaccess.infrastructure..",
                             "jakarta.servlet..",
-                            "org.springframework.beans..",
-                            "org.springframework.boot.context.properties..",
-                            "org.springframework.context.annotation..",
-                            "org.springframework.security..",
-                            "org.springframework.stereotype..",
-                            "org.springframework.web..",
+                            "org.springframework..",
                             "org.jooq..",
-                            "org.springframework.jdbc..")
+                            "org.vgrunning.generated..")
                     .allowEmptyShould(false);
 
     @ArchTest
@@ -46,6 +41,18 @@ class IdentityAccessLayeringTest {
                             "..identityaccess.adapter..",
                             "..identityaccess.infrastructure..")
                     .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule adaptersAndSpringSecurityMustUseInputPorts =
+            noClasses()
+                    .that()
+                    .resideInAnyPackage(
+                            "..identityaccess.adapter..",
+                            "..identityaccess.infrastructure.security..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage("..identityaccess.application.usecase..")
+                    .allowEmptyShould(false);
 
     @ArchTest
     static final ArchRule identityAccessMustNotUseSpringJdbcAsPersistenceAbstraction =

@@ -16,7 +16,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /** Configuración transversal de Spring Security para la aplicación servlet. */
@@ -44,11 +43,7 @@ public class SecurityConfiguration {
                         context ->
                                 context.securityContextRepository(opaqueSessions)
                                         .requireExplicitSave(true))
-                .csrf(
-                        csrf ->
-                                csrf.csrfTokenRepository(csrfTokens)
-                                        .csrfTokenRequestHandler(
-                                                new CsrfTokenRequestAttributeHandler()))
+                .csrf(csrf -> csrf.spa().csrfTokenRepository(csrfTokens))
                 .exceptionHandling(
                         exceptions ->
                                 exceptions
@@ -69,8 +64,6 @@ public class SecurityConfiguration {
                                         .requestMatchers(
                                                 "/actuator/health/liveness",
                                                 "/actuator/health/readiness")
-                                        .permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/csrf-tokens/current")
                                         .permitAll()
                                         .requestMatchers(HttpMethod.POST, "/api/sessions")
                                         .permitAll()

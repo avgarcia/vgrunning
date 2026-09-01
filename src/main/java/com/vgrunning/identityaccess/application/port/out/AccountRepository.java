@@ -1,0 +1,27 @@
+package com.vgrunning.identityaccess.application.port.out;
+
+import com.vgrunning.identityaccess.domain.account.AccountRole;
+import com.vgrunning.identityaccess.domain.account.AccountStatus;
+import java.time.OffsetDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
+/** Persistencia de credenciales y estado de cuenta. */
+public interface AccountRepository {
+    Optional<CredentialAccount> findCredentialAccount(String canonicalEmail);
+
+    boolean updatePasswordHash(
+            CredentialAccount account, String replacementHash, OffsetDateTime changedAt);
+
+    record CredentialAccount(
+            UUID id, AccountRole role, AccountStatus status, String passwordHash, long version) {
+        public static CredentialAccount restore(
+                UUID id,
+                AccountRole role,
+                AccountStatus status,
+                String passwordHash,
+                long version) {
+            return new CredentialAccount(id, role, status, passwordHash, version);
+        }
+    }
+}

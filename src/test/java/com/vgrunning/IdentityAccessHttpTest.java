@@ -21,7 +21,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
-import org.vgrunning.generated.openapi.server.model.CsrfToken;
 import org.vgrunning.generated.openapi.server.model.CurrentSession;
 import org.vgrunning.generated.openapi.server.model.SessionCreation;
 
@@ -46,8 +45,7 @@ class IdentityAccessHttpTest {
     @Test
     void createsQueriesAndRevokesAnOpaqueSession() {
         TestRestTemplate client = new TestRestTemplate();
-        ResponseEntity<CsrfToken> csrf =
-                client.getForEntity(applicationUrl("/api/csrf-tokens/current"), CsrfToken.class);
+        ResponseEntity<String> csrf = client.getForEntity(applicationUrl("/"), String.class);
         String initialCsrfCookie =
                 cookieValue(
                         csrf.getHeaders().getOrEmpty(HttpHeaders.SET_COOKIE), "__Host-pmv_csrf");

@@ -1,8 +1,8 @@
 package com.vgrunning.identityaccess.infrastructure.configuration.error;
 
-import com.vgrunning.identityaccess.application.IdentityAccessException;
-import com.vgrunning.identityaccess.application.InvalidCredentialsException;
-import com.vgrunning.identityaccess.application.RateLimitedException;
+import com.vgrunning.identityaccess.application.exception.IdentityAccessException;
+import com.vgrunning.identityaccess.application.exception.InvalidCredentialsException;
+import com.vgrunning.identityaccess.application.exception.RateLimitedException;
 import com.vgrunning.identityaccess.infrastructure.security.AuthenticationRequiredException;
 import com.vgrunning.identityaccess.infrastructure.security.CsrfValidationException;
 import java.net.URI;
