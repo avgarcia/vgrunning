@@ -5,6 +5,7 @@ import com.vgrunning.identityaccess.infrastructure.security.CsrfValidationExcept
 import com.vgrunning.identityaccess.infrastructure.security.OriginValidationFilter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -48,12 +49,19 @@ public class SecurityConfiguration {
                         exceptions ->
                                 exceptions
                                         .authenticationEntryPoint(
-                                                (request, response, exception) ->
-                                                        handlerExceptionResolver.resolveException(
-                                                                request,
-                                                                response,
-                                                                null,
-                                                                new AuthenticationRequiredException()))
+                                                (request, response, exception) -> {
+                                                    if (!"/api/sessions/current"
+                                                            .equals(request.getServletPath())) {
+                                                        response.sendError(
+                                                                HttpServletResponse.SC_FORBIDDEN);
+                                                        return;
+                                                    }
+                                                    handlerExceptionResolver.resolveException(
+                                                            request,
+                                                            response,
+                                                            null,
+                                                            new AuthenticationRequiredException());
+                                                })
                                         .accessDeniedHandler(
                                                 accessDeniedHandler(handlerExceptionResolver)))
                 .authorizeHttpRequests(
