@@ -6,10 +6,10 @@ import static org.vgrunning.generated.jooq.identity_access.tables.AccountEmail.A
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
 import com.vgrunning.identityaccess.domain.account.AccountRole;
 import com.vgrunning.identityaccess.domain.account.AccountStatus;
-import java.time.OffsetDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
 /** Adaptador jOOQ de credenciales y estado de cuenta. */
@@ -43,12 +43,11 @@ public class JooqAccountRepository implements AccountRepository {
     }
 
     @Override
-    public boolean updatePasswordHash(
-            CredentialAccount account, String replacementHash, OffsetDateTime changedAt) {
+    public boolean updatePasswordHash(CredentialAccount account, String replacementHash) {
         return jooq.update(ACCOUNT)
                         .set(ACCOUNT.PASSWORD_HASH, replacementHash)
-                        .set(ACCOUNT.PASSWORD_CHANGED_AT, changedAt)
-                        .set(ACCOUNT.UPDATED_AT, changedAt)
+                        .set(ACCOUNT.PASSWORD_CHANGED_AT, DSL.currentOffsetDateTime())
+                        .set(ACCOUNT.UPDATED_AT, DSL.currentOffsetDateTime())
                         .set(ACCOUNT.VERSION, ACCOUNT.VERSION.plus(1L))
                         .where(ACCOUNT.ID.eq(account.id()))
                         .and(ACCOUNT.VERSION.eq(account.version()))

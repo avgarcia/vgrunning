@@ -21,6 +21,11 @@ spring:
     clean-disabled: true
   jooq:
     sql-dialect: postgres
+  session:
+    timeout: PT12H
+    jdbc:
+      initialize-schema: never
+      table-name: identity_access.spring_session
   modulith:
     events:
       jdbc:
@@ -41,8 +46,6 @@ server:
 
 pmv:
   identity:
-    rate-limit-hmac-key: ${PMV_IDENTITY_RATE_LIMIT_HMAC_KEY}
-    security-event-retention: ${PMV_IDENTITY_SECURITY_EVENT_RETENTION}
     synthetic:
       administrator-password: ${PMV_IDENTITY_SYNTHETIC_ADMINISTRATOR_PASSWORD:}
       runner-password: ${PMV_IDENTITY_SYNTHETIC_RUNNER_PASSWORD:}

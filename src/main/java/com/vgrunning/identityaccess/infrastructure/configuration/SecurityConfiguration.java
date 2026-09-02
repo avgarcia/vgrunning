@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.context.SecurityContextRepository;
@@ -30,7 +29,7 @@ public class SecurityConfiguration {
                     "HttpSecurity.build declara Exception y Spring invoca este método de configuración.")
     SecurityFilterChain applicationSecurityFilterChain(
             HttpSecurity http,
-            SecurityContextRepository opaqueSessions,
+            SecurityContextRepository securityContexts,
             OriginValidationFilter originValidation,
             CsrfTokenRepository csrfTokens,
             HandlerExceptionResolver handlerExceptionResolver)
@@ -38,11 +37,9 @@ public class SecurityConfiguration {
         return http.httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
-                .sessionManagement(
-                        sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .securityContext(
                         context ->
-                                context.securityContextRepository(opaqueSessions)
+                                context.securityContextRepository(securityContexts)
                                         .requireExplicitSave(true))
                 .csrf(csrf -> csrf.spa().csrfTokenRepository(csrfTokens))
                 .exceptionHandling(

@@ -2,7 +2,6 @@ package com.vgrunning.identityaccess.application.port.out;
 
 import com.vgrunning.identityaccess.domain.account.AccountRole;
 import com.vgrunning.identityaccess.domain.account.AccountStatus;
-import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -10,8 +9,7 @@ import java.util.UUID;
 public interface AccountRepository {
     Optional<CredentialAccount> findCredentialAccount(String canonicalEmail);
 
-    boolean updatePasswordHash(
-            CredentialAccount account, String replacementHash, OffsetDateTime changedAt);
+    boolean updatePasswordHash(CredentialAccount account, String replacementHash);
 
     record CredentialAccount(
             UUID id, AccountRole role, AccountStatus status, String passwordHash, long version) {

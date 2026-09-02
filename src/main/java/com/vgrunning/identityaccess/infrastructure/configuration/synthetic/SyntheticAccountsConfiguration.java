@@ -1,14 +1,12 @@
 package com.vgrunning.identityaccess.infrastructure.configuration.synthetic;
 
-import com.vgrunning.identityaccess.application.port.out.DatabaseTransactionClock;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
-import com.vgrunning.identityaccess.application.port.out.SecurityEventRepository;
 import com.vgrunning.identityaccess.application.port.out.SyntheticAccountRepository;
-import com.vgrunning.identityaccess.application.securityevent.SecurityEvent;
 import com.vgrunning.identityaccess.domain.account.AccountRole;
 import com.vgrunning.identityaccess.domain.account.EmailAddress;
 import java.text.Normalizer;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
@@ -33,8 +31,6 @@ public class SyntheticAccountsConfiguration {
     ApplicationRunner provisionSyntheticAccounts(
             Environment environment,
             SyntheticAccountRepository accounts,
-            SecurityEventRepository events,
-            DatabaseTransactionClock clock,
             PasswordHasher passwordHasher,
             TransactionTemplate transactions,
             SyntheticAccountProperties properties) {
@@ -49,10 +45,9 @@ public class SyntheticAccountsConfiguration {
         return arguments ->
                 transactions.executeWithoutResult(
                         status -> {
-                            OffsetDateTime now = clock.now();
+                            OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
                             provision(
                                     accounts,
-                                    events,
                                     ADMINISTRATOR_ID,
                                     AccountRole.ADMINISTRADOR,
                                     "administrator@running-coach.invalid",
@@ -60,7 +55,6 @@ public class SyntheticAccountsConfiguration {
                                     now);
                             provision(
                                     accounts,
-                                    events,
                                     RUNNER_ID,
                                     AccountRole.CORREDOR,
                                     "runner@running-coach.invalid",
@@ -71,16 +65,13 @@ public class SyntheticAccountsConfiguration {
 
     private static void provision(
             SyntheticAccountRepository accounts,
-            SecurityEventRepository events,
             UUID id,
             AccountRole role,
             String email,
             String passwordHash,
             OffsetDateTime now) {
         String canonicalEmail = EmailAddress.from(email).canonicalValue();
-        if (accounts.provision(id, role, email, canonicalEmail, passwordHash, now)) {
-            events.append(SecurityEvent.syntheticAccountProvisioned(id, now, UUID.randomUUID()));
-        }
+        accounts.provision(id, role, email, canonicalEmail, passwordHash, now);
     }
 
     private static String normalize(String password) {

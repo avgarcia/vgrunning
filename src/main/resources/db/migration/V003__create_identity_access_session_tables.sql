@@ -36,82 +36,26 @@ CREATE UNIQUE INDEX account_email_account_usage_reservation_key
     ON identity_access.account_email (account_id, usage)
     WHERE released_at IS NULL;
 
-CREATE TABLE identity_access.access_session (
-    id UUID PRIMARY KEY,
-    account_id UUID NOT NULL REFERENCES identity_access.account (id),
-    verifier_sha256 BYTEA NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    last_used_at TIMESTAMPTZ NOT NULL,
-    absolute_expires_at TIMESTAMPTZ NOT NULL,
-    revoked_at TIMESTAMPTZ,
-    revocation_reason TEXT,
-    CONSTRAINT access_session_verifier_sha256_length_check CHECK (octet_length(verifier_sha256) = 32),
-    CONSTRAINT access_session_absolute_expiry_check CHECK (absolute_expires_at > created_at),
-    CONSTRAINT access_session_revocation_check CHECK (
-        (revoked_at IS NULL AND revocation_reason IS NULL)
-        OR (revoked_at IS NOT NULL AND revocation_reason IN ('logout', 'expired', 'account_inactive'))
-    )
+CREATE TABLE identity_access.spring_session (
+    primary_id CHAR(36) NOT NULL,
+    session_id CHAR(36) NOT NULL,
+    creation_time BIGINT NOT NULL,
+    last_access_time BIGINT NOT NULL,
+    max_inactive_interval INTEGER NOT NULL,
+    expiry_time BIGINT NOT NULL,
+    principal_name VARCHAR(100),
+    CONSTRAINT spring_session_pk PRIMARY KEY (primary_id)
 );
 
-CREATE UNIQUE INDEX access_session_verifier_sha256_key
-    ON identity_access.access_session (verifier_sha256);
+CREATE UNIQUE INDEX spring_session_ix1 ON identity_access.spring_session (session_id);
+CREATE INDEX spring_session_ix2 ON identity_access.spring_session (expiry_time);
+CREATE INDEX spring_session_ix3 ON identity_access.spring_session (principal_name);
 
-CREATE INDEX access_session_active_account_idx
-    ON identity_access.access_session (account_id, last_used_at)
-    WHERE revoked_at IS NULL;
-
-CREATE TABLE identity_access.auth_rate_limit_bucket (
-    bucket_type TEXT NOT NULL,
-    key_hmac_sha256 BYTEA NOT NULL,
-    window_started_at TIMESTAMPTZ NOT NULL,
-    window_ends_at TIMESTAMPTZ NOT NULL,
-    failure_count INTEGER NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
-    purge_after TIMESTAMPTZ NOT NULL,
-    CONSTRAINT auth_rate_limit_bucket_primary_key PRIMARY KEY (bucket_type, key_hmac_sha256, window_started_at),
-    CONSTRAINT auth_rate_limit_bucket_type_check CHECK (bucket_type IN ('account_login_failure', 'ip_login_failure')),
-    CONSTRAINT auth_rate_limit_bucket_hmac_length_check CHECK (octet_length(key_hmac_sha256) = 32),
-    CONSTRAINT auth_rate_limit_bucket_count_check CHECK (failure_count >= 0),
-    CONSTRAINT auth_rate_limit_bucket_window_check CHECK (window_ends_at > window_started_at),
-    CONSTRAINT auth_rate_limit_bucket_purge_check CHECK (purge_after >= window_ends_at)
+CREATE TABLE identity_access.spring_session_attributes (
+    session_primary_id CHAR(36) NOT NULL,
+    attribute_name VARCHAR(200) NOT NULL,
+    attribute_bytes BYTEA NOT NULL,
+    CONSTRAINT spring_session_attributes_pk PRIMARY KEY (session_primary_id, attribute_name),
+    CONSTRAINT spring_session_attributes_fk FOREIGN KEY (session_primary_id)
+        REFERENCES identity_access.spring_session (primary_id) ON DELETE CASCADE
 );
-
-CREATE INDEX auth_rate_limit_bucket_purge_after_idx
-    ON identity_access.auth_rate_limit_bucket (purge_after);
-
-CREATE TABLE identity_access.security_event (
-    id UUID PRIMARY KEY,
-    occurred_at TIMESTAMPTZ NOT NULL,
-    retention_until TIMESTAMPTZ NOT NULL,
-    event_type TEXT NOT NULL,
-    outcome TEXT NOT NULL,
-    actor_class TEXT NOT NULL,
-    actor_account_id UUID REFERENCES identity_access.account (id),
-    affected_account_id UUID REFERENCES identity_access.account (id),
-    access_session_id UUID,
-    correlation_id UUID NOT NULL,
-    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-    CONSTRAINT security_event_type_check CHECK (event_type IN (
-        'synthetic_account_provisioned',
-        'session_created',
-        'session_revoked',
-        'session_expired',
-        'login_rate_limited',
-        'password_rehashed'
-    )),
-    CONSTRAINT security_event_outcome_check CHECK (outcome IN ('success', 'rejected', 'limited', 'automatic')),
-    CONSTRAINT security_event_actor_class_check CHECK (actor_class IN ('anonymous', 'account', 'system')),
-    CONSTRAINT security_event_metadata_object_check CHECK (jsonb_typeof(metadata) = 'object'),
-    CONSTRAINT security_event_retention_check CHECK (retention_until > occurred_at),
-    CONSTRAINT security_event_actor_check CHECK (
-        (actor_class = 'account' AND actor_account_id IS NOT NULL)
-        OR (actor_class IN ('anonymous', 'system') AND actor_account_id IS NULL)
-    )
-);
-
-CREATE INDEX security_event_occurred_at_idx
-    ON identity_access.security_event (occurred_at);
-
-CREATE INDEX security_event_retention_until_idx
-    ON identity_access.security_event (retention_until);

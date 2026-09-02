@@ -101,7 +101,7 @@ components:
   schemas:
     SessionCreation:
       type: object
-      description: Credenciales presentadas para crear una sesión opaca.
+      description: Credenciales presentadas para crear una sesión HTTP.
       additionalProperties: false
       required: [email, password]
       properties:
@@ -116,7 +116,7 @@ components:
           description: Contraseña enviada únicamente en el cuerpo HTTPS protegido.
     CurrentSession:
       type: object
-      description: Identidad y atributos vigentes resueltos desde la sesión opaca.
+      description: Identidad y atributos vigentes resueltos desde la sesión HTTP.
       additionalProperties: false
       required: [accountId, role, accountStatus]
       properties:
@@ -190,7 +190,7 @@ components:
         $ref: '#/components/schemas/PageLimit'
   requestBodies:
     SessionCreationRequest:
-      description: Credenciales para crear una sesión opaca.
+      description: Credenciales para crear una sesión HTTP.
       required: true
       content:
         application/json:
@@ -211,7 +211,7 @@ components:
     SetCookie:
       description: >-
         Uno o varios campos Set-Cookie. La creación de sesión emite __Host-pmv_session y
-        rota __Host-pmv_csrf; el cierre elimina la primera y rota la segunda.
+        rota __Host-pmv_csrf; el cierre invalida la primera y rota la segunda.
       schema:
         type: array
         items:

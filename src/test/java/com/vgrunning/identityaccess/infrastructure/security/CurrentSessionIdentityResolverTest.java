@@ -44,8 +44,7 @@ class CurrentSessionIdentityResolverTest {
     }
 
     private static SessionIdentity identity() {
-        return SessionIdentity.restore(
-                UUID.fromString("20000000-0000-0000-0000-000000000001"),
+        return SessionIdentity.create(
                 UUID.fromString("10000000-0000-0000-0000-000000000001"),
                 AccountRole.CORREDOR,
                 AccountStatus.ACTIVE);

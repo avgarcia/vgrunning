@@ -43,7 +43,7 @@ class IdentityAccessHttpTest {
     @LocalServerPort private int applicationPort;
 
     @Test
-    void createsQueriesAndRevokesAnOpaqueSession() {
+    void createsQueriesAndInvalidatesASpringSession() {
         TestRestTemplate client = new TestRestTemplate();
         ResponseEntity<String> csrf = client.getForEntity(applicationUrl("/"), String.class);
         String initialCsrfCookie =

@@ -193,11 +193,7 @@ class PersistenceInfrastructureTest {
 
         assertThat(identityTables)
                 .containsExactlyInAnyOrder(
-                        "account",
-                        "account_email",
-                        "access_session",
-                        "auth_rate_limit_bucket",
-                        "security_event");
+                        "account", "account_email", "spring_session", "spring_session_attributes");
         assertThat(accountColumns)
                 .contains(
                         "created_at",
@@ -212,19 +208,14 @@ class PersistenceInfrastructureTest {
                         "account.status_changed_at",
                         "account_email.confirmed_at",
                         "account_email.expires_at",
-                        "account_email.released_at",
-                        "access_session.absolute_expires_at",
-                        "access_session.revoked_at",
-                        "auth_rate_limit_bucket.window_started_at",
-                        "auth_rate_limit_bucket.window_ends_at",
-                        "security_event.occurred_at",
-                        "security_event.retention_until");
+                        "account_email.released_at");
         assertThat(indexes)
                 .contains(
                         "account_email_live_canonical_usage_key",
                         "account_email_account_usage_reservation_key",
-                        "access_session_active_account_idx",
-                        "access_session_verifier_sha256_key");
+                        "spring_session_ix1",
+                        "spring_session_ix2",
+                        "spring_session_ix3");
     }
 
     @Test
