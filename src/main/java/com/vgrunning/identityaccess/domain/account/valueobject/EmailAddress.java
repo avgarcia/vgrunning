@@ -10,12 +10,19 @@ public record EmailAddress(String canonicalValue) {
         if (canonicalValue.isBlank()) {
             throw new IllegalArgumentException("El correo canónico no puede estar vacío.");
         }
+        if (!canonicalValue.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")) {
+            throw new IllegalArgumentException("El correo canónico no tiene un formato válido.");
+        }
     }
 
+    /** Normaliza y valida un correo sin aplicar reglas de proveedores concretos. */
     public static EmailAddress from(String suppliedEmail) {
-        String canonical =
-                Normalizer.normalize(suppliedEmail.strip(), Normalizer.Form.NFC)
-                        .toLowerCase(Locale.ROOT);
-        return new EmailAddress(canonical);
+        return new EmailAddress(canonicalize(suppliedEmail));
+    }
+
+    /** Normaliza el identificador para que seguridad y autenticación usen la misma clave. */
+    public static String canonicalize(String suppliedEmail) {
+        return Normalizer.normalize(suppliedEmail.strip(), Normalizer.Form.NFC)
+                .toLowerCase(Locale.ROOT);
     }
 }

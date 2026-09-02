@@ -48,4 +48,11 @@ class AccountValueObjectsTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("vacío");
     }
+
+    @Test
+    void rejectsAnInvalidEmailFormat() {
+        assertThatThrownBy(() -> EmailAddress.from("runner-at-example.invalid"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("formato válido");
+    }
 }

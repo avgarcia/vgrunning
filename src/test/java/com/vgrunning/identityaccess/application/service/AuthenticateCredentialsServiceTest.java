@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.vgrunning.identityaccess.application.exception.InvalidCredentialsException;
-import com.vgrunning.identityaccess.application.port.in.CreateSessionUseCase.AuthenticatedAccount;
+import com.vgrunning.identityaccess.application.port.in.AuthenticateCredentialsUseCase.AuthenticatedAccount;
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
 import com.vgrunning.identityaccess.domain.account.valueobject.AccountRole;
@@ -15,18 +15,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /** Prueba unitaria de credenciales: Spring Session gestiona la sesión HTTP. */
-class CreateSessionServiceTest {
+class AuthenticateCredentialsServiceTest {
     private static final UUID ACCOUNT_ID = UUID.fromString("10000000-0000-0000-0000-000000000001");
 
     private AccountsFake accounts;
     private PasswordsFake passwords;
-    private CreateSessionService useCase;
+    private AuthenticateCredentialsService useCase;
 
     @BeforeEach
     void setUp() {
         accounts = new AccountsFake();
         passwords = new PasswordsFake();
-        useCase = new CreateSessionService(accounts, passwords);
+        useCase = new AuthenticateCredentialsService(accounts, passwords);
     }
 
     @Test
@@ -35,7 +35,8 @@ class CreateSessionServiceTest {
         passwords.matches = true;
         passwords.needsRehash = true;
 
-        AuthenticatedAccount login = useCase.create(" RUNNER@example.invalid ", "pa\u0301ss");
+        AuthenticatedAccount login =
+                useCase.authenticate(" RUNNER@example.invalid ", "pa\u0301ss");
 
         assertThat(login.accountId()).isEqualTo(ACCOUNT_ID);
         assertThat(accounts.canonicalEmail).isEqualTo("runner@example.invalid");
@@ -46,13 +47,13 @@ class CreateSessionServiceTest {
     @Test
     void returnsTheSameFailureForUnknownAndInactiveAccounts() {
         passwords.matches = false;
-        assertThatThrownBy(() -> useCase.create("runner@example.invalid", "password"))
+        assertThatThrownBy(() -> useCase.authenticate("runner@example.invalid", "password"))
                 .isInstanceOf(InvalidCredentialsException.class);
-        assertThat(passwords.verifiedHash).isEqualTo("dummy-hash");
+        assertThat(passwords.verifiedHash).isEmpty();
 
         accounts.account = Optional.of(account(AccountStatus.DISABLED));
         passwords.matches = true;
-        assertThatThrownBy(() -> useCase.create("runner@example.invalid", "password"))
+        assertThatThrownBy(() -> useCase.authenticate("runner@example.invalid", "password"))
                 .isInstanceOf(InvalidCredentialsException.class);
     }
 
@@ -63,7 +64,7 @@ class CreateSessionServiceTest {
         passwords.matches = true;
         passwords.needsRehash = true;
 
-        assertThatThrownBy(() -> useCase.create("runner@example.invalid", "password"))
+        assertThatThrownBy(() -> useCase.authenticate("runner@example.invalid", "password"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("cuenta cambió");
     }
@@ -77,10 +78,10 @@ class CreateSessionServiceTest {
         private boolean matches;
         private boolean needsRehash;
         private String verifiedPassword;
-        private String verifiedHash;
+        private Optional<String> verifiedHash;
 
         @Override
-        public boolean matches(String password, String encodedPassword) {
+        public boolean matchesForAuthentication(String password, Optional<String> encodedPassword) {
             verifiedPassword = password;
             verifiedHash = encodedPassword;
             return matches;
@@ -94,11 +95,6 @@ class CreateSessionServiceTest {
         @Override
         public boolean needsRehash(String encodedPassword) {
             return needsRehash;
-        }
-
-        @Override
-        public String dummyHash() {
-            return "dummy-hash";
         }
     }
 

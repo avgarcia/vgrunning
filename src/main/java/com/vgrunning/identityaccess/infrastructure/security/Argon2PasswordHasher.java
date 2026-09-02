@@ -1,6 +1,7 @@
 package com.vgrunning.identityaccess.infrastructure.security;
 
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
+import java.util.Optional;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 
 /** Implementación Argon2id con los parámetros mínimos aprobados para cuentas locales. */
@@ -15,8 +16,8 @@ public final class Argon2PasswordHasher implements PasswordHasher {
     }
 
     @Override
-    public boolean matches(String password, String encodedPassword) {
-        return encoder.matches(password, encodedPassword);
+    public boolean matchesForAuthentication(String password, Optional<String> encodedPassword) {
+        return encoder.matches(password, encodedPassword.orElse(dummyHash));
     }
 
     @Override
@@ -29,8 +30,4 @@ public final class Argon2PasswordHasher implements PasswordHasher {
         return encoder.upgradeEncoding(encodedPassword);
     }
 
-    @Override
-    public String dummyHash() {
-        return dummyHash;
-    }
 }

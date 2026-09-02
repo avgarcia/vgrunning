@@ -1,8 +1,8 @@
 package com.vgrunning.identityaccess.infrastructure.input.web;
 
 import com.vgrunning.identityaccess.application.exception.InvalidCredentialsException;
-import com.vgrunning.identityaccess.application.port.in.CreateSessionUseCase;
-import com.vgrunning.identityaccess.infrastructure.security.CsrfTokenRotator;
+import com.vgrunning.identityaccess.application.port.in.AuthenticateCredentialsUseCase;
+import com.vgrunning.identityaccess.domain.account.valueobject.EmailAddress;
 import com.vgrunning.identityaccess.infrastructure.security.CurrentSessionIdentityResolver;
 import com.vgrunning.identityaccess.infrastructure.security.ratelimit.LoginRateLimiter;
 import com.vgrunning.identityaccess.infrastructure.security.ratelimit.RateLimitedException;
@@ -31,26 +31,28 @@ import org.vgrunning.generated.openapi.server.model.SessionCreation;
 @RestController
 @RequiredArgsConstructor
 public class SessionHttpController implements SessionsApi {
-    private final CreateSessionUseCase createSession;
+    private final AuthenticateCredentialsUseCase authenticateCredentials;
     private final LoginRateLimiter rateLimiter;
     private final SecurityContextRepository securityContexts;
-    private final CsrfTokenRotator csrfTokens;
     private final CurrentSessionIdentityResolver currentSession;
     private final SessionWebMapper mapper;
     private final HttpServletRequest request;
     private final HttpServletResponse response;
 
+    /** Autentica credenciales y crea el contexto técnico que Spring Session persiste. */
     @Override
     public ResponseEntity<CurrentSession> createSession(SessionCreation sessionCreation) {
-        if (rateLimiter.limited(sessionCreation.getEmail(), request.getRemoteAddr())) {
+        String canonicalEmail = EmailAddress.canonicalize(sessionCreation.getEmail());
+        if (rateLimiter.limited(canonicalEmail, request.getRemoteAddr())) {
             throw new RateLimitedException(Duration.ofMinutes(15));
         }
-        CreateSessionUseCase.AuthenticatedAccount authenticatedAccount;
+        AuthenticateCredentialsUseCase.AuthenticatedAccount authenticatedAccount;
         try {
             authenticatedAccount =
-                    createSession.create(sessionCreation.getEmail(), sessionCreation.getPassword());
+                    authenticateCredentials.authenticate(
+                            sessionCreation.getEmail(), sessionCreation.getPassword());
         } catch (InvalidCredentialsException exception) {
-            if (rateLimiter.registerFailure(sessionCreation.getEmail(), request.getRemoteAddr())) {
+            if (rateLimiter.registerFailure(canonicalEmail, request.getRemoteAddr())) {
                 throw new RateLimitedException(Duration.ofMinutes(15));
             }
             throw exception;
@@ -69,22 +71,22 @@ public class SessionHttpController implements SessionsApi {
                         principal, null, List.of(authority)));
         SecurityContextHolder.setContext(context);
         securityContexts.saveContext(context, request, response);
-        csrfTokens.rotate(request, response);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .header(HttpHeaders.LOCATION, "/api/sessions/current")
                 .body(mapper.toResponse(principal));
     }
 
+    /** Devuelve la identidad almacenada en la sesión HTTP vigente. */
     @Override
     public ResponseEntity<CurrentSession> getCurrentSession() {
         return ResponseEntity.ok(mapper.toResponse(currentSession.current()));
     }
 
+    /** Invalida la sesión HTTP vigente sin exponer ni gestionar su identificador. */
     @Override
     public ResponseEntity<Void> deleteCurrentSession() {
         currentSession.current();
         Objects.requireNonNull(request.getSession(false)).invalidate();
-        csrfTokens.rotate(request, response);
         return ResponseEntity.noContent().build();
     }
 }

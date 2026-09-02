@@ -1,14 +1,10 @@
 package com.vgrunning.identityaccess.infrastructure.configuration;
 
-import com.vgrunning.identityaccess.application.port.in.CreateSessionUseCase;
-import com.vgrunning.identityaccess.application.port.in.ProvisionSyntheticAccountsUseCase;
+import com.vgrunning.identityaccess.application.port.in.AuthenticateCredentialsUseCase;
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
-import com.vgrunning.identityaccess.application.port.out.SyntheticAccountRepository;
-import com.vgrunning.identityaccess.application.service.CreateSessionService;
-import com.vgrunning.identityaccess.application.service.SyntheticAccountProvisioningService;
+import com.vgrunning.identityaccess.application.service.AuthenticateCredentialsService;
 import com.vgrunning.identityaccess.infrastructure.security.Argon2PasswordHasher;
-import com.vgrunning.identityaccess.infrastructure.security.CsrfTokenRotator;
 import com.vgrunning.identityaccess.infrastructure.security.CurrentSessionIdentityResolver;
 import com.vgrunning.identityaccess.infrastructure.security.ratelimit.LoginRateLimiter;
 import com.vgrunning.identityaccess.infrastructure.security.OriginValidationFilter;
@@ -17,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.web.servlet.HandlerExceptionResolver;
@@ -33,20 +28,9 @@ public class IdentityAccessInfrastructureConfiguration {
     }
 
     @Bean
-    CreateSessionUseCase createSessionUseCase(
+    AuthenticateCredentialsUseCase authenticateCredentialsUseCase(
             AccountRepository accounts, PasswordHasher passwordHasher) {
-        return new CreateSessionService(accounts, passwordHasher);
-    }
-
-    @Bean
-    ProvisionSyntheticAccountsUseCase provisionSyntheticAccountsUseCase(
-            SyntheticAccountRepository accounts, PasswordHasher passwordHasher) {
-        return new SyntheticAccountProvisioningService(accounts, passwordHasher);
-    }
-
-    @Bean
-    CsrfTokenRotator csrfTokenRotator(CsrfTokenRepository repository) {
-        return new CsrfTokenRotator(repository);
+        return new AuthenticateCredentialsService(accounts, passwordHasher);
     }
 
     @Bean

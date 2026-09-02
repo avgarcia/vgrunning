@@ -1,6 +1,6 @@
 # ADR-0025: Spring Session JDBC y límite local de intentos de acceso
 
-**Estado:** Propuesto
+**Estado:** Aceptado
 **Fecha:** 2026-09-02
 **Responsable de revisión:** Revisor de arquitectura
 **Refina parcialmente:** [ADR-0003](0003-identity-authentication-invitation.md), [ADR-0013](0013-application-runtime-framework.md) y [ADR-0015](0015-application-authorization-enforcement.md)

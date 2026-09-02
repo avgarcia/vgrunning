@@ -1,7 +1,7 @@
 package com.vgrunning.identityaccess.application.service;
 
 import com.vgrunning.identityaccess.application.exception.InvalidCredentialsException;
-import com.vgrunning.identityaccess.application.port.in.CreateSessionUseCase;
+import com.vgrunning.identityaccess.application.port.in.AuthenticateCredentialsUseCase;
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
 import com.vgrunning.identityaccess.domain.account.valueobject.AccountStatus;
@@ -13,24 +13,25 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Autentica credenciales sin conocer HTTP, sesiones, cookies ni jOOQ. */
 @RequiredArgsConstructor
-public class CreateSessionService implements CreateSessionUseCase {
+public class AuthenticateCredentialsService implements AuthenticateCredentialsUseCase {
     private final AccountRepository accounts;
     private final PasswordHasher passwordHasher;
 
+    /** Autentica sin revelar si el correo existe, está activo o tiene contraseña configurada. */
     @Override
     @Transactional
-    public CreateSessionUseCase.AuthenticatedAccount create(
+    public AuthenticateCredentialsUseCase.AuthenticatedAccount authenticate(
             String suppliedEmail, String suppliedPassword) {
         String canonicalEmail = EmailAddress.from(suppliedEmail).canonicalValue();
         String normalizedPassword = Normalizer.normalize(suppliedPassword, Normalizer.Form.NFC);
 
         Optional<AccountRepository.CredentialAccount> found =
                 accounts.findCredentialAccount(canonicalEmail);
-        String hashToVerify =
-                found.map(AccountRepository.CredentialAccount::passwordHash)
-                        .filter(hash -> !hash.isBlank())
-                        .orElseGet(passwordHasher::dummyHash);
-        boolean passwordMatches = passwordHasher.matches(normalizedPassword, hashToVerify);
+        boolean passwordMatches =
+                passwordHasher.matchesForAuthentication(
+                        normalizedPassword,
+                        found.map(AccountRepository.CredentialAccount::passwordHash)
+                                .filter(hash -> !hash.isBlank()));
         boolean active =
                 found.map(account -> AccountStatus.ACTIVE.equals(account.status())).orElse(false);
         if (!passwordMatches || !active) {
@@ -46,7 +47,7 @@ public class CreateSessionService implements CreateSessionUseCase {
                         "La cuenta cambió mientras se actualizaba su hash de contraseña.");
             }
         }
-        return new CreateSessionUseCase.AuthenticatedAccount(
+        return new AuthenticateCredentialsUseCase.AuthenticatedAccount(
                 account.id(), account.role(), account.status());
     }
 }

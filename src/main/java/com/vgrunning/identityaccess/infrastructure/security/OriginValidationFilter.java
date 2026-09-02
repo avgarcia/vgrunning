@@ -7,24 +7,24 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /** Rechaza orígenes declarados que no correspondan al host directo de la solicitud. */
+@RequiredArgsConstructor
 public final class OriginValidationFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
 
-    public OriginValidationFilter(HandlerExceptionResolver handlerExceptionResolver) {
-        this.handlerExceptionResolver = handlerExceptionResolver;
-    }
-
+    /** Omite los métodos seguros, que no requieren protección CSRF ni validación de origen. */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return !HttpMethod.POST.matches(request.getMethod())
                 && !HttpMethod.DELETE.matches(request.getMethod());
     }
 
+    /** Rechaza un encabezado Origin presente que no represente el mismo origen de la petición. */
     @Override
     protected void doFilterInternal(
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -38,6 +38,7 @@ public final class OriginValidationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /** Compara el Origin sintácticamente válido con esquema, host y puerto de la petición. */
     private static boolean matchesRequestOrigin(String origin, HttpServletRequest request) {
         try {
             URI parsed = new URI(origin);
@@ -56,6 +57,7 @@ public final class OriginValidationFilter extends OncePerRequestFilter {
         }
     }
 
+    /** Resuelve el puerto efectivo cuando el Origin utiliza el puerto estándar de su esquema. */
     private static int defaultPort(String scheme) {
         return "https".equalsIgnoreCase(scheme) ? 443 : 80;
     }

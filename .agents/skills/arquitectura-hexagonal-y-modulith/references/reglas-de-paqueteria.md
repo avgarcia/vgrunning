@@ -54,6 +54,13 @@ No crees directorios vacíos. Dentro de `domain.<concepto>` añade `aggregate`, 
 - Si una interfaz o un tipo forma parte de un contrato intermodular, colócalo en `api.<concepto>`.
 - No uses `application.model`, `dto`, `common`, `shared`, `helper` o `util` como cajones genéricos.
 
+## Mapeo en fronteras
+
+- Un mapeo hacia una representación HTTP se llama `toResponse`; el parámetro conserva el nombre del tipo fuente.
+- Un mapeo hacia un tipo de dominio se llama `toDomain`.
+- Para colecciones usa el plural correspondiente: `toResponses` y `toDomains`.
+- No añadas sufijos de infraestructura a tipos de dominio para resolver colisiones de nombres; resuélvelas en la frontera mediante imports o nombres totalmente cualificados.
+
 ## Dominio
 
 - `aggregate`: raíz que protege invariantes y consistencia de un conjunto de cambios.

@@ -1,7 +1,7 @@
 package com.vgrunning.identityaccess.infrastructure.configuration.synthetic;
 
-import com.vgrunning.identityaccess.application.port.in.ProvisionSyntheticAccountsUseCase;
-import com.vgrunning.identityaccess.infrastructure.input.command.SyntheticAccountBootstrap;
+import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
+import com.vgrunning.identityaccess.infrastructure.output.persistence.jooq.JooqSyntheticAccountRepository;
 import java.util.Arrays;
 import java.util.Set;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -15,16 +15,18 @@ import org.springframework.core.env.Environment;
 @Profile("synthetic-accounts")
 @EnableConfigurationProperties(SyntheticAccountProperties.class)
 public class SyntheticAccountsConfiguration {
+    /** Compone el bootstrap únicamente cuando el perfil sintético también es local o test. */
     @Bean
-    SyntheticAccountBootstrap provisionSyntheticAccounts(
+    SyntheticAccountsBootstrap provisionSyntheticAccounts(
             Environment environment,
-            ProvisionSyntheticAccountsUseCase provisionAccounts,
+            JooqSyntheticAccountRepository accounts,
+            PasswordHasher passwordHasher,
             SyntheticAccountProperties properties) {
         Set<String> profiles = Set.copyOf(Arrays.asList(environment.getActiveProfiles()));
         if (!profiles.contains("local") && !profiles.contains("test")) {
             throw new IllegalStateException(
                     "El perfil synthetic-accounts solo se puede usar junto con local o test.");
         }
-        return new SyntheticAccountBootstrap(provisionAccounts, properties);
+        return new SyntheticAccountsBootstrap(accounts, passwordHasher, properties);
     }
 }

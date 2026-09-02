@@ -7,9 +7,16 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
-/** Impide que reaparezcan raíces físicas que contradicen ADR-0026. */
+/**
+ * Protege exclusivamente los nombres de paquetes y la naturaleza de los puertos definidos por
+ * ADR-0026.
+ *
+ * <p>Las dependencias entre capas, límites de módulos y fugas de OpenAPI o jOOQ se comprueban en
+ * {@link IdentityAccessLayeringTest}, {@link OpenApiBoundaryTest}, {@link JooqBoundaryTest} y
+ * {@link ApplicationModularityTest}.
+ */
 @AnalyzeClasses(packages = "com.vgrunning", importOptions = ImportOption.DoNotIncludeTests.class)
-class HexagonalPackagingTest {
+class HexagonalPackageRootsTest {
 
     @ArchTest
     static final ArchRule noObsoleteHexagonalRootsRemain =
