@@ -24,6 +24,7 @@ public enum AccountRole {
         return Arrays.stream(values())
                 .filter(role -> role.value.equals(value))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Rol de cuenta desconocido: " + value));
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Rol de cuenta desconocido: " + value));
     }
 }

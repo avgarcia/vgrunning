@@ -27,6 +27,8 @@ public enum AccountStatus {
                 .filter(status -> status.value.equals(value))
                 .findFirst()
                 .orElseThrow(
-                        () -> new IllegalArgumentException("Estado de cuenta desconocido: " + value));
+                        () ->
+                                new IllegalArgumentException(
+                                        "Estado de cuenta desconocido: " + value));
     }
 }

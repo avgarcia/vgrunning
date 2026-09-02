@@ -43,8 +43,7 @@ public class AuthenticateCredentialsService implements AuthenticateCredentialsUs
             boolean updated =
                     accounts.updatePasswordHash(account, passwordHasher.hash(normalizedPassword));
             if (!updated) {
-                throw new IllegalStateException(
-                        "La cuenta cambió mientras se actualizaba su hash de contraseña.");
+                throw new InvalidCredentialsException();
             }
         }
         return new AuthenticateCredentialsUseCase.AuthenticatedAccount(

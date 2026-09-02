@@ -33,14 +33,20 @@ public class JooqSyntheticAccountRepository {
     private static void provision(DSLContext jooq, SyntheticAccountProvision provision) {
         Optional<SyntheticAccount> existing = find(jooq, provision.accountId());
         if (existing.isPresent()) {
-            verifyExisting(jooq, existing.orElseThrow(), provision.role(), provision.canonicalEmail());
+            verifyExisting(
+                    jooq, existing.orElseThrow(), provision.role(), provision.canonicalEmail());
             return;
         }
         if (emailReserved(jooq, provision.canonicalEmail())) {
             throw new IllegalStateException(
                     "El correo sintético ya está reservado por otra cuenta.");
         }
-        insertAccount(jooq, provision.accountId(), provision.role(), provision.passwordHash(), provision.now());
+        insertAccount(
+                jooq,
+                provision.accountId(),
+                provision.role(),
+                provision.passwordHash(),
+                provision.now());
         insertEmail(
                 jooq,
                 provision.accountId(),
@@ -63,7 +69,9 @@ public class JooqSyntheticAccountRepository {
 
     private static void verifyExisting(
             DSLContext jooq,
-            SyntheticAccount account, AccountRole expectedRole, String canonicalEmail) {
+            SyntheticAccount account,
+            AccountRole expectedRole,
+            String canonicalEmail) {
         boolean emailExists =
                 jooq.fetchExists(
                         jooq.selectOne()
@@ -92,7 +100,10 @@ public class JooqSyntheticAccountRepository {
 
     private static void insertAccount(
             DSLContext jooq,
-            UUID accountId, AccountRole role, String passwordHash, OffsetDateTime now) {
+            UUID accountId,
+            AccountRole role,
+            String passwordHash,
+            OffsetDateTime now) {
         jooq.insertInto(ACCOUNT)
                 .set(ACCOUNT.ID, accountId)
                 .set(ACCOUNT.ROLE, role.value())
@@ -108,7 +119,10 @@ public class JooqSyntheticAccountRepository {
 
     private static void insertEmail(
             DSLContext jooq,
-            UUID accountId, String presentationEmail, String canonicalEmail, OffsetDateTime now) {
+            UUID accountId,
+            String presentationEmail,
+            String canonicalEmail,
+            OffsetDateTime now) {
         jooq.insertInto(ACCOUNT_EMAIL)
                 .set(ACCOUNT_EMAIL.ID, UUID.randomUUID())
                 .set(ACCOUNT_EMAIL.ACCOUNT_ID, accountId)

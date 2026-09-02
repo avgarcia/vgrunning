@@ -48,11 +48,7 @@ public final class SyntheticAccountsBootstrap implements ApplicationRunner {
 
     /** Delega la idempotencia y el rechazo de conflictos en la persistencia propietaria. */
     private JooqSyntheticAccountRepository.SyntheticAccountProvision provision(
-            UUID accountId,
-            AccountRole role,
-            String email,
-            String password,
-            OffsetDateTime now) {
+            UUID accountId, AccountRole role, String email, String password, OffsetDateTime now) {
         EmailAddress canonicalEmail = EmailAddress.from(email);
         return new JooqSyntheticAccountRepository.SyntheticAccountProvision(
                 accountId,

@@ -12,7 +12,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -21,6 +20,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.RestController;
 import org.vgrunning.generated.openapi.server.api.SessionsApi;
@@ -34,6 +35,8 @@ public class SessionHttpController implements SessionsApi {
     private final AuthenticateCredentialsUseCase authenticateCredentials;
     private final LoginRateLimiter rateLimiter;
     private final SecurityContextRepository securityContexts;
+    private final SessionAuthenticationStrategy sessionAuthenticationStrategy;
+    private final LogoutHandler sessionLogoutHandler;
     private final CurrentSessionIdentityResolver currentSession;
     private final SessionWebMapper mapper;
     private final HttpServletRequest request;
@@ -66,9 +69,11 @@ public class SessionHttpController implements SessionsApi {
                         authenticatedAccount.accountId(),
                         authenticatedAccount.role(),
                         authenticatedAccount.status());
-        context.setAuthentication(
+        UsernamePasswordAuthenticationToken authentication =
                 UsernamePasswordAuthenticationToken.authenticated(
-                        principal, null, List.of(authority)));
+                        principal, null, List.of(authority));
+        sessionAuthenticationStrategy.onAuthentication(authentication, request, response);
+        context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
         securityContexts.saveContext(context, request, response);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -86,7 +91,8 @@ public class SessionHttpController implements SessionsApi {
     @Override
     public ResponseEntity<Void> deleteCurrentSession() {
         currentSession.current();
-        Objects.requireNonNull(request.getSession(false)).invalidate();
+        sessionLogoutHandler.logout(
+                request, response, SecurityContextHolder.getContext().getAuthentication());
         return ResponseEntity.noContent().build();
     }
 }

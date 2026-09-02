@@ -36,8 +36,7 @@ class IdentityAccessLayeringTest {
                     .should()
                     .dependOnClassesThat()
                     .resideInAnyPackage(
-                            "..identityaccess.application..",
-                            "..identityaccess.infrastructure..")
+                            "..identityaccess.application..", "..identityaccess.infrastructure..")
                     .allowEmptyShould(true);
 
     @ArchTest

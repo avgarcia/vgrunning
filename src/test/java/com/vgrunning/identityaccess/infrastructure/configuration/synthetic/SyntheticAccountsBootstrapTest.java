@@ -26,8 +26,10 @@ class SyntheticAccountsBootstrapTest {
                 .extracting(JooqSyntheticAccountRepository.SyntheticAccountProvision::role)
                 .containsExactly(AccountRole.ADMINISTRADOR, AccountRole.CORREDOR);
         assertThat(accounts.provisions)
-                .extracting(JooqSyntheticAccountRepository.SyntheticAccountProvision::canonicalEmail)
-                .containsExactly("administrator@running-coach.invalid", "runner@running-coach.invalid");
+                .extracting(
+                        JooqSyntheticAccountRepository.SyntheticAccountProvision::canonicalEmail)
+                .containsExactly(
+                        "administrator@running-coach.invalid", "runner@running-coach.invalid");
         assertThat(accounts.provisions)
                 .extracting(JooqSyntheticAccountRepository.SyntheticAccountProvision::passwordHash)
                 .containsExactly("hash:admin-páss", "hash:runner-páss");

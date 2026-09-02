@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
@@ -28,6 +29,7 @@ public class SecurityConfiguration {
             SecurityContextRepository securityContexts,
             OriginValidationFilter originValidation,
             CsrfTokenRepository csrfTokens,
+            SessionAuthenticationStrategy sessionAuthenticationStrategy,
             HandlerExceptionResolver handlerExceptionResolver) {
         try {
             return http.httpBasic(AbstractHttpConfigurer::disable)
@@ -37,7 +39,12 @@ public class SecurityConfiguration {
                             context ->
                                     context.securityContextRepository(securityContexts)
                                             .requireExplicitSave(true))
-                    .csrf(csrf -> csrf.spa().csrfTokenRepository(csrfTokens))
+                    .csrf(
+                            csrf ->
+                                    csrf.spa()
+                                            .csrfTokenRepository(csrfTokens)
+                                            .sessionAuthenticationStrategy(
+                                                    sessionAuthenticationStrategy))
                     .exceptionHandling(
                             exceptions ->
                                     exceptions
@@ -46,7 +53,8 @@ public class SecurityConfiguration {
                                                         if (!"/api/sessions/current"
                                                                 .equals(request.getServletPath())) {
                                                             response.sendError(
-                                                                    HttpServletResponse.SC_FORBIDDEN);
+                                                                    HttpServletResponse
+                                                                            .SC_FORBIDDEN);
                                                             return;
                                                         }
                                                         handlerExceptionResolver.resolveException(
@@ -68,9 +76,11 @@ public class SecurityConfiguration {
                                             .permitAll()
                                             .requestMatchers(HttpMethod.POST, "/api/sessions")
                                             .permitAll()
-                                            .requestMatchers(HttpMethod.GET, "/api/sessions/current")
+                                            .requestMatchers(
+                                                    HttpMethod.GET, "/api/sessions/current")
                                             .authenticated()
-                                            .requestMatchers(HttpMethod.DELETE, "/api/sessions/current")
+                                            .requestMatchers(
+                                                    HttpMethod.DELETE, "/api/sessions/current")
                                             .authenticated()
                                             .requestMatchers(
                                                     "/actuator",
@@ -86,10 +96,12 @@ public class SecurityConfiguration {
                                             .anyRequest()
                                             .denyAll())
                     .addFilterBefore(
-                            originValidation, org.springframework.security.web.csrf.CsrfFilter.class)
+                            originValidation,
+                            org.springframework.security.web.csrf.CsrfFilter.class)
                     .build();
         } catch (Exception exception) {
-            throw new IllegalStateException("No se ha podido configurar Spring Security.", exception);
+            throw new IllegalStateException(
+                    "No se ha podido configurar Spring Security.", exception);
         }
     }
 

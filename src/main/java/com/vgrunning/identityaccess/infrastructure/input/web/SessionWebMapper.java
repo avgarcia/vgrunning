@@ -19,12 +19,14 @@ public interface SessionWebMapper {
     CurrentSession toResponse(SessionPrincipal principal);
 
     /** Convierte el rol de dominio al enum generado por OpenAPI. */
-    default AccountRole map(com.vgrunning.identityaccess.domain.account.valueobject.AccountRole role) {
+    default AccountRole map(
+            com.vgrunning.identityaccess.domain.account.valueobject.AccountRole role) {
         return AccountRole.fromValue(role.value());
     }
 
     /** Convierte el estado de dominio al enum generado por OpenAPI. */
-    default AccountStatus map(com.vgrunning.identityaccess.domain.account.valueobject.AccountStatus status) {
+    default AccountStatus map(
+            com.vgrunning.identityaccess.domain.account.valueobject.AccountStatus status) {
         return AccountStatus.fromValue(status.value());
     }
 }

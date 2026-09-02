@@ -35,8 +35,7 @@ class AuthenticateCredentialsServiceTest {
         passwords.matches = true;
         passwords.needsRehash = true;
 
-        AuthenticatedAccount login =
-                useCase.authenticate(" RUNNER@example.invalid ", "pa\u0301ss");
+        AuthenticatedAccount login = useCase.authenticate(" RUNNER@example.invalid ", "pa\u0301ss");
 
         assertThat(login.accountId()).isEqualTo(ACCOUNT_ID);
         assertThat(accounts.canonicalEmail).isEqualTo("runner@example.invalid");
@@ -58,15 +57,14 @@ class AuthenticateCredentialsServiceTest {
     }
 
     @Test
-    void failsWhenTheOptimisticPasswordUpdateLosesTheRace() {
+    void returnsGenericCredentialFailureWhenTheOptimisticPasswordUpdateLosesTheRace() {
         accounts.account = Optional.of(account(AccountStatus.ACTIVE));
         accounts.passwordUpdated = false;
         passwords.matches = true;
         passwords.needsRehash = true;
 
         assertThatThrownBy(() -> useCase.authenticate("runner@example.invalid", "password"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("cuenta cambió");
+                .isInstanceOf(InvalidCredentialsException.class);
     }
 
     private static AccountRepository.CredentialAccount account(AccountStatus status) {

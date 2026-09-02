@@ -43,3 +43,10 @@ Obtén aprobación antes de:
 - **Generación de Código:** `./gradlew generateJooqFromPostgres`, `./gradlew generateOpenApiServer`, `./gradlew apiCheck`
 - **Desarrollo Frontend (`/frontend`):** `npm run typecheck`, `npm run test:unit`, `npm run build`
 - **Validación Final Pre-PR:** `./gradlew qualityGate` (Reservado estrictamente para la evidencia final, no para depuración iterativa).
+
+## Autoridad y límites de la IA
+Los gates deterministas son la única autoridad automática para compilación, pruebas,
+análisis, contratos y seguridad. La Skill local `$implementar-slice` prepara y ejecuta
+el trabajo autorizado, pero no puede aprobar, omitir ni declarar innecesario un gate
+aplicable. No puede decidir producto, alcance o arquitectura; esas decisiones requieren
+confirmación humana explícita.

@@ -29,5 +29,4 @@ public final class Argon2PasswordHasher implements PasswordHasher {
     public boolean needsRehash(String encodedPassword) {
         return encoder.upgradeEncoding(encodedPassword);
     }
-
 }

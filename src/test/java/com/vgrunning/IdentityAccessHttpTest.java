@@ -73,6 +73,7 @@ class IdentityAccessHttpTest {
         CurrentSession loginBody = Objects.requireNonNull(login.getBody());
         assertThat(loginBody.getAccountStatus().getValue()).isEqualTo("active");
         assertThat(login.getHeaders().getLocation()).hasToString("/api/sessions/current");
+        assertThat(rotatedCsrfCookie).isNotEqualTo(initialCsrfCookie);
 
         HttpHeaders sessionHeaders = new HttpHeaders();
         sessionHeaders.add(HttpHeaders.COOKIE, "__Host-pmv_session=" + sessionCookie);
@@ -95,6 +96,16 @@ class IdentityAccessHttpTest {
                         new HttpEntity<>(logoutHeaders),
                         Void.class);
         assertThat(logout.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(
+                        cookieValue(
+                                logout.getHeaders().getOrEmpty(HttpHeaders.SET_COOKIE),
+                                "__Host-pmv_session"))
+                .isEmpty();
+        assertThat(
+                        cookieValue(
+                                logout.getHeaders().getOrEmpty(HttpHeaders.SET_COOKIE),
+                                "__Host-pmv_csrf"))
+                .isNotEqualTo(rotatedCsrfCookie);
 
         ResponseEntity<String> rejected =
                 client.exchange(
