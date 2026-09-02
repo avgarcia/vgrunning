@@ -3,7 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
-**Refinado parcialmente por:** [ADR-0024](0024-hybrid-validation-ai-authority.md) — Aceptado; estrategia de activación y autoridad de validación, sin cambio de umbrales ni herramientas.
+**Refinado parcialmente por:** [ADR-0024](0024-hybrid-validation-ai-authority.md) — Aceptado; estrategia de activación y autoridad de validación, sin cambio de umbrales ni herramientas; [ADR-0025](0025-spring-session-jdbc-local-login-rate-limit.md) — Propuesto; sustituye el repositorio propio de sesiones por Spring Session JDBC y concreta Bucket4j local.
 
 ## Contexto
 

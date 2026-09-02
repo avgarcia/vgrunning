@@ -1,6 +1,6 @@
 package com.vgrunning.identityaccess.application.port.out;
 
-import com.vgrunning.identityaccess.domain.account.AccountRole;
+import com.vgrunning.identityaccess.domain.account.valueobject.AccountRole;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 

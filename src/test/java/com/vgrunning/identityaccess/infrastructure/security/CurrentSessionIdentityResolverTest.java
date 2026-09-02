@@ -3,9 +3,9 @@ package com.vgrunning.identityaccess.infrastructure.security;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.vgrunning.identityaccess.application.model.SessionIdentity;
-import com.vgrunning.identityaccess.domain.account.AccountRole;
-import com.vgrunning.identityaccess.domain.account.AccountStatus;
+import com.vgrunning.identityaccess.domain.account.valueobject.AccountRole;
+import com.vgrunning.identityaccess.domain.account.valueobject.AccountStatus;
+import com.vgrunning.identityaccess.infrastructure.security.session.SessionPrincipal;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ class CurrentSessionIdentityResolverTest {
 
     @Test
     void returnsTheAuthenticatedSessionIdentity() {
-        SessionIdentity identity = identity();
+        SessionPrincipal identity = identity();
         SecurityContextHolder.getContext()
                 .setAuthentication(
                         UsernamePasswordAuthenticationToken.authenticated(
@@ -43,8 +43,8 @@ class CurrentSessionIdentityResolverTest {
         assertThatThrownBy(resolver::current).isInstanceOf(AuthenticationRequiredException.class);
     }
 
-    private static SessionIdentity identity() {
-        return SessionIdentity.create(
+    private static SessionPrincipal identity() {
+        return SessionPrincipal.create(
                 UUID.fromString("10000000-0000-0000-0000-000000000001"),
                 AccountRole.CORREDOR,
                 AccountStatus.ACTIVE);

@@ -3,9 +3,9 @@ package com.vgrunning.identityaccess.infrastructure.configuration.error;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.vgrunning.identityaccess.application.exception.InvalidCredentialsException;
-import com.vgrunning.identityaccess.application.exception.RateLimitedException;
 import com.vgrunning.identityaccess.infrastructure.security.AuthenticationRequiredException;
 import com.vgrunning.identityaccess.infrastructure.security.CsrfValidationException;
+import com.vgrunning.identityaccess.infrastructure.security.ratelimit.RateLimitedException;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;

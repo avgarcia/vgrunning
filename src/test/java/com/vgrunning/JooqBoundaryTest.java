@@ -7,15 +7,15 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
-/** Impide que los tipos jOOQ escapen de los futuros adaptadores de persistencia propietarios. */
+/** Impide que los tipos jOOQ escapen de la persistencia de infraestructura propietaria. */
 @AnalyzeClasses(packages = "com.vgrunning", importOptions = ImportOption.DoNotIncludeTests.class)
 class JooqBoundaryTest {
 
     @ArchTest
-    static final ArchRule jooqMustStayInsidePersistenceAdapters =
+    static final ArchRule jooqMustStayInsidePersistenceInfrastructure =
             noClasses()
                     .that()
-                    .resideOutsideOfPackages("..adapter.out.persistence.jooq..")
+                    .resideOutsideOfPackages("..infrastructure.output.persistence.jooq..")
                     .should()
                     .dependOnClassesThat()
                     .resideInAnyPackage("org.jooq..", "org.vgrunning.generated.jooq..")

@@ -1,7 +1,7 @@
 package com.vgrunning.identityaccess.application.port.out;
 
-import com.vgrunning.identityaccess.domain.account.AccountRole;
-import com.vgrunning.identityaccess.domain.account.AccountStatus;
+import com.vgrunning.identityaccess.domain.account.valueobject.AccountRole;
+import com.vgrunning.identityaccess.domain.account.valueobject.AccountStatus;
 import java.util.Optional;
 import java.util.UUID;
 

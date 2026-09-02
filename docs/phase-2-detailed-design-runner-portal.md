@@ -371,8 +371,8 @@ com.vgrunning.runnerportal/
   application/
     service/
     port/out/
-  adapter/in/web/
-  adapter/out/module/
+  infrastructure/input/web/
+  infrastructure/output/module/
 ```
 
 No existe `domain` rico inicial porque el portal no gobierna invariantes ni estado. Las reglas de composición y minimización viven en aplicación; los adaptadores traducen OpenAPI y APIs Java. Si aparecen invariantes propias reales, se añadirá dominio por concepto, no por plantilla.

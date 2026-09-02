@@ -1,5 +1,6 @@
 package com.vgrunning;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -21,10 +22,8 @@ class IdentityAccessLayeringTest {
                     .should()
                     .dependOnClassesThat()
                     .resideInAnyPackage(
-                            "..identityaccess.adapter..",
                             "..identityaccess.infrastructure..",
                             "jakarta.servlet..",
-                            "org.springframework..",
                             "org.jooq..",
                             "org.vgrunning.generated..")
                     .allowEmptyShould(false);
@@ -38,20 +37,60 @@ class IdentityAccessLayeringTest {
                     .dependOnClassesThat()
                     .resideInAnyPackage(
                             "..identityaccess.application..",
-                            "..identityaccess.adapter..",
                             "..identityaccess.infrastructure..")
                     .allowEmptyShould(true);
 
     @ArchTest
-    static final ArchRule adaptersAndSpringSecurityMustUseInputPorts =
+    static final ArchRule infrastructureInputMustNotUseOutputPorts =
             noClasses()
                     .that()
-                    .resideInAnyPackage(
-                            "..identityaccess.adapter..",
-                            "..identityaccess.infrastructure.security..")
+                    .resideInAnyPackage("..identityaccess.infrastructure.input..")
                     .should()
                     .dependOnClassesThat()
-                    .resideInAnyPackage("..identityaccess.application.usecase..")
+                    .resideInAnyPackage("..identityaccess.application.port.out..")
+                    .allowEmptyShould(false);
+
+    @ArchTest
+    static final ArchRule applicationServicesMayUseOnlyTransactionalSpring =
+            noClasses()
+                    .that()
+                    .resideInAnyPackage("..identityaccess.application..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage(
+                            "org.springframework.security..",
+                            "org.springframework.web..",
+                            "org.springframework.http..",
+                            "org.springframework.context..",
+                            "org.springframework.boot..",
+                            "org.springframework.jdbc..",
+                            "org.springframework.session..",
+                            "org.jooq..",
+                            "org.vgrunning.generated..")
+                    .allowEmptyShould(false);
+
+    @ArchTest
+    static final ArchRule applicationPortsAreTopLevelInterfaces =
+            classes()
+                    .that()
+                    .resideInAnyPackage(
+                            "..identityaccess.application.port.in..",
+                            "..identityaccess.application.port.out..")
+                    .and()
+                    .areTopLevelClasses()
+                    .should()
+                    .beInterfaces()
+                    .allowEmptyShould(false);
+
+    @ArchTest
+    static final ArchRule noObsoletePackagesRemain =
+            classes()
+                    .should()
+                    .resideOutsideOfPackages(
+                            "..identityaccess.adapter..",
+                            "..identityaccess.application.model..",
+                            "..identityaccess.application.usecase..",
+                            "..runnerportal.adapter..")
                     .allowEmptyShould(false);
 
     @ArchTest

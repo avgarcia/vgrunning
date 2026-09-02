@@ -25,6 +25,8 @@ Este diseño cubre completamente `RF-01` y la parte de cuentas y roles de `RF-02
 - `ADR-0016`: secretos, observabilidad, copias y operación en Azure.
 - `ADR-0017`: API HTTP orientada a recursos y semántica REST.
 - `ADR-0018` (Aceptado): ciclo de vida del perfil, caducidad total del alta de corredor, inactividad, reactivación y retención posterior.
+- `ADR-0025` (Propuesto): Spring Session JDBC y Bucket4j local para la topología inicial de un nodo.
+- `ADR-0026` (Aceptado): paquetería hexagonal con entradas, salidas y framework bajo infraestructura.
 - [Guía de diseño de API HTTP](api-design-guidelines.md).
 
 Si este documento contradice una fuente aceptada, prevalece el ADR o la línea base y deberá corregirse el diseño antes de implementar.
@@ -153,7 +155,7 @@ Los límites aceptados son:
 - inicio de sesión: `5` fallos por cuenta y `20` por IP en `15` minutos;
 - activación o recuperación: `3` solicitudes por cuenta y `10` por IP en una hora.
 
-Bucket4j aplica los límites en una caché local con máximo de 10.000 claves y caducidad de quince minutos por inactividad. El MVP se ejecuta en un nodo: no persiste la IP ni el correo usados como clave, y no acepta `Forwarded` ni `X-Forwarded-For`. Una topología con varias réplicas exige escoger antes un backend compartido de Bucket4j.
+Bucket4j aplica los límites en cachés locales con un máximo conjunto de 10.000 claves. La expiración temporal de las entradas de inicio de sesión es de quince minutos de inactividad; la de activación y recuperación, de una hora. Una expulsión por alcanzar la capacidad puede reiniciar un bucket antes de terminar su ventana y degrada este control bajo saturación; debe observarse y obliga a revisar el almacenamiento antes de aumentar carga o réplicas. El MVP se ejecuta en un nodo: no persiste la IP ni el correo usados como clave, y no acepta `Forwarded` ni `X-Forwarded-For`. Una topología con varias réplicas exige escoger antes un backend compartido de Bucket4j.
 
 Las respuestas de acceso y recuperación no revelan si una cuenta existe, su estado, su rol ni cuál de los límites se alcanzó. Los errores internos sí generan métricas normalizadas sin correo, token, contraseña o IP completos.
 
@@ -296,36 +298,44 @@ Los adaptadores autentican, pero los servicios de aplicación autorizan cada cas
 
 Las pruebas cubren la matriz rol-operación, propiedad, estados, auto-desactivación, último administrador y creación transaccional del vínculo de corredor.
 
-## Paquetes previstos
+## Paquetes objetivo aceptados por ADR-0026
+
+La estructura siguiente es la decisión vigente y queda aplicada por la migración de F01.1. Los paquetes, imports, pruebas de arquitectura y documentación se mantienen alineados; cualquier nueva clase debe cumplir la Skill antes de editar.
 
 ```text
 com.vgrunning.identityaccess/
   api/
-    command/
-    query/
+    <concepto>/
   application/
+    port/in/                         solo interfaces de entrada
+    port/out/                        solo interfaces de salida
     service/
-    port/out/
+    exception/
   domain/
-    account/
-    credential/
-    session/
-  adapter/in/web/
-  adapter/in/command/
-  adapter/out/persistence/jooq/
-  infrastructure/configuration/       configuración Spring, propiedades y Problem Details
-  infrastructure/security/            CSRF, cookies, SecurityContext y criptografía
+    <concepto>/
+      aggregate/
+      entity/
+      valueobject/
+      policy/
+      service/
+      event/
+      exception/
+  infrastructure/input/web/          adaptación OpenAPI y Spring MVC
+  infrastructure/input/command/      bootstrap y recuperación operativa
+  infrastructure/output/persistence/jooq/
+  infrastructure/configuration/      configuración Spring, propiedades y Problem Details
+  infrastructure/security/           CSRF, cookies, SecurityContext y criptografía
 ```
 
-El dominio no depende de Spring, OpenAPI, jOOQ o JDBC. El adaptador web mapea el contrato generado; el adaptador de comando aloja bootstrap y recuperación excepcional. La configuración y los componentes propios de Spring Security residen en `infrastructure`, nunca en aplicación o dominio. No se crean repositorios CRUD genéricos ni un modelo de dominio espejo de las tablas.
+El dominio se organiza primero por concepto y después por agregado, entidad, value object, política, servicio, evento o excepción cuando exista un tipo real; no se crean subpaquetes vacíos por plantilla. No depende de Spring, OpenAPI, jOOQ o JDBC. Las entradas y salidas son infraestructura: la entrada web mapea el contrato generado y la entrada de comando aloja bootstrap y recuperación excepcional. La configuración y los componentes propios de Spring Security residen en `infrastructure`, nunca en aplicación o dominio. No se crean repositorios CRUD genéricos, un modelo de dominio espejo de las tablas ni un paquete genérico `application.model`.
 
 ### Decisión de implementación F01.1: infraestructura Spring separada
 
-La configuración de Spring MVC y Spring Security, las propiedades tipadas, CSRF, cookies, `SecurityContextRepository`, criptografía y traducción global de excepciones se ubican en `infrastructure`. El motivo es impedir que los casos de uso y el dominio conozcan APIs o ciclos de vida del framework. Se mantiene `adapter/in/web` para adaptar OpenAPI y `adapter/out/persistence/jooq` como propietario exclusivo de los tipos generados.
+La configuración de Spring MVC y Spring Security, las propiedades tipadas, CSRF, cookies, `SecurityContextRepository`, criptografía y traducción global de excepciones se ubican en `infrastructure`. El motivo es impedir que los casos de uso y el dominio conozcan APIs o ciclos de vida del framework. `infrastructure/input/web` adapta OpenAPI y `infrastructure/output/persistence/jooq` es el propietario exclusivo de los tipos generados. El controlador puede depender directamente del componente técnico de sesión porque ambos pertenecen a infraestructura.
 
-Se descarta alojar `@Configuration`, `@Value`, `CsrfTokenRepository`, `SecurityContextHolder` o implementaciones criptográficas en `application`: simplificaría inicialmente el wiring, pero invertiría dependencias y haría que las pruebas de los casos de uso necesitaran Spring. También se descarta convertir CSRF en un caso de uso de identidad, porque no representa estado ni una regla de negocio.
+Se descarta alojar `@Configuration`, `@Value`, `CsrfTokenRepository`, `SecurityContextHolder` o implementaciones criptográficas en `application`: simplificaría inicialmente el wiring, pero invertiría dependencias y haría que las pruebas de los casos de uso necesitaran Spring. `@Transactional` sí está permitido en servicios de aplicación para delimitar el caso de uso. También se descarta convertir CSRF en un caso de uso de identidad, porque no representa estado ni una regla de negocio.
 
-El impacto de F01.1 es una composición explícita mediante clases de configuración para Spring Security, Spring Session JDBC, CSRF, cookies, hashing y Bucket4j. La aplicación conserva solo la verificación de credenciales y su puerto de persistencia. Esta separación se aplica en la PR backend de F01.1 y deberá conservarse en las siguientes slices de `identity-access`.
+El impacto aceptado para F01.1 es una composición explícita mediante clases de configuración para Spring Security, Spring Session JDBC, CSRF, cookies, hashing y Bucket4j. La aplicación conserva solo la verificación de credenciales y sus puertos; la separación de infraestructura queda aplicada junto con los imports y gates de esta PR.
 
 Las contraseñas sintéticas se enlazan mediante `@ConfigurationProperties` desde variables de entorno. El nombre y atributos de cookies, la caducidad de sesión y los límites del MVP se declaran en configuración de infraestructura, no en el dominio ni en casos de uso.
 
@@ -396,7 +406,7 @@ Las retenciones y supresiones siguen `ADR-0010`. Las tareas de limpieza eliminan
 
 ## Decisiones pendientes
 
-No quedan decisiones funcionales o arquitectónicas pendientes dentro del alcance de identidad y acceso de este documento.
+Queda bloqueada, antes de implementar recuperación, cambio de contraseña o desactivación, la invalidación de todas las sesiones de una cuenta mediante Spring Session JDBC. El Revisor de arquitectura debe concretar y probar su mecanismo conforme a `ADR-0025`.
 
 `ADR-0018` aceptado introduce cambios que afectan a cuentas de corredor: cancelación total del alta a los `30` días, coordinación de baja y reactivación y conservación restringida durante `24` meses. Los contratos internos y las pruebas deberán materializarlos conjuntamente. Hasta completar la revisión especializada de privacidad, solo podrán desarrollarse y probarse con datos ficticios, sintéticos o anonimizados de forma irreversible.
 

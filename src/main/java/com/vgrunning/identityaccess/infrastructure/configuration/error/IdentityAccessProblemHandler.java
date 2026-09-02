@@ -2,9 +2,9 @@ package com.vgrunning.identityaccess.infrastructure.configuration.error;
 
 import com.vgrunning.identityaccess.application.exception.IdentityAccessException;
 import com.vgrunning.identityaccess.application.exception.InvalidCredentialsException;
-import com.vgrunning.identityaccess.application.exception.RateLimitedException;
 import com.vgrunning.identityaccess.infrastructure.security.AuthenticationRequiredException;
 import com.vgrunning.identityaccess.infrastructure.security.CsrfValidationException;
+import com.vgrunning.identityaccess.infrastructure.security.ratelimit.RateLimitedException;
 import java.net.URI;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

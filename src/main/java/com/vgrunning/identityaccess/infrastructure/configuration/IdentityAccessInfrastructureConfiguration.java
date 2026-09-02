@@ -1,12 +1,16 @@
 package com.vgrunning.identityaccess.infrastructure.configuration;
 
+import com.vgrunning.identityaccess.application.port.in.CreateSessionUseCase;
+import com.vgrunning.identityaccess.application.port.in.ProvisionSyntheticAccountsUseCase;
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
-import com.vgrunning.identityaccess.application.usecase.SessionUseCaseHandler;
+import com.vgrunning.identityaccess.application.port.out.SyntheticAccountRepository;
+import com.vgrunning.identityaccess.application.service.CreateSessionService;
+import com.vgrunning.identityaccess.application.service.SyntheticAccountProvisioningService;
 import com.vgrunning.identityaccess.infrastructure.security.Argon2PasswordHasher;
 import com.vgrunning.identityaccess.infrastructure.security.CsrfTokenRotator;
 import com.vgrunning.identityaccess.infrastructure.security.CurrentSessionIdentityResolver;
-import com.vgrunning.identityaccess.infrastructure.security.LoginRateLimiter;
+import com.vgrunning.identityaccess.infrastructure.security.ratelimit.LoginRateLimiter;
 import com.vgrunning.identityaccess.infrastructure.security.OriginValidationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +22,7 @@ import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
-/** Compone los casos de uso con sus adaptadores técnicos sin contaminar la aplicación. */
+/** Compone los casos de uso con sus componentes técnicos sin contaminar la aplicación. */
 @Configuration(proxyBeanMethods = false)
 public class IdentityAccessInfrastructureConfiguration {
 
@@ -29,9 +33,15 @@ public class IdentityAccessInfrastructureConfiguration {
     }
 
     @Bean
-    SessionUseCaseHandler sessionUseCases(
+    CreateSessionUseCase createSessionUseCase(
             AccountRepository accounts, PasswordHasher passwordHasher) {
-        return new SessionUseCaseHandler(accounts, passwordHasher);
+        return new CreateSessionService(accounts, passwordHasher);
+    }
+
+    @Bean
+    ProvisionSyntheticAccountsUseCase provisionSyntheticAccountsUseCase(
+            SyntheticAccountRepository accounts, PasswordHasher passwordHasher) {
+        return new SyntheticAccountProvisioningService(accounts, passwordHasher);
     }
 
     @Bean

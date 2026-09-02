@@ -59,6 +59,8 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0022](0022-five-point-perceived-effort-scale.md) | Escala de cinco puntos para esfuerzo percibido | Aceptado | `RF-17`, `RF-18`, `RF-19` |
 | [ADR-0023](0023-recovery-objectives-independent-key-custody.md) | Objetivos de recuperación y custodia independiente de claves | Aceptado | Todos los `RF`; disponibilidad, seguridad, datos y privacidad |
 | [ADR-0024](0024-hybrid-validation-ai-authority.md) | Estrategia híbrida de validación y autoridad de la IA | Aceptado | Todos los `RF`, indirectamente mediante los controles de implementación |
+| [ADR-0025](0025-spring-session-jdbc-local-login-rate-limit.md) | Spring Session JDBC y límite local de intentos de acceso | Propuesto | `RF-01`, `RF-02`, `RF-16`, `RF-18`, `RF-19` |
+| [ADR-0026](0026-hexagonal-packaging-under-infrastructure.md) | Paquetería hexagonal bajo infraestructura | Aceptado | Todos los `RF` |
 
 ## Relaciones de refinamiento
 
@@ -74,6 +76,10 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | `ADR-0018` | `ADR-0021` | Precisa la conservación histórica en publicaciones y la elegibilidad vigente antes del correo; el ciclo de vida y la retención de `ADR-0018` siguen vigentes. |
 | `ADR-0020` | `ADR-0021` | Sustituye para planes publicados la mutabilidad de identidad, el borrador persistente, los cambios pendientes, la restauración y el historial consultable; el resto de planificación sigue vigente. |
 | `ADR-0013` | `ADR-0024` | Refinamiento de la estrategia de ejecución y autoridad de validación; conserva sus herramientas, umbrales y gates. |
+| `ADR-0003` | `ADR-0025` | Sustituye el token opaco y verificador propios por una sesión HTTP gestionada por Spring Session JDBC; conserva identidad local, credenciales e invitación. |
+| `ADR-0013` | `ADR-0025` | Sustituye el repositorio propio de sesiones por Spring Session JDBC y concreta Bucket4j local para la topología inicial de un nodo. |
+| `ADR-0015` | `ADR-0025` | Sustituye el `SecurityContextRepository` propio por la integración de Spring Security y Spring Session; conserva `ActorContext` y autorización por recurso. |
+| `ADR-0014` | `ADR-0026` | Reúne adaptadores de entrada y salida bajo infraestructura, reserva `application.port` para interfaces, mantiene `api` como contrato intermodular y elimina `application.model`. |
 
 ## Resultado del backlog inicial de Fase 2
 
