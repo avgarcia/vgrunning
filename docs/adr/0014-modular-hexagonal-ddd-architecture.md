@@ -3,7 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
-**Refinado parcialmente por:** [ADR-0021](0021-publication-editing-notification-eligibility.md)
+**Refinado parcialmente por:** [ADR-0021](0021-publication-editing-notification-eligibility.md); [ADR-0026](0026-hexagonal-packaging-under-infrastructure.md) — Aceptado; reúne entradas y salidas bajo infraestructura, reserva `application.port` para interfaces y elimina `application.model`.
 
 ## Contexto
 
@@ -120,19 +120,19 @@ com.vgrunning.<module>/
     port/out/                        puertos de salida requeridos por la aplicación
   domain/
     <concepto>/                      agregados, entidades, value objects y políticas
-  adapter/in/web/                    adaptación OpenAPI/Spring MVC a puertos de entrada
-  adapter/in/scheduling/             entradas programadas cuando correspondan
-  adapter/out/persistence/jooq/      implementación JDBC, consultas y mapeadores
-  adapter/out/provider/              implementación de proveedores externos
+  infrastructure/input/web/                    adaptación OpenAPI/Spring MVC a puertos de entrada
+  infrastructure/input/scheduling/             entradas programadas cuando correspondan
+  infrastructure/output/persistence/jooq/      implementación JDBC, consultas y mapeadores
+  infrastructure/output/provider/              implementación de proveedores externos
 ```
 
 Los puertos de entrada y salida se escribirán manualmente; no serán código generado. Los puertos de entrada publicados vivirán en `api` y expresarán casos de uso, comandos, consultas y resultados con tipos del módulo. Sus implementaciones vivirán en `application/service`. Los puertos de salida vivirán en `application/port/out` y describirán únicamente capacidades que la aplicación necesita de persistencia, reloj, correo u otro sistema.
 
-OpenAPI Generator producirá interfaces y modelos HTTP en el source set generado del build. Los adaptadores `in/web` implementarán o delegarán esas interfaces y mapearán sus modelos a comandos o consultas de `api`. jOOQ producirá tipos SQL en otro source set generado; los adaptadores `out/persistence/jooq` los usarán y mapearán a tipos de aplicación o dominio. Ningún generador creará casos de uso, puertos o lógica de negocio y el código generado no se versionará.
+OpenAPI Generator producirá interfaces y modelos HTTP en el source set generado del build. Las entradas `infrastructure/input/web` implementarán o delegarán esas interfaces y mapearán sus modelos a comandos o consultas de `api`. jOOQ producirá tipos SQL en otro source set generado; las salidas `infrastructure/output/persistence/jooq` los usarán y mapearán a tipos de aplicación o dominio. Ningún generador creará casos de uso, puertos o lógica de negocio y el código generado no se versionará.
 
 Dentro de `domain`, los paquetes se organizarán por concepto de negocio, como `plan`, `planninggroup`, `segment` o `publication`, no por categorías genéricas globales como `entities`, `services` o `valueobjects`. El dominio no dependerá de Spring, jOOQ, OpenAPI, JDBC ni adaptadores.
 
-Los adaptadores de entrada no decidirán invariantes y los adaptadores de salida no coordinarán casos de uso. Los puertos serán específicos de una capacidad; no se crearán interfaces espejo de cada clase, repositorios CRUD genéricos ni DTOs duplicados sin una frontera real.
+Las entradas de infraestructura no decidirán invariantes y las salidas de infraestructura no coordinarán casos de uso. Los puertos serán específicos de una capacidad; no se crearán interfaces espejo de cada clase, repositorios CRUD genéricos ni DTOs duplicados sin una frontera real.
 
 ### Aplicación de DDD
 

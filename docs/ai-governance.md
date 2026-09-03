@@ -11,6 +11,7 @@ Las fuentes versionadas son:
 
 - [Directrices del repositorio](../AGENTS.md).
 - [Skill local `implementar-slice`](../.agents/skills/implementar-slice/SKILL.md).
+- [Skill local `arquitectura-hexagonal-y-modulith`](../.agents/skills/arquitectura-hexagonal-y-modulith/SKILL.md).
 - [Guidance del equipo para Linear Agent](../config/linear-agent/team-guidance.md).
 - [Skill compartida `preparar-slice-running-coach`](../config/linear-agent/preparar-slice-running-coach.md).
 

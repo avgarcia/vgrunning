@@ -10,22 +10,8 @@ servers:
     description: API bajo el mismo origen.
 tags:
   - name: Access
-    description: Protección CSRF y ciclo de vida de la sesión actual.
+    description: Ciclo de vida de la sesión actual.
 paths:
-  /csrf-tokens/current:
-    get:
-      operationId: getCurrentCsrfToken
-      tags: [Access]
-      summary: Obtener el token CSRF del contexto actual
-      description: >-
-        Devuelve el token que la aplicación cliente debe reenviar en X-CSRF-TOKEN y emite la cookie
-        __Host-pmv_csrf del mismo origen. No crea estado de negocio.
-      security: []
-      responses:
-        '200':
-          $ref: '#/components/responses/CsrfTokenResponse'
-        '500':
-          $ref: '#/components/responses/InternalServerErrorProblem'
   /sessions:
     post:
       operationId: createSession
@@ -113,19 +99,9 @@ components:
         Token CSRF exigido en solicitudes que modifican estado. Debe coincidir con la
         cookie __Host-pmv_csrf y nunca se transporta en la URL.
   schemas:
-    CsrfToken:
-      type: object
-      description: Token CSRF del contexto actual que la aplicación cliente devuelve en una cabecera.
-      additionalProperties: false
-      required: [token]
-      properties:
-        token:
-          type: string
-          minLength: 1
-          description: Valor opaco vinculado al contexto actual del navegador.
     SessionCreation:
       type: object
-      description: Credenciales presentadas para crear una sesión opaca.
+      description: Credenciales presentadas para crear una sesión HTTP.
       additionalProperties: false
       required: [email, password]
       properties:
@@ -140,7 +116,7 @@ components:
           description: Contraseña enviada únicamente en el cuerpo HTTPS protegido.
     CurrentSession:
       type: object
-      description: Identidad y atributos vigentes resueltos desde la sesión opaca.
+      description: Identidad y atributos vigentes resueltos desde la sesión HTTP.
       additionalProperties: false
       required: [accountId, role, accountStatus]
       properties:
@@ -214,7 +190,7 @@ components:
         $ref: '#/components/schemas/PageLimit'
   requestBodies:
     SessionCreationRequest:
-      description: Credenciales para crear una sesión opaca.
+      description: Credenciales para crear una sesión HTTP.
       required: true
       content:
         application/json:
@@ -235,7 +211,7 @@ components:
     SetCookie:
       description: >-
         Uno o varios campos Set-Cookie. La creación de sesión emite __Host-pmv_session y
-        rota __Host-pmv_csrf; el cierre elimina la primera y rota la segunda.
+        rota __Host-pmv_csrf; el cierre invalida la primera y rota la segunda.
       schema:
         type: array
         items:
@@ -248,19 +224,6 @@ components:
         role: corredor
         accountStatus: active
   responses:
-    CsrfTokenResponse:
-      description: Token CSRF vigente para el contexto actual.
-      headers:
-        Set-Cookie:
-          $ref: '#/components/headers/SetCookie'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/CsrfToken'
-          examples:
-            synthetic:
-              value:
-                token: <synthetic-csrf-token>
     SessionCreatedResponse:
       description: Sesión creada y cookies de sesión y CSRF rotadas.
       headers:
@@ -357,7 +320,8 @@ components:
             $ref: '#/components/schemas/Problem'
     RateLimitExceededProblem:
       description: >-
-        Se ha superado un límite de acceso. La respuesta no identifica el contador
+        Se ha superado un límite de acceso. Cada intento de creación de sesión consume
+        los límites locales de cuenta e IP; la respuesta no identifica el contador
         alcanzado ni revela si la cuenta existe.
       headers:
         Retry-After:

@@ -21,6 +21,11 @@ spring:
     clean-disabled: true
   jooq:
     sql-dialect: postgres
+  session:
+    timeout: PT12H
+    jdbc:
+      initialize-schema: never
+      table-name: identity_access.spring_session
   modulith:
     events:
       jdbc:
@@ -38,6 +43,20 @@ logging:
 
 server:
   shutdown: graceful
+  servlet:
+    session:
+      cookie:
+        name: __Host-pmv_session
+        secure: true
+        http-only: true
+        same-site: lax
+        path: /
+
+pmv:
+  identity:
+    synthetic:
+      administrator-password: ${PMV_IDENTITY_SYNTHETIC_ADMINISTRATOR_PASSWORD:}
+      runner-password: ${PMV_IDENTITY_SYNTHETIC_RUNNER_PASSWORD:}
 
 management:
   server:

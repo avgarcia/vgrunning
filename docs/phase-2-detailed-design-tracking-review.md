@@ -386,8 +386,8 @@ com.vgrunning.trackingreview/
     tracking/
     consent/
     review/
-  adapter/in/web/
-  adapter/out/persistence/jooq/
+  infrastructure/input/web/
+  infrastructure/output/persistence/jooq/
 ```
 
 El dominio no depende de Spring, OpenAPI, jOOQ, JDBC ni módulos consumidores. Spring Modulith y ArchUnit verificarán `allowedDependencies = {"publication::api", "runner-management::api"}`, acceso solo a APIs y ausencia de SQL cruzado.

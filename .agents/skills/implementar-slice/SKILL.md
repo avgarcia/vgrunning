@@ -47,6 +47,8 @@ Si falta información o una petición es ambigua, detente antes de crear la rama
 
 Implementa únicamente el alcance autorizado, junto con sus pruebas y documentación. Mantén las fronteras modulares, el flujo OpenAPI contract-first y la prohibición de datos personales, proveedores reales, secretos y producción.
 
+Antes de crear, renombrar o mover una clase Java, usa `$arquitectura-hexagonal-y-modulith` para clasificarla y someter el resultado a la revisión arquitectónica exigida.
+
 Antes de abrir la PR:
 
 1. Ejecuta validaciones dirigidas durante el desarrollo.

@@ -15,7 +15,7 @@ Concretar los parámetros de seguridad que materializan [ADR-0003](adr/0003-iden
 | Contraseña | Entre 12 y 128 caracteres. Se permiten todos los caracteres imprimibles ASCII, incluido el espacio, y caracteres Unicode, incluidos números. Antes de comprobarla y almacenarla se normaliza en NFC. No se exige rotación periódica ni reglas artificiales de composición. |
 | Rechazo de contraseñas | Se rechaza una lista versionada de contraseñas comunes o comprometidas y valores contextuales previsibles del PMV. La comprobación no registra ni expone la contraseña introducida. |
 | Almacenamiento | Argon2id con al menos 19 MiB de memoria, 2 iteraciones y paralelismo 1. Los parámetros almacenados permiten aumentar el coste y rehash al iniciar sesión. |
-| Intentos de inicio | Máximo 5 fallos por cuenta y 20 por IP en 15 minutos; al superar cualquiera se retrasa o rechaza el intento sin revelar cuál fue el límite. |
+| Intentos de inicio | Máximo 5 intentos por cuenta y 20 por IP en 15 minutos; cada intento válido consume ambos buckets antes de comprobar credenciales y el rechazo no revela cuál fue el límite. |
 | CAPTCHA | No se habilita por defecto. Solo podrá añadirse como defensa adicional tras evidencia de abuso que los límites anteriores no contengan; antes de ello se documentarán proveedor o solución, accesibilidad, tratamiento de datos y umbral de activación. |
 | Respuesta de acceso | El inicio y la recuperación devuelven mensajes genéricos ante correo, contraseña o estado inválidos. |
 
@@ -38,11 +38,11 @@ Concretar los parámetros de seguridad que materializan [ADR-0003](adr/0003-iden
 
 | Control | Decisión verificable |
 | --- | --- |
-| Identificador | El CSPRNG del sistema operativo genera 32 bytes aleatorios, codificados en `base64url` para la cookie. El servidor guarda exclusivamente el verificador `SHA-256` de la sesión. |
+| Identificador | Spring Session JDBC genera y gestiona el identificador técnico de la sesión. No se implementa un token ni un verificador propios. |
 | Cookie | Nombre `__Host-pmv_session`, `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/` y sin atributo `Domain`. |
-| Caducidad | 12 horas de inactividad y 7 días de duración absoluta, aplicadas por el servidor. |
-| Rotación y revocación | Rotar el identificador al iniciar sesión y tras reautenticación; cerrar sesión revoca la sesión actual; cambiar contraseña revoca todas las sesiones de la cuenta. |
-| Roles | La sesión identifica a la cuenta, pero no congela su rol ni permisos. Cada operación consulta las reglas vigentes definidas por `ADR-0004`. |
+| Caducidad | 12 horas de inactividad, aplicadas por Spring Session JDBC. |
+| Inicio y cierre | Crear la sesión HTTP al iniciar sesión y invalidarla al cerrar sesión. Los futuros flujos de contraseña y desactivación deberán definir la invalidación por cuenta antes de implementarse. |
+| Roles | La sesión conserva la identidad autenticada. Cada operación de negocio aplica sus reglas de autorización conforme a `ADR-0004`. |
 | CSRF | Las operaciones que cambian estado exigen un token anti-CSRF vinculado a la sesión y validan el origen de la solicitud cuando el navegador lo envía. |
 
 ## Primer administrador

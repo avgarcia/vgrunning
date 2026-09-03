@@ -34,6 +34,8 @@ plugins {
 group = "com.vgrunning"
 version = "0.0.1-SNAPSHOT"
 
+extra["tomcat.version"] = "11.0.25"
+
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(25))
@@ -45,6 +47,12 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     options.release.set(25)
     options.compilerArgs.addAll(listOf("-Xlint:all,-processing", "-Werror"))
+    if (name == "compileJava") {
+        options.compilerArgs.addAll(
+                listOf(
+                        "-Amapstruct.unmappedTargetPolicy=ERROR",
+                        "-Amapstruct.defaultInjectionStrategy=constructor"))
+    }
 }
 
 dependencyLocking {
@@ -110,9 +118,17 @@ sourceSets.named("test") {
 }
 
 dependencies {
+    compileOnly("org.projectlombok:lombok:1.18.44")
+    annotationProcessor("org.projectlombok:lombok:1.18.44")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-session-jdbc")
+    implementation("com.bucket4j:bucket4j_jdk17-core:8.19.0")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
+    implementation("org.mapstruct:mapstruct:1.6.3")
+    annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.84")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
@@ -142,6 +158,8 @@ dependencies {
     compileOnly("org.jspecify:jspecify:1.0.1")
     compileOnly("com.github.spotbugs:spotbugs-annotations:4.10.4")
     testCompileOnly("org.jspecify:jspecify:1.0.1")
+    testCompileOnly("org.projectlombok:lombok:1.18.44")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.44")
 
     errorprone("com.google.errorprone:error_prone_core:2.50.0")
     errorprone("com.uber.nullaway:nullaway:0.14.0")
@@ -179,6 +197,7 @@ tasks.matching {
 
 tasks.withType<JavaCompile>().configureEach {
     options.errorprone {
+        excludedPaths.set(".*/build/generated/sources/annotationProcessor/.*")
         check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
         option("NullAway:OnlyNullMarked", "true")
         option("NullAway:JSpecifyMode", "true")
@@ -192,6 +211,7 @@ jacoco {
 
 extensions.configure<PitestPluginExtension>("pitest") {
     pitestVersion.set("1.22.1")
+    junit5PluginVersion.set("1.2.3")
     targetClasses.set(listOf("com.vgrunning.*.domain.*", "com.vgrunning.*.application.*"))
     outputFormats.set(setOf("XML", "HTML"))
     timestampedReports.set(false)
@@ -337,6 +357,9 @@ val generateOpenApiServer = tasks.register<GenerateTask>("generateOpenApiServer"
     )
     globalProperties.set(
         mapOf(
+            "apis" to "",
+            "models" to "",
+            "supportingFiles" to "",
             "apiDocs" to "false",
             "apiTests" to "false",
             "modelDocs" to "false",

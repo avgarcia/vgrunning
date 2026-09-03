@@ -1,14 +1,11 @@
-package com.vgrunning.runnerportal.adapter.http;
+package com.vgrunning.runnerportal.infrastructure.configuration.web;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/**
- * Configura la entrega conjunta de la SPA sin convertir errores o rutas técnicas en rutas de
- * cliente.
- */
-@Configuration
+/** Configura la entrega conjunta de la SPA sin exponer rutas técnicas como rutas de cliente. */
+@Configuration(proxyBeanMethods = false)
 class SpaWebConfiguration implements WebMvcConfigurer {
 
     @Override

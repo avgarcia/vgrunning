@@ -25,6 +25,8 @@ Este diseño cubre completamente `RF-01` y la parte de cuentas y roles de `RF-02
 - `ADR-0016`: secretos, observabilidad, copias y operación en Azure.
 - `ADR-0017`: API HTTP orientada a recursos y semántica REST.
 - `ADR-0018` (Aceptado): ciclo de vida del perfil, caducidad total del alta de corredor, inactividad, reactivación y retención posterior.
+- `ADR-0025` (Propuesto): Spring Session JDBC y Bucket4j local para la topología inicial de un nodo.
+- `ADR-0026` (Aceptado): paquetería hexagonal con entradas, salidas y framework bajo infraestructura.
 - [Guía de diseño de API HTTP](api-design-guidelines.md).
 
 Si este documento contradice una fuente aceptada, prevalece el ADR o la línea base y deberá corregirse el diseño antes de implementar.
@@ -34,7 +36,7 @@ Si este documento contradice una fuente aceptada, prevalece el ADR o la línea b
 1. La cuenta es una identidad de acceso, no el perfil del corredor. Mezclarlas impediría conservar responsabilidades, retenciones y ciclos de vida distintos.
 2. El rol se fija al crear la cuenta y no cambia. Así se materializa la decisión funcional y se evita convertir una reasignación de rol en una migración implícita de permisos e historial.
 3. Las operaciones que emiten un enlace y su solicitud de correo deben confirmarse en la misma transacción. Una invitación sin notificación persistida, o un correo sobre un secreto no confirmado, serían estados incoherentes.
-4. Los secretos y sesiones se validan mediante verificadores, nunca mediante valores en claro persistidos. El dato imprescindible para renderizar un enlace asíncrono se cifra para el worker y se elimina al finalizar o caducar.
+4. Los secretos de enlaces se validan mediante verificadores, nunca mediante valores en claro persistidos. El dato imprescindible para renderizar un enlace asíncrono se cifra para el worker y se elimina al finalizar o caducar.
 5. La autorización se decide en aplicación con el actor explícito y el recurso cargado. Las reglas no se confían al frontend, a filtros genéricos ni a consultas accidentales.
 6. El PMV prioriza reglas verificables sobre funciones defensivas no justificadas: no incluye MFA, reautenticación adicional ni límite de sesiones simultáneas, y conserva esas mejoras en un backlog explícito.
 
@@ -42,10 +44,10 @@ Si este documento contradice una fuente aceptada, prevalece el ADR o la línea b
 
 | Elemento | Supuesto o incertidumbre | Confianza | Tratamiento |
 | --- | --- | --- | --- |
-| Escala | Un solo club, más de `500` corredores y picos iniciales inferiores a `100` usuarios concurrentes. | Alta | PostgreSQL cubre sesiones y límites; no se introduce Redis. |
+| Escala | Un solo club, más de `500` corredores y picos iniciales inferiores a `100` usuarios concurrentes. | Alta | Spring Session JDBC cubre las sesiones; Bucket4j local cubre el límite de un único nodo. No se introduce Redis. |
 | Correo | Brevo puede recibir desde el worker el contenido mínimo descifrado y no necesita acceder a secretos persistidos. | Alta | Adaptador aislado, payload cifrado en reposo y revisión de privacidad antes de datos reales. |
 | Cambio de correo | El correo anterior puede no ser entregable cuando se confirme el nuevo. | Alta | La verificación del nuevo es obligatoria; la notificación al anterior se intenta cuando sea posible, pero no bloquea el cambio. |
-| Dirección IP | La IP ayuda a limitar abuso, pero es dato personal y puede estar compartida o cambiar. | Alta | Se usa un identificador HMAC rotatorio para contadores y se evita conservar la IP completa en eventos ordinarios. |
+| Dirección IP | La IP ayuda a limitar abuso, pero es dato personal y puede estar compartida o cambiar. | Alta | Bucket4j la conserva solo en memoria local durante la ventana de límite; no se persiste ni se registra. |
 | Eliminación legal | La supresión puede impedir reactivar la misma identidad y puede requerir conservar evidencia mínima. | Media | El flujo de privacidad manda; una cuenta ya suprimida no se reactiva y se crea una identidad nueva cuando proceda. |
 | UUID | No existe requisito de orden temporal de identificadores de cuenta o sesión. | Alta | Se usa UUID aleatorio; cualquier cambio de estrategia requiere evidencia de rendimiento, no otro significado de negocio. |
 
@@ -56,9 +58,9 @@ Si este documento contradice una fuente aceptada, prevalece el ADR o la línea b
 - cuenta, correo canónico, rol inmutable y estado de acceso;
 - hash de contraseña y política de credenciales;
 - desafíos de activación, reactivación, recuperación y cambio de correo;
-- sesiones opacas y su revocación;
+- sesión HTTP de Spring Session JDBC;
 - declaraciones de mayoría de edad ligadas a la identidad;
-- eventos de seguridad y contadores de abuso;
+- límite técnico de intentos de inicio de sesión;
 - bootstrap y recuperación operativa de la única cuenta administradora.
 
 `runner-management` es propietario del perfil del corredor y de su vínculo con una cuenta. Para dar de alta a un corredor, ese módulo coordina la creación del perfil y consume la API Java publicada por `identity-access` dentro de la misma transacción. `identity-access` no consulta el esquema de corredores y no crea perfiles.
@@ -136,25 +138,24 @@ El cambio autenticado de contraseña exige la contraseña actual, aplica la mism
 
 ## Sesiones y protección web
 
-Cada inicio correcto crea una sesión opaca independiente. No se cuentan ni limitan sesiones simultáneas en el PMV.
+Cada inicio correcto crea una sesión HTTP independiente de Spring Session JDBC. No se cuentan ni limitan sesiones simultáneas en el MVP.
 
-- El identificador tiene `32` bytes aleatorios en `base64url`; solo se persiste su verificador SHA-256.
 - La cookie es `__Host-pmv_session`, `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/` y sin `Domain`.
-- La sesión caduca tras `12` horas de inactividad o `7` días desde su creación, lo que ocurra primero.
-- Cerrar sesión revoca la sesión actual.
-- Cambiar o recuperar contraseña, confirmar un cambio de correo, desactivar o iniciar una reactivación revoca todas las sesiones de la cuenta.
-- La sesión referencia la cuenta, pero el rol, estado y permisos se consultan de nuevo para cada operación protegida.
+- La sesión caduca tras `12` horas sin actividad.
+- Cerrar sesión invalida la sesión HTTP actual.
+- Los futuros flujos de contraseña, correo y desactivación deberán incorporar explícitamente la invalidación de sesiones de cuenta.
+- La identidad almacenada en el `SecurityContext` contiene cuenta, rol y estado; la autorización de recursos sigue correspondiendo a los casos de uso.
 
-Las operaciones que cambian estado requieren un token CSRF asociado al contexto del navegador y validación de origen cuando el navegador lo envía. La SPA obtiene el token mediante una operación del mismo origen y lo devuelve en `X-CSRF-TOKEN`; el valor no se incluye en URL ni logs. Para peticiones anónimas se emite una cookie `__Host-pmv_csrf`, `Secure`, `SameSite=Lax`, `Path=/`, sin `Domain` y legible por la SPA. El servidor exige que cookie y cabecera coincidan y rota el valor al autenticar y cerrar sesión. Activación, recuperación e inicio de sesión usan esta protección sin deshabilitar CSRF globalmente.
+Las operaciones que cambian estado requieren un token CSRF asociado al contexto del navegador y validación de origen cuando el navegador lo envía. Spring Security aplica su integración oficial para SPA y emite la cookie `__Host-pmv_csrf`, `Secure`, `SameSite=Lax`, `Path=/`, sin `Domain` y legible por la SPA durante una petición segura del mismo origen; no existe un recurso HTTP propio para obtenerla. La SPA devuelve su valor en `X-CSRF-TOKEN`; el servidor exige que cookie y cabecera coincidan y rota el valor al autenticar y cerrar sesión. El token no se incluye en URL ni logs. Activación, recuperación e inicio de sesión usan esta protección sin deshabilitar CSRF globalmente.
 
 ## Límites de abuso
 
 Los límites aceptados son:
 
-- inicio de sesión: `5` fallos por cuenta y `20` por IP en `15` minutos;
+- inicio de sesión: `5` intentos por cuenta y `20` por IP en `15` minutos; cada intento válido consume ambos buckets antes de comprobar credenciales;
 - activación o recuperación: `3` solicitudes por cuenta y `10` por IP en una hora.
 
-Los contadores se guardan en PostgreSQL mediante ventanas y actualizaciones atómicas. La clave de cuenta es un HMAC de la forma canónica y la clave de IP es un HMAC rotatorio del valor observado en el borde de confianza. La clave HMAC procede del gestor de secretos. El diseño del despliegue debe fijar qué proxies son confiables antes de aceptar `Forwarded` o `X-Forwarded-For`.
+Bucket4j aplica los límites en cachés locales con un máximo conjunto de 10.000 claves. La expiración temporal de las entradas de inicio de sesión es de quince minutos de inactividad; la de activación y recuperación, de una hora. Una expulsión por alcanzar la capacidad puede reiniciar un bucket antes de terminar su ventana y degrada este control bajo saturación; debe observarse y obliga a revisar el almacenamiento antes de aumentar carga o réplicas. El MVP se ejecuta en un nodo: no persiste la IP ni el correo usados como clave, y no acepta `Forwarded` ni `X-Forwarded-For`. Una topología con varias réplicas exige escoger antes un backend compartido de Bucket4j.
 
 Las respuestas de acceso y recuperación no revelan si una cuenta existe, su estado, su rol ni cuál de los límites se alcanzó. Los errores internos sí generan métricas normalizadas sin correo, token, contraseña o IP completos.
 
@@ -164,7 +165,7 @@ La tabla define la semántica que deberá materializar OpenAPI `3.1`. No sustitu
 
 La API será REST y seguirá estas reglas:
 
-- las rutas representan cuentas, sesiones, invitaciones, credenciales, direcciones de correo, desafíos de acceso y tokens CSRF mediante nombres en plural;
+- las rutas representan cuentas, sesiones, invitaciones, credenciales, direcciones de correo y desafíos de acceso mediante nombres en plural; CSRF permanece como protección técnica de Spring Security y no se expone como recurso;
 - las rutas no contienen verbos, nombres de acciones, roles ni mecanismos de autenticación como `/admin` o `/auth`;
 - `GET` consulta sin cambiar estado, `POST` crea un recurso subordinado, `PATCH` modifica parcialmente un recurso y `DELETE` elimina la sesión actual;
 - las transiciones se expresan modificando el estado del recurso correspondiente, no creando recursos nominales de activación, restablecimiento o confirmación;
@@ -173,7 +174,6 @@ La API será REST y seguirá estas reglas:
 
 | Actor | Operación | Propósito |
 | --- | --- | --- |
-| Anónimo | `GET /api/csrf-tokens/current` | Obtener la representación del token CSRF del contexto actual. |
 | Anónimo | `POST /api/sessions` | Crear una sesión con respuesta genérica ante credenciales o estado inválidos. |
 | Anónimo | `PATCH /api/invitations/{invitationId}` | Cambiar la invitación a `accepted` consumiendo el secreto, la declaración de mayoría de edad y la contraseña; cubre activación y reactivación. |
 | Anónimo | `POST /api/access-challenges` | Crear un desafío con `purpose: password_reset`; responde `202` de forma indistinguible. |
@@ -225,7 +225,7 @@ ActorContext
 
 `PublicationDeliveryContactApi` es un contrato de sistema de mínimo privilegio: solo puede invocarlo el caso de uso de entrega de publicaciones a través de `runner-management`. Devuelve conjuntamente el estado vigente y el correo verificado actual para evitar una composición incoherente entre dos lecturas. El consumidor debe fijar ese correo para la solicitud lógica en el primer procesamiento elegible; los cambios posteriores solo afectan a solicitudes futuras.
 
-La resolución del verificador de sesión es un puerto de entrada interno usado por el `SecurityContextRepository`; no se publica a otros módulos. El adaptador de seguridad convierte su resultado en el `ActorContext` explícito definido por `ADR-0015`. Ningún módulo recibe el hash de contraseña, verificadores, sesiones ni tipos jOOQ de identidad.
+Spring Security resuelve la sesión HTTP mediante Spring Session JDBC; no se publica un puerto de resolución ni un tipo de sesión persistente del módulo. El adaptador de seguridad convierte la identidad autenticada en el `ActorContext` explícito definido por `ADR-0015`. Ningún módulo recibe el hash de contraseña, identificadores de cookie ni tipos jOOQ de identidad.
 
 ## Transacciones e invariantes
 
@@ -254,15 +254,13 @@ Todas las tablas pertenecen al esquema `identity_access` y solo su adaptador jOO
 | `account` | UUID, rol inmutable, estado, hash y parámetros Argon2id, instantes, versión optimista. Check de rol y estado; no contiene datos de corredor. |
 | `account_email` | Cuenta, correo de presentación, forma canónica, uso `current`, `pending_change` o `released`, confirmación y caducidad. Unicidad parcial global de forma canónica solo para `current` y `pending_change`, y una fila reservada de cada uso por cuenta. |
 | `access_challenge` | Cuenta, propósito, generación, verificador SHA-256, caducidad, consumo y reemplazo. Índice único parcial para una generación vigente por cuenta y propósito. |
-| `access_session` | Verificador SHA-256, cuenta, creación, último uso, caducidad absoluta, revocación y motivo. Índices por verificador y por cuenta activa. |
+| `spring_session` y `spring_session_attributes` | Tablas estándar de Spring Session JDBC para la sesión HTTP, su caducidad por inactividad y el `SecurityContext` serializado. |
 | `adult_declaration` | Cuenta, actor, origen, instante y versión de texto. Unicidad por cuenta y origen de declaración. |
-| `security_event` | Actor, cuenta afectada, tipo, resultado, instante, correlación y metadatos mínimos no secretos. |
-| `auth_rate_limit_bucket` | Tipo, clave HMAC, inicio y fin de ventana y contador. Unicidad por tipo, clave y ventana; limpieza por TTL. |
 | `bootstrap_execution` | Marca única del bootstrap, operador, cuenta, instante y correlación; impide crear un segundo bootstrap. |
 
-Los identificadores son UUID aleatorios, los instantes son `timestamptz` en UTC y las comparaciones de caducidad usan un reloj inyectable respaldado por el tiempo de base de datos dentro de las transacciones críticas.
+Los identificadores de negocio son UUID aleatorios y los instantes de identidad son `timestamptz` en UTC. Spring Session JDBC administra los instantes internos de la sesión en milisegundos Unix, conforme a su esquema estándar.
 
-No se persisten contraseñas, secretos de desafío, identificadores de sesión, tokens CSRF, cuerpos de correo ni direcciones IP en claro en estas tablas.
+No se persisten contraseñas, secretos de desafío, tokens CSRF, cuerpos de correo ni direcciones IP en claro en las tablas de identidad. Spring Session persiste su identificador técnico de sesión, que no se expone desde la API.
 
 ## Entrega segura de enlaces
 
@@ -300,27 +298,46 @@ Los adaptadores autentican, pero los servicios de aplicación autorizan cada cas
 
 Las pruebas cubren la matriz rol-operación, propiedad, estados, auto-desactivación, último administrador y creación transaccional del vínculo de corredor.
 
-## Paquetes previstos
+## Paquetes objetivo aceptados por ADR-0026
+
+La estructura siguiente es la decisión vigente y queda aplicada por la migración de F01.1. Los paquetes, imports, pruebas de arquitectura y documentación se mantienen alineados; cualquier nueva clase debe cumplir la Skill antes de editar.
 
 ```text
 com.vgrunning.identityaccess/
   api/
-    command/
-    query/
+    <concepto>/
   application/
+    port/in/                         solo interfaces de entrada
+    port/out/                        solo interfaces de salida
     service/
-    port/out/
+    exception/
   domain/
-    account/
-    credential/
-    session/
-  adapter/in/web/
-  adapter/in/command/
-  adapter/out/persistence/jooq/
-  adapter/out/security/
+    <concepto>/
+      aggregate/
+      entity/
+      valueobject/
+      policy/
+      service/
+      event/
+      exception/
+  infrastructure/input/web/          adaptación OpenAPI y Spring MVC
+  infrastructure/input/command/      bootstrap y recuperación operativa
+  infrastructure/output/persistence/jooq/
+  infrastructure/configuration/      configuración Spring, propiedades y Problem Details
+  infrastructure/security/           CSRF, cookies, SecurityContext y criptografía
 ```
 
-El dominio no depende de Spring, OpenAPI, jOOQ o JDBC. El adaptador web mapea el contrato generado; el adaptador de comando aloja bootstrap y recuperación excepcional. No se crean repositorios CRUD genéricos ni un modelo de dominio espejo de las tablas.
+El dominio se organiza primero por concepto y después por agregado, entidad, value object, política, servicio, evento o excepción cuando exista un tipo real; no se crean subpaquetes vacíos por plantilla. No depende de Spring, OpenAPI, jOOQ o JDBC. Las entradas y salidas son infraestructura: la entrada web mapea el contrato generado y la entrada de comando aloja bootstrap y recuperación excepcional. La configuración y los componentes propios de Spring Security residen en `infrastructure`, nunca en aplicación o dominio. No se crean repositorios CRUD genéricos, un modelo de dominio espejo de las tablas ni un paquete genérico `application.model`.
+
+### Decisión de implementación F01.1: infraestructura Spring separada
+
+La configuración de Spring MVC y Spring Security, las propiedades tipadas, CSRF, cookies, `SecurityContextRepository`, criptografía y traducción global de excepciones se ubican en `infrastructure`. El motivo es impedir que los casos de uso y el dominio conozcan APIs o ciclos de vida del framework. `infrastructure/input/web` adapta OpenAPI y `infrastructure/output/persistence/jooq` es el propietario exclusivo de los tipos generados. El controlador puede depender directamente del componente técnico de sesión porque ambos pertenecen a infraestructura.
+
+Se descarta alojar `@Configuration`, `@Value`, `CsrfTokenRepository`, `SecurityContextHolder` o implementaciones criptográficas en `application`: simplificaría inicialmente el wiring, pero invertiría dependencias y haría que las pruebas de los casos de uso necesitaran Spring. `@Transactional` sí está permitido en servicios de aplicación para delimitar el caso de uso. También se descarta convertir CSRF en un caso de uso de identidad, porque no representa estado ni una regla de negocio.
+
+El impacto aceptado para F01.1 es una composición explícita mediante clases de configuración para Spring Security, Spring Session JDBC, CSRF, cookies, hashing y Bucket4j. La aplicación conserva solo la verificación de credenciales y sus puertos; la separación de infraestructura queda aplicada junto con los imports y gates de esta PR.
+
+Las contraseñas sintéticas se enlazan mediante `@ConfigurationProperties` desde variables de entorno. El nombre y atributos de cookies, la caducidad de sesión y los límites del MVP se declaran en configuración de infraestructura, no en el dominio ni en casos de uso.
 
 ## Observabilidad y conservación
 
@@ -346,7 +363,7 @@ Las retenciones y supresiones siguen `ADR-0010`. Las tareas de limpieza eliminan
 - Probar política y rehash de contraseña sin exponer entradas.
 - Probar generación, caducidad, consumo único, reemplazo y comparación constante de verificadores.
 - Probar límites por cuenta e IP y respuestas indistinguibles.
-- Probar atributos de cookie, expiración inactiva y absoluta, CSRF, origen y revocaciones masivas.
+- Probar atributos de cookie, expiración por inactividad, CSRF, origen y cierre de sesión.
 - Probar que un número no acotado de sesiones puede coexistir sin alterar la caducidad individual.
 - Probar ausencia de secretos, correos e IP completos en logs, métricas, trazas, URL de salida y errores.
 - Probar que cada enlace de acceso usa fragmento HTTPS, lo elimina antes del primer render o recurso y no lo persiste en almacenamiento del navegador.
@@ -389,7 +406,7 @@ Las retenciones y supresiones siguen `ADR-0010`. Las tareas de limpieza eliminan
 
 ## Decisiones pendientes
 
-No quedan decisiones funcionales o arquitectónicas pendientes dentro del alcance de identidad y acceso de este documento.
+Queda bloqueada, antes de implementar recuperación, cambio de contraseña o desactivación, la invalidación de todas las sesiones de una cuenta mediante Spring Session JDBC. El Revisor de arquitectura debe concretar y probar su mecanismo conforme a `ADR-0025`.
 
 `ADR-0018` aceptado introduce cambios que afectan a cuentas de corredor: cancelación total del alta a los `30` días, coordinación de baja y reactivación y conservación restringida durante `24` meses. Los contratos internos y las pruebas deberán materializarlos conjuntamente. Hasta completar la revisión especializada de privacidad, solo podrán desarrollarse y probarse con datos ficticios, sintéticos o anonimizados de forma irreversible.
 

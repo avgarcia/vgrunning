@@ -23,7 +23,7 @@ Detén el backend con `Ctrl+C` y PostgreSQL con `docker compose down`. Para reco
 
 ## Base ejecutable
 
-El backend es una única aplicación Spring MVC. Requiere PostgreSQL local antes de arrancar. El shell y las rutas de cliente de la SPA son públicos, pero `/api` permanece cerrado hasta que se implemente `identity-access`; también están abiertos los probes técnicos:
+El backend es una única aplicación Spring MVC. Requiere PostgreSQL local antes de arrancar. El shell y las rutas de cliente de la SPA son públicos. En `/api` solo están disponibles las operaciones de sesión HTTP de `identity-access`; CSRF lo gestiona Spring Security durante el bootstrap de la SPA y el resto permanece cerrado. También están abiertos los probes técnicos:
 
 - `http://localhost:8081/actuator/health/liveness`
 - `http://localhost:8081/actuator/health/readiness`
@@ -70,7 +70,7 @@ Vitest cubre el shell y la configuración del cliente; Playwright ejecuta un smo
 
 ## Contrato HTTP
 
-`api/openapi/running-coach.yaml` es la fuente de verdad del contrato OpenAPI 3.1. La API pública se reserva bajo `/api`, hereda autenticación por sesión opaca y exige además CSRF solo en operaciones protegidas que modifican estado. Todavía declara `paths: {}`: no hay endpoints de negocio ni de salud dentro de la API pública.
+`api/openapi/running-coach.yaml` es la fuente de verdad del contrato OpenAPI 3.1. La API pública se reserva bajo `/api`, hereda autenticación por sesión HTTP y exige además CSRF solo en operaciones protegidas que modifican estado. Todavía declara `paths: {}`: no hay endpoints de negocio ni de salud dentro de la API pública.
 
 ```powershell
 .\gradlew.bat apiCheck                  # Valida el contrato, genera servidor y cliente y ejecuta sus controles.
@@ -79,7 +79,7 @@ Vitest cubre el shell y la configuración del cliente; Playwright ejecuta un smo
 .\gradlew.bat generateOpenApiClient     # Genera el cliente TypeScript bajo build/.
 ```
 
-La generación no se versiona. Los tipos de servidor solo podrán consumirse desde `adapter.http`; los tipos generados no son contratos entre módulos ni tipos de dominio. Spectral bloquea las infracciones automatizables de ADR-0017, entre ellas errores sin Problem Details, escrituras protegidas sin CSRF, colecciones sin paginación acotada, objetos abiertos y ejemplos con secretos plausibles. `apiCheck` requiere Docker para comparar compatibilidad con `main` mediante `oasdiff`.
+La generación no se versiona. Los tipos de servidor solo podrán consumirse desde `adapter.in.web`; los tipos generados no son contratos entre módulos ni tipos de dominio. Spectral bloquea las infracciones automatizables de ADR-0017, entre ellas errores sin Problem Details, escrituras protegidas sin CSRF, colecciones sin paginación acotada, objetos abiertos y ejemplos con secretos plausibles. `apiCheck` requiere Docker para comparar compatibilidad con `main` mediante `oasdiff`.
 
 ## Calidad y seguridad de suministro
 
