@@ -1,4 +1,4 @@
-package com.vgrunning.runnerportal.infrastructure.input.web;
+package com.vgrunning.runnerportal.infrastructure.configuration.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

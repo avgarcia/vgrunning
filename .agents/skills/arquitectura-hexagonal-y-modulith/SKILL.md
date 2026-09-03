@@ -32,9 +32,10 @@ No escribas la clase hasta poder completar la fila sin mezclar responsabilidades
 3. Interfaz de caso de uso consumido solo dentro del módulo: `application.port.in`.
 4. Interfaz requerida por aplicación: `application.port.out`.
 5. Implementación y coordinación del caso de uso: `application.service`.
-6. Entrada web, programada u operativa: `infrastructure.input`.
-7. Persistencia o proveedor externo: `infrastructure.output`.
-8. Spring, seguridad, properties o composición: `infrastructure.security` o `infrastructure.configuration`.
+6. Conversión pura entre contratos internos: `application.mapper`.
+7. Entrada web, programada u operativa: `infrastructure.input`.
+8. Persistencia o proveedor externo: `infrastructure.output`.
+9. Spring, seguridad, properties o composición: `infrastructure.security` o `infrastructure.configuration`.
 
 Lee [reglas de paquetería](references/reglas-de-paqueteria.md) para aplicar la estructura exacta y resolver comandos, resultados, excepciones y dependencias.
 
@@ -47,6 +48,8 @@ Lee [reglas de paquetería](references/reglas-de-paqueteria.md) para aplicar la 
 - Cada paquete publicado `api.<concepto>` declara explícitamente `@NamedInterface("api")` en su `package-info.java`.
 - `domain` y `application` no dependen de infraestructura, OpenAPI, jOOQ, Servlet ni Spring Security.
 - `@Transactional` está permitido exclusivamente en servicios de aplicación que delimitan un caso de uso.
+- Los mappers entre representaciones de clases de datos usan MapStruct. `application.mapper` no importa Spring, HTTP, jOOQ ni infraestructura; los mappers HTTP y jOOQ se sitúan en su frontera técnica.
+- Un mapper no consulta, autentica, cifra, calcula tiempo, genera identificadores ni decide permisos.
 - Los controladores están en `infrastructure.input.web`, consumen tipos OpenAPI y pueden depender directamente de componentes técnicos de infraestructura.
 - Los tipos jOOQ solo aparecen en `infrastructure.output.persistence.jooq` del módulo propietario.
 - Una entrada de negocio solo invoca `application.port.in`; nunca usa `application.port.out`, repositorios o jOOQ directamente.

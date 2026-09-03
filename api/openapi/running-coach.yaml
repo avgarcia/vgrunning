@@ -320,7 +320,8 @@ components:
             $ref: '#/components/schemas/Problem'
     RateLimitExceededProblem:
       description: >-
-        Se ha superado un límite de acceso. La respuesta no identifica el contador
+        Se ha superado un límite de acceso. Cada intento de creación de sesión consume
+        los límites locales de cuenta e IP; la respuesta no identifica el contador
         alcanzado ni revela si la cuenta existe.
       headers:
         Retry-After:

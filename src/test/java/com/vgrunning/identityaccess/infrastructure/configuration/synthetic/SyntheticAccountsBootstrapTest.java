@@ -39,7 +39,7 @@ class SyntheticAccountsBootstrapTest {
         private List<SyntheticAccountProvision> provisions;
 
         AccountsFake() {
-            super(null);
+            super(null, null);
         }
 
         @Override

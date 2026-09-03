@@ -69,6 +69,21 @@ class IdentityAccessLayeringTest {
                     .allowEmptyShould(false);
 
     @ArchTest
+    static final ArchRule applicationMappersMustRemainPure =
+            noClasses()
+                    .that()
+                    .resideInAnyPackage("..identityaccess.application.mapper..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage(
+                            "org.springframework..",
+                            "jakarta.servlet..",
+                            "org.jooq..",
+                            "org.vgrunning.generated..",
+                            "..identityaccess.infrastructure..")
+                    .allowEmptyShould(false);
+
+    @ArchTest
     static final ArchRule applicationPortsAreTopLevelInterfaces =
             classes()
                     .that()

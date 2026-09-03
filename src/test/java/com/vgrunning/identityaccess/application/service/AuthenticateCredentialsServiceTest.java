@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.vgrunning.identityaccess.application.exception.InvalidCredentialsException;
+import com.vgrunning.identityaccess.application.mapper.AuthenticatedAccountMapper;
 import com.vgrunning.identityaccess.application.port.in.AuthenticateCredentialsUseCase.AuthenticatedAccount;
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 /** Prueba unitaria de credenciales: Spring Session gestiona la sesión HTTP. */
 class AuthenticateCredentialsServiceTest {
@@ -26,7 +28,9 @@ class AuthenticateCredentialsServiceTest {
     void setUp() {
         accounts = new AccountsFake();
         passwords = new PasswordsFake();
-        useCase = new AuthenticateCredentialsService(accounts, passwords);
+        useCase =
+                new AuthenticateCredentialsService(
+                        accounts, passwords, Mappers.getMapper(AuthenticatedAccountMapper.class));
     }
 
     @Test
@@ -68,7 +72,7 @@ class AuthenticateCredentialsServiceTest {
     }
 
     private static AccountRepository.CredentialAccount account(AccountStatus status) {
-        return AccountRepository.CredentialAccount.restore(
+        return new AccountRepository.CredentialAccount(
                 ACCOUNT_ID, AccountRole.CORREDOR, status, "stored-hash", 3L);
     }
 

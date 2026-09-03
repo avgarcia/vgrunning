@@ -4,8 +4,6 @@ import static org.vgrunning.generated.jooq.identity_access.tables.Account.ACCOUN
 import static org.vgrunning.generated.jooq.identity_access.tables.AccountEmail.ACCOUNT_EMAIL;
 
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
-import com.vgrunning.identityaccess.domain.account.valueobject.AccountRole;
-import com.vgrunning.identityaccess.domain.account.valueobject.AccountStatus;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
@@ -17,29 +15,19 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class JooqAccountRepository implements AccountRepository {
     private final DSLContext jooq;
+    private final AccountPersistenceMapper mapper;
 
     @Override
     public Optional<CredentialAccount> findCredentialAccount(String canonicalEmail) {
-        return jooq.select(
-                        ACCOUNT.ID,
-                        ACCOUNT.ROLE,
-                        ACCOUNT.STATUS,
-                        ACCOUNT.PASSWORD_HASH,
-                        ACCOUNT.VERSION)
-                .from(ACCOUNT)
-                .join(ACCOUNT_EMAIL)
-                .on(ACCOUNT_EMAIL.ACCOUNT_ID.eq(ACCOUNT.ID))
-                .where(ACCOUNT_EMAIL.CANONICAL_EMAIL.eq(canonicalEmail))
-                .and(ACCOUNT_EMAIL.USAGE.eq("current"))
-                .and(ACCOUNT_EMAIL.RELEASED_AT.isNull())
-                .fetchOptional(
-                        record ->
-                                CredentialAccount.restore(
-                                        record.get(ACCOUNT.ID),
-                                        AccountRole.fromValue(record.get(ACCOUNT.ROLE)),
-                                        AccountStatus.fromValue(record.get(ACCOUNT.STATUS)),
-                                        record.get(ACCOUNT.PASSWORD_HASH),
-                                        record.get(ACCOUNT.VERSION)));
+        return jooq.selectFrom(ACCOUNT)
+                .whereExists(
+                        jooq.selectOne()
+                                .from(ACCOUNT_EMAIL)
+                                .where(ACCOUNT_EMAIL.ACCOUNT_ID.eq(ACCOUNT.ID))
+                                .and(ACCOUNT_EMAIL.CANONICAL_EMAIL.eq(canonicalEmail))
+                                .and(ACCOUNT_EMAIL.USAGE.eq("current"))
+                                .and(ACCOUNT_EMAIL.RELEASED_AT.isNull()))
+                .fetchOptional(mapper::toCredentialAccount);
     }
 
     @Override

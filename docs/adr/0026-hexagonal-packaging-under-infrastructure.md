@@ -4,6 +4,7 @@
 **Fecha:** 2026-09-02
 **Responsable de revisión:** Revisor de arquitectura
 **Refina parcialmente:** [ADR-0014](0014-modular-hexagonal-ddd-architecture.md)
+**Refinado parcialmente por:** [ADR-0028](0028-mapstruct-mapping-boundaries.md)
 
 ## Contexto
 

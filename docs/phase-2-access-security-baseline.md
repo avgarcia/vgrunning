@@ -15,7 +15,7 @@ Concretar los parámetros de seguridad que materializan [ADR-0003](adr/0003-iden
 | Contraseña | Entre 12 y 128 caracteres. Se permiten todos los caracteres imprimibles ASCII, incluido el espacio, y caracteres Unicode, incluidos números. Antes de comprobarla y almacenarla se normaliza en NFC. No se exige rotación periódica ni reglas artificiales de composición. |
 | Rechazo de contraseñas | Se rechaza una lista versionada de contraseñas comunes o comprometidas y valores contextuales previsibles del PMV. La comprobación no registra ni expone la contraseña introducida. |
 | Almacenamiento | Argon2id con al menos 19 MiB de memoria, 2 iteraciones y paralelismo 1. Los parámetros almacenados permiten aumentar el coste y rehash al iniciar sesión. |
-| Intentos de inicio | Máximo 5 fallos por cuenta y 20 por IP en 15 minutos; al superar cualquiera se retrasa o rechaza el intento sin revelar cuál fue el límite. |
+| Intentos de inicio | Máximo 5 intentos por cuenta y 20 por IP en 15 minutos; cada intento válido consume ambos buckets antes de comprobar credenciales y el rechazo no revela cuál fue el límite. |
 | CAPTCHA | No se habilita por defecto. Solo podrá añadirse como defensa adicional tras evidencia de abuso que los límites anteriores no contengan; antes de ello se documentarán proveedor o solución, accesibilidad, tratamiento de datos y umbral de activación. |
 | Respuesta de acceso | El inicio y la recuperación devuelven mensajes genéricos ante correo, contraseña o estado inválidos. |
 

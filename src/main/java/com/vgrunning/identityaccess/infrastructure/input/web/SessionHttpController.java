@@ -1,15 +1,12 @@
 package com.vgrunning.identityaccess.infrastructure.input.web;
 
-import com.vgrunning.identityaccess.application.exception.InvalidCredentialsException;
 import com.vgrunning.identityaccess.application.port.in.AuthenticateCredentialsUseCase;
 import com.vgrunning.identityaccess.domain.account.valueobject.EmailAddress;
 import com.vgrunning.identityaccess.infrastructure.security.CurrentSessionIdentityResolver;
 import com.vgrunning.identityaccess.infrastructure.security.ratelimit.LoginRateLimiter;
-import com.vgrunning.identityaccess.infrastructure.security.ratelimit.RateLimitedException;
 import com.vgrunning.identityaccess.infrastructure.security.session.SessionPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
@@ -46,29 +43,15 @@ public class SessionHttpController implements SessionsApi {
     @Override
     public ResponseEntity<CurrentSession> createSession(SessionCreation sessionCreation) {
         String canonicalEmail = EmailAddress.canonicalize(sessionCreation.getEmail());
-        if (rateLimiter.limited(canonicalEmail, request.getRemoteAddr())) {
-            throw new RateLimitedException(Duration.ofMinutes(15));
-        }
-        AuthenticateCredentialsUseCase.AuthenticatedAccount authenticatedAccount;
-        try {
-            authenticatedAccount =
-                    authenticateCredentials.authenticate(
-                            sessionCreation.getEmail(), sessionCreation.getPassword());
-        } catch (InvalidCredentialsException exception) {
-            if (rateLimiter.registerFailure(canonicalEmail, request.getRemoteAddr())) {
-                throw new RateLimitedException(Duration.ofMinutes(15));
-            }
-            throw exception;
-        }
+        rateLimiter.checkAndConsume(canonicalEmail, request.getRemoteAddr());
+        AuthenticateCredentialsUseCase.AuthenticatedAccount authenticatedAccount =
+                authenticateCredentials.authenticate(
+                        sessionCreation.getEmail(), sessionCreation.getPassword());
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         SimpleGrantedAuthority authority =
                 new SimpleGrantedAuthority(
                         "ROLE_" + authenticatedAccount.role().value().toUpperCase(Locale.ROOT));
-        SessionPrincipal principal =
-                SessionPrincipal.create(
-                        authenticatedAccount.accountId(),
-                        authenticatedAccount.role(),
-                        authenticatedAccount.status());
+        SessionPrincipal principal = mapper.toPrincipal(authenticatedAccount);
         UsernamePasswordAuthenticationToken authentication =
                 UsernamePasswordAuthenticationToken.authenticated(
                         principal, null, List.of(authority));

@@ -9,6 +9,7 @@ import com.vgrunning.identityaccess.domain.account.valueobject.AccountRole;
 import com.vgrunning.identityaccess.domain.account.valueobject.AccountStatus;
 import com.vgrunning.identityaccess.infrastructure.security.ratelimit.LoginRateLimiter;
 import com.vgrunning.identityaccess.infrastructure.security.ratelimit.RateLimitedException;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class SessionHttpControllerTest {
         SessionHttpController controller =
                 new SessionHttpController(
                         successfulAuthentication(),
-                        new LoginRateLimiter(),
+                        new LoginRateLimiter(new SimpleMeterRegistry()),
                         new HttpSessionSecurityContextRepository(),
                         new ChangeSessionIdAuthenticationStrategy(),
                         null,
@@ -56,7 +57,7 @@ class SessionHttpControllerTest {
         SessionHttpController controller =
                 new SessionHttpController(
                         failingAuthentication(),
-                        new LoginRateLimiter(),
+                        new LoginRateLimiter(new SimpleMeterRegistry()),
                         null,
                         null,
                         null,

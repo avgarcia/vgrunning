@@ -83,7 +83,9 @@ class OriginValidationFilterTest {
                 Arguments.of("http://running-coach.local"),
                 Arguments.of("https://other.invalid"),
                 Arguments.of("https://running-coach.local:8443"),
-                Arguments.of("https://[invalid"));
+                Arguments.of("https://[invalid"),
+                Arguments.of("https:invalid"),
+                Arguments.of("ftp://running-coach.local"));
     }
 
     private static OriginValidationFilter filter(AtomicReference<Exception> resolved) {

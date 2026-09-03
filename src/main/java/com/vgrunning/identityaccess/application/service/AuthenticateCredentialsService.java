@@ -1,6 +1,7 @@
 package com.vgrunning.identityaccess.application.service;
 
 import com.vgrunning.identityaccess.application.exception.InvalidCredentialsException;
+import com.vgrunning.identityaccess.application.mapper.AuthenticatedAccountMapper;
 import com.vgrunning.identityaccess.application.port.in.AuthenticateCredentialsUseCase;
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthenticateCredentialsService implements AuthenticateCredentialsUseCase {
     private final AccountRepository accounts;
     private final PasswordHasher passwordHasher;
+    private final AuthenticatedAccountMapper mapper;
 
     /** Autentica sin revelar si el correo existe, está activo o tiene contraseña configurada. */
     @Override
@@ -27,18 +29,19 @@ public class AuthenticateCredentialsService implements AuthenticateCredentialsUs
 
         Optional<AccountRepository.CredentialAccount> found =
                 accounts.findCredentialAccount(canonicalEmail);
+        Optional<AccountRepository.CredentialAccount> authenticable =
+                found.filter(account -> AccountStatus.ACTIVE.equals(account.status()))
+                        .filter(account -> !account.passwordHash().isBlank());
         boolean passwordMatches =
                 passwordHasher.matchesForAuthentication(
                         normalizedPassword,
-                        found.map(AccountRepository.CredentialAccount::passwordHash)
-                                .filter(hash -> !hash.isBlank()));
-        boolean active =
-                found.map(account -> AccountStatus.ACTIVE.equals(account.status())).orElse(false);
-        if (!passwordMatches || !active) {
+                        authenticable.map(AccountRepository.CredentialAccount::passwordHash));
+        if (!passwordMatches) {
             throw new InvalidCredentialsException();
         }
 
-        AccountRepository.CredentialAccount account = found.orElseThrow();
+        AccountRepository.CredentialAccount account =
+                authenticable.orElseThrow(InvalidCredentialsException::new);
         if (passwordHasher.needsRehash(account.passwordHash())) {
             boolean updated =
                     accounts.updatePasswordHash(account, passwordHasher.hash(normalizedPassword));
@@ -46,7 +49,6 @@ public class AuthenticateCredentialsService implements AuthenticateCredentialsUs
                 throw new InvalidCredentialsException();
             }
         }
-        return new AuthenticateCredentialsUseCase.AuthenticatedAccount(
-                account.id(), account.role(), account.status());
+        return mapper.toAuthenticatedAccount(account);
     }
 }

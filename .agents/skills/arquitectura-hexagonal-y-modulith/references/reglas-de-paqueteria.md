@@ -20,6 +20,7 @@ com.vgrunning.<module>/
     port/
       in/
       out/
+    mapper/
     service/
     exception/
   infrastructure/
@@ -77,6 +78,7 @@ Organiza primero por concepto y después por tipo. Una tabla no implica una enti
 
 - Los puertos son interfaces, nunca implementaciones ni modelos.
 - `application.service` implementa puertos de entrada, coordina dominio y puertos de salida y puede usar `@Transactional`.
+- `application.mapper` contiene exclusivamente interfaces MapStruct que convierten contratos internos; no tiene componentes Spring ni efectos secundarios.
 - `application.exception` expresa fallos semánticos sin `HttpStatus`, `ProblemDetail`, URI, cabeceras o tipos del framework.
 - Aplicación no gestiona cookies, sesión HTTP, CSRF, rate limiting, serialización ni `SecurityContext`.
 
@@ -99,6 +101,7 @@ Un controlador puede depender directamente de un componente técnico de infraest
 | `application.port.in` | JDK, `api` y `domain` del módulo |
 | `application.port.out` | JDK, `api` y `domain` del módulo |
 | `application.service` | puertos, `api` y `domain` del módulo; `@Transactional` |
+| `application.mapper` | MapStruct, JDK, `api`, `domain` y contratos locales del módulo |
 | `infrastructure.input` | `application.port.in`, `api`, tipos de protocolo y componentes técnicos concretos de `infrastructure.security` |
 | `infrastructure.output` | el `application.port.out` que implementa, `api`, `domain` y la tecnología externa correspondiente |
 | `infrastructure.security` | Spring Security y, según responsabilidad, un puerto de entrada que invoca o un puerto de salida que implementa |

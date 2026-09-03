@@ -152,7 +152,7 @@ Las operaciones que cambian estado requieren un token CSRF asociado al contexto 
 
 Los límites aceptados son:
 
-- inicio de sesión: `5` fallos por cuenta y `20` por IP en `15` minutos;
+- inicio de sesión: `5` intentos por cuenta y `20` por IP en `15` minutos; cada intento válido consume ambos buckets antes de comprobar credenciales;
 - activación o recuperación: `3` solicitudes por cuenta y `10` por IP en una hora.
 
 Bucket4j aplica los límites en cachés locales con un máximo conjunto de 10.000 claves. La expiración temporal de las entradas de inicio de sesión es de quince minutos de inactividad; la de activación y recuperación, de una hora. Una expulsión por alcanzar la capacidad puede reiniciar un bucket antes de terminar su ventana y degrada este control bajo saturación; debe observarse y obliga a revisar el almacenamiento antes de aumentar carga o réplicas. El MVP se ejecuta en un nodo: no persiste la IP ni el correo usados como clave, y no acepta `Forwarded` ni `X-Forwarded-For`. Una topología con varias réplicas exige escoger antes un backend compartido de Bucket4j.

@@ -42,15 +42,22 @@ public final class OriginValidationFilter extends OncePerRequestFilter {
     private static boolean matchesRequestOrigin(String origin, HttpServletRequest request) {
         try {
             URI parsed = new URI(origin);
+            String scheme = parsed.getScheme();
+            String host = parsed.getHost();
+            if (parsed.isOpaque()
+                    || scheme == null
+                    || host == null
+                    || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
+                return false;
+            }
             int expectedPort = request.getServerPort();
-            int actualPort =
-                    parsed.getPort() == -1 ? defaultPort(parsed.getScheme()) : parsed.getPort();
+            int actualPort = parsed.getPort() == -1 ? defaultPort(scheme) : parsed.getPort();
             return parsed.getUserInfo() == null
                     && parsed.getPath().isEmpty()
                     && parsed.getQuery() == null
                     && parsed.getFragment() == null
-                    && request.getScheme().equalsIgnoreCase(parsed.getScheme())
-                    && request.getServerName().equalsIgnoreCase(parsed.getHost())
+                    && request.getScheme().equalsIgnoreCase(scheme)
+                    && request.getServerName().equalsIgnoreCase(host)
                     && expectedPort == actualPort;
         } catch (URISyntaxException exception) {
             return false;

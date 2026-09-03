@@ -116,6 +116,55 @@ class IdentityAccessHttpTest {
         assertThat(rejected.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
+    @Test
+    void rendersContractualProblemsForMalformedRejectedAndRateLimitedLogins() {
+        TestRestTemplate client = new TestRestTemplate();
+        ResponseEntity<String> csrf = client.getForEntity(applicationUrl("/"), String.class);
+        String csrfCookie =
+                cookieValue(
+                        csrf.getHeaders().getOrEmpty(HttpHeaders.SET_COOKIE), "__Host-pmv_csrf");
+        HttpHeaders headers = csrfHeaders(csrfCookie);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        ResponseEntity<String> malformed =
+                client.postForEntity(
+                        applicationUrl("/api/sessions"),
+                        new HttpEntity<>("{", headers),
+                        String.class);
+        assertThat(malformed.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(malformed.getHeaders().getContentType())
+                .isEqualTo(MediaType.APPLICATION_PROBLEM_JSON);
+        assertThat(malformed.getBody()).contains("\"code\":\"invalid_request\"");
+
+        ResponseEntity<String> rejected =
+                client.postForEntity(
+                        applicationUrl("/api/sessions"),
+                        new HttpEntity<>(
+                                new SessionCreation(
+                                        "runner@running-coach.invalid", "incorrect-password"),
+                                headers),
+                        String.class);
+        assertThat(rejected.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(rejected.getBody()).contains("\"code\":\"session_creation_rejected\"");
+
+        ResponseEntity<String> rateLimited = null;
+        for (int attempt = 0; attempt < 6; attempt++) {
+            rateLimited =
+                    client.postForEntity(
+                            applicationUrl("/api/sessions"),
+                            new HttpEntity<>(
+                                    new SessionCreation(
+                                            "rate-limit@example.invalid", "incorrect-password"),
+                                    headers),
+                            String.class);
+        }
+        ResponseEntity<String> finalResponse = Objects.requireNonNull(rateLimited);
+        assertThat(finalResponse.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+        assertThat(Long.parseLong(finalResponse.getHeaders().getFirst(HttpHeaders.RETRY_AFTER)))
+                .isBetween(1L, 900L);
+        assertThat(finalResponse.getBody()).contains("\"code\":\"rate_limit_exceeded\"");
+    }
+
     private HttpHeaders csrfHeaders(String csrfCookie) {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.COOKIE, "__Host-pmv_csrf=" + csrfCookie);

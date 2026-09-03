@@ -10,21 +10,30 @@ public final class Argon2PasswordHasher implements PasswordHasher {
     private final Argon2PasswordEncoder encoder;
     private final String dummyHash;
 
+    /** Crea el hasher y un hash ficticio para igualar el coste de verificaciones rechazadas. */
     public Argon2PasswordHasher(Argon2PasswordEncoder encoder) {
         this.encoder = encoder;
         this.dummyHash = encoder.encode(DUMMY_PASSWORD);
     }
 
+    /**
+     * Verifica siempre mediante Argon2 y solo autentica cuando existe un hash persistido válido.
+     *
+     * <p>Cuando falta el hash se compara contra uno ficticio para no revelar la causa por tiempo.
+     */
     @Override
     public boolean matchesForAuthentication(String password, Optional<String> encodedPassword) {
-        return encoder.matches(password, encodedPassword.orElse(dummyHash));
+        boolean matches = encoder.matches(password, encodedPassword.orElse(dummyHash));
+        return encodedPassword.isPresent() && matches;
     }
 
+    /** Calcula un hash Argon2id para una contraseña ya validada por el caso de uso. */
     @Override
     public String hash(String password) {
         return encoder.encode(password);
     }
 
+    /** Indica si un hash persistido debe sustituirse con los parámetros vigentes de Argon2id. */
     @Override
     public boolean needsRehash(String encodedPassword) {
         return encoder.upgradeEncoding(encodedPassword);

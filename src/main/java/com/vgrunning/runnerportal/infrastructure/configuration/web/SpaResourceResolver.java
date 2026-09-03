@@ -1,4 +1,4 @@
-package com.vgrunning.runnerportal.infrastructure.input.web;
+package com.vgrunning.runnerportal.infrastructure.configuration.web;
 
 import java.io.IOException;
 import org.jspecify.annotations.Nullable;

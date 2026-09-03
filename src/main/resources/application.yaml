@@ -43,6 +43,14 @@ logging:
 
 server:
   shutdown: graceful
+  servlet:
+    session:
+      cookie:
+        name: __Host-pmv_session
+        secure: true
+        http-only: true
+        same-site: lax
+        path: /
 
 pmv:
   identity:

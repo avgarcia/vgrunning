@@ -45,6 +45,12 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     options.release.set(25)
     options.compilerArgs.addAll(listOf("-Xlint:all,-processing", "-Werror"))
+    if (name == "compileJava") {
+        options.compilerArgs.addAll(
+                listOf(
+                        "-Amapstruct.unmappedTargetPolicy=ERROR",
+                        "-Amapstruct.defaultInjectionStrategy=constructor"))
+    }
 }
 
 dependencyLocking {
@@ -189,6 +195,7 @@ tasks.matching {
 
 tasks.withType<JavaCompile>().configureEach {
     options.errorprone {
+        excludedPaths.set(".*/build/generated/sources/annotationProcessor/.*")
         check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
         option("NullAway:OnlyNullMarked", "true")
         option("NullAway:JSpecifyMode", "true")
