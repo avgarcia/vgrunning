@@ -34,6 +34,8 @@ plugins {
 group = "com.vgrunning"
 version = "0.0.1-SNAPSHOT"
 
+extra["tomcat.version"] = "11.0.25"
+
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(25))
