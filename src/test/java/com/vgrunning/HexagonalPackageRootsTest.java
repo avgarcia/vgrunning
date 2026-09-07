@@ -12,8 +12,8 @@ import com.tngtech.archunit.lang.ArchRule;
  * ADR-0026.
  *
  * <p>Las dependencias entre capas, límites de módulos y fugas de OpenAPI o jOOQ se comprueban en
- * {@link IdentityAccessLayeringTest}, {@link OpenApiBoundaryTest}, {@link JooqBoundaryTest} y
- * {@link ApplicationModularityTest}.
+ * {@link HexagonalLayeringTest}, {@link OpenApiBoundaryTest}, {@link JooqBoundaryTest} y {@link
+ * ApplicationModularityTest}.
  */
 @AnalyzeClasses(packages = "com.vgrunning", importOptions = ImportOption.DoNotIncludeTests.class)
 class HexagonalPackageRootsTest {

@@ -125,7 +125,7 @@ class PersistenceInfrastructureTest {
                         jdbc.queryForObject(
                                 "SELECT count(*) FROM platform.flyway_schema_history WHERE success AND version IS NOT NULL",
                                 Integer.class))
-                .isEqualTo(3);
+                .isEqualTo(4);
         assertThat(eventColumns)
                 .containsExactlyInAnyOrder(
                         "id",
@@ -193,7 +193,13 @@ class PersistenceInfrastructureTest {
 
         assertThat(identityTables)
                 .containsExactlyInAnyOrder(
-                        "account", "account_email", "spring_session", "spring_session_attributes");
+                        "account",
+                        "account_email",
+                        "access_challenge",
+                        "adult_declaration",
+                        "invitation_acceptance",
+                        "spring_session",
+                        "spring_session_attributes");
         assertThat(accountColumns)
                 .contains(
                         "created_at",
@@ -208,11 +214,18 @@ class PersistenceInfrastructureTest {
                         "account.status_changed_at",
                         "account_email.confirmed_at",
                         "account_email.expires_at",
-                        "account_email.released_at");
+                        "account_email.released_at",
+                        "access_challenge.created_at",
+                        "access_challenge.expires_at",
+                        "access_challenge.consumed_at",
+                        "access_challenge.replaced_at",
+                        "adult_declaration.declared_at",
+                        "invitation_acceptance.accepted_at");
         assertThat(indexes)
                 .contains(
                         "account_email_live_canonical_usage_key",
                         "account_email_account_usage_reservation_key",
+                        "access_challenge_current_generation_key",
                         "spring_session_ix1",
                         "spring_session_ix2",
                         "spring_session_ix3");

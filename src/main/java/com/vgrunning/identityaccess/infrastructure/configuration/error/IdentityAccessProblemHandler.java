@@ -1,6 +1,10 @@
 package com.vgrunning.identityaccess.infrastructure.configuration.error;
 
+import com.vgrunning.identityaccess.application.exception.EmailAlreadyReservedException;
 import com.vgrunning.identityaccess.application.exception.InvalidCredentialsException;
+import com.vgrunning.identityaccess.application.exception.InvalidInvitationAcceptanceException;
+import com.vgrunning.identityaccess.application.exception.InvitationNotAvailableException;
+import com.vgrunning.identityaccess.application.exception.InvitationProvisioningForbiddenException;
 import com.vgrunning.identityaccess.infrastructure.security.AuthenticationRequiredException;
 import com.vgrunning.identityaccess.infrastructure.security.CsrfValidationException;
 import com.vgrunning.identityaccess.infrastructure.security.ratelimit.RateLimitedException;
@@ -38,6 +42,29 @@ public class IdentityAccessProblemHandler extends ResponseEntityExceptionHandler
     @ExceptionHandler(InvalidCredentialsException.class)
     ResponseEntity<ProblemDetail> invalidCredentials(InvalidCredentialsException exception) {
         return problem(HttpStatus.UNAUTHORIZED, exception.code(), exception.getMessage());
+    }
+
+    @ExceptionHandler(InvalidInvitationAcceptanceException.class)
+    ResponseEntity<ProblemDetail> invalidInvitationAcceptance(
+            InvalidInvitationAcceptanceException exception) {
+        return problem(HttpStatus.BAD_REQUEST, exception.code(), exception.getMessage());
+    }
+
+    @ExceptionHandler(InvitationNotAvailableException.class)
+    ResponseEntity<ProblemDetail> invitationNotAvailable(
+            InvitationNotAvailableException exception) {
+        return problem(HttpStatus.NOT_FOUND, exception.code(), exception.getMessage());
+    }
+
+    @ExceptionHandler(EmailAlreadyReservedException.class)
+    ResponseEntity<ProblemDetail> emailAlreadyReserved(EmailAlreadyReservedException exception) {
+        return problem(HttpStatus.CONFLICT, exception.code(), exception.getMessage());
+    }
+
+    @ExceptionHandler(InvitationProvisioningForbiddenException.class)
+    ResponseEntity<ProblemDetail> invitationProvisioningForbidden(
+            InvitationProvisioningForbiddenException exception) {
+        return problem(HttpStatus.FORBIDDEN, exception.code(), exception.getMessage());
     }
 
     @ExceptionHandler(RateLimitedException.class)

@@ -175,7 +175,7 @@ La API será REST y seguirá estas reglas:
 | Actor | Operación | Propósito |
 | --- | --- | --- |
 | Anónimo | `POST /api/sessions` | Crear una sesión con respuesta genérica ante credenciales o estado inválidos. |
-| Anónimo | `PATCH /api/invitations/{invitationId}` | Cambiar la invitación a `accepted` consumiendo el secreto, la declaración de mayoría de edad y la contraseña; cubre activación y reactivación. |
+| Anónimo | `POST /api/invitation-acceptances` | Crear el registro de aceptación al consumir en el cuerpo HTTPS el identificador, secreto, declaración de mayoría de edad y contraseña. |
 | Anónimo | `POST /api/access-challenges` | Crear un desafío con `purpose: password_reset`; responde `202` de forma indistinguible. |
 | Anónimo | `PATCH /api/accounts/{accountId}/credentials/current` | Sustituir la contraseña mediante el identificador y secreto del desafío de recuperación. |
 | Anónimo | `PATCH /api/accounts/{accountId}/email-addresses/{emailAddressId}` | Cambiar la dirección pendiente a `verified` mediante su secreto y convertirla en la dirección actual. |
@@ -196,7 +196,7 @@ La cuenta de corredor se crea únicamente mediante el futuro caso de uso de alta
 
 El `PATCH /api/accounts/{accountId}` no es una modificación genérica ni permite cambiar rol, correo u otros atributos. OpenAPI define un cuerpo cerrado con `status`, el servidor valida la transición contra el estado actual y una repetición que ya alcanzó el estado solicitado no vuelve a emitir desafíos ni notificaciones.
 
-`Invitation`, `Credential`, `EmailAddress` y `AccessChallenge` son recursos del contrato, no nombres alternativos de comandos. Una representación REST no tiene que corresponder uno a uno con una tabla: una invitación se materializa mediante la cuenta pendiente y su desafío de acceso vigente. Sus representaciones exponen estado, vigencia y enlaces permitidos sin incluir hashes, secretos ni datos de otras cuentas. Los UUID de cuenta, invitación y dirección no conceden acceso; el servidor valida además el secreto de un solo uso y responde de forma indistinguible cuando corresponda.
+`Invitation`, `InvitationAcceptance`, `Credential`, `EmailAddress` y `AccessChallenge` son recursos del contrato, no nombres alternativos de comandos. Una representación REST no tiene que corresponder uno a uno con una tabla: una invitación se materializa mediante la cuenta pendiente y su desafío de acceso vigente; su aceptación conserva identificador, estado y consumo único. Sus representaciones exponen estado, vigencia y enlaces permitidos sin incluir hashes, secretos ni datos de otras cuentas. Los UUID de cuenta, invitación y dirección no conceden acceso; el servidor valida además el secreto de un solo uso y responde de forma indistinguible cuando corresponda.
 
 No existen endpoints para cambiar rol, establecer contraseñas ajenas, solicitar una baja desde el producto, eliminar la propia cuenta, limitar sesiones ni ejecutar recuperación operativa.
 

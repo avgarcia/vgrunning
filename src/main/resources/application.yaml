@@ -54,6 +54,8 @@ server:
 
 pmv:
   identity:
+    invitation-encryption:
+      key: ${PMV_IDENTITY_INVITATION_ENCRYPTION_KEY:}
     synthetic:
       administrator-password: ${PMV_IDENTITY_SYNTHETIC_ADMINISTRATOR_PASSWORD:}
       runner-password: ${PMV_IDENTITY_SYNTHETIC_RUNNER_PASSWORD:}
