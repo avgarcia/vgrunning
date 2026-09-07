@@ -46,6 +46,7 @@ class ApplicationModularityTest {
                         "publication",
                         "notification-delivery",
                         "tracking-review",
-                        "runner-portal");
+                        "runner-portal",
+                        "config");
     }
 }

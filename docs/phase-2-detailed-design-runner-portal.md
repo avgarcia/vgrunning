@@ -183,7 +183,7 @@ El detalle reproduce la versión autorizada con:
 
 El corredor no ve destinatarios, autoría, números internos de versión, entrega de correo, nombres de tablas ni metadatos administrativos. El lugar ausente se muestra como ausencia; no se inventa, reutiliza ni completa desde otro entrenamiento.
 
-Los objetivos se muestran literalmente como «Zx según las zonas que utilizas con tu entrenador» o «ritmo de distancia +/− segundos por km, usando tu marca de referencia acordada con tu entrenador». El portal no calcula, valida ni solicita zonas, marcas o ritmos personales. Desconocer la referencia no bloquea ninguna acción: el corredor la consulta por el canal externo habitual con su entrenador, sin chat ni registro adicional en el producto.
+Los objetivos se muestran literalmente como «Zx según las zonas que utilizas con tu entrenador» o «ritmo de distancia +/− segundos por km, usando tu marca de referencia acordada con tu entrenador». El portal no calcula, valida ni solicita zonas, marcas o ritmos personales. Desconocer la referencia no bloquea ninguna acción: el corredor la consulta por el canal externo habitual con su Puedesentrenador, sin chat ni registro adicional en el producto.
 
 Un enlace de correo abre la semana de la publicación activa. Si exige autenticación, la ruta de retorno se conserva de forma opaca y se aplica solo después de una sesión válida. El enlace nunca concede acceso: si el corredor no es destinatario `active`, el recurso sigue sin estar disponible.
 
