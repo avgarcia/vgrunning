@@ -34,6 +34,8 @@ plugins {
 group = "com.vgrunning"
 version = "0.0.1-SNAPSHOT"
 
+extra["tomcat.version"] = "11.0.25"
+
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(25))
@@ -45,6 +47,12 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     options.release.set(25)
     options.compilerArgs.addAll(listOf("-Xlint:all,-processing", "-Werror"))
+    if (name == "compileJava") {
+        options.compilerArgs.addAll(
+                listOf(
+                        "-Amapstruct.unmappedTargetPolicy=ERROR",
+                        "-Amapstruct.defaultInjectionStrategy=constructor"))
+    }
 }
 
 dependencyLocking {
@@ -72,6 +80,7 @@ val trivyImage =
 val temurinRuntimeImage =
     "eclipse-temurin:25.0.4_7-jre-noble@sha256:8c6736fa623090b057a5bbd36d42f90c9de4c7d2d4b6c285921a4f85ce65a445"
 val npmExecutable = if (System.getProperty("os.name").startsWith("Windows")) "npm.cmd" else "npm"
+val nodeExecutable = if (System.getProperty("os.name").startsWith("Windows")) "node.exe" else "node"
 
 val codegen = sourceSets.create("codegen") {
     java.srcDir("src/codegen/java")
@@ -109,9 +118,17 @@ sourceSets.named("test") {
 }
 
 dependencies {
+    compileOnly("org.projectlombok:lombok:1.18.44")
+    annotationProcessor("org.projectlombok:lombok:1.18.44")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-session-jdbc")
+    implementation("com.bucket4j:bucket4j_jdk17-core:8.19.0")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
+    implementation("org.mapstruct:mapstruct:1.6.3")
+    annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.84")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
@@ -141,6 +158,8 @@ dependencies {
     compileOnly("org.jspecify:jspecify:1.0.1")
     compileOnly("com.github.spotbugs:spotbugs-annotations:4.10.4")
     testCompileOnly("org.jspecify:jspecify:1.0.1")
+    testCompileOnly("org.projectlombok:lombok:1.18.44")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.44")
 
     errorprone("com.google.errorprone:error_prone_core:2.50.0")
     errorprone("com.uber.nullaway:nullaway:0.14.0")
@@ -178,6 +197,7 @@ tasks.matching {
 
 tasks.withType<JavaCompile>().configureEach {
     options.errorprone {
+        excludedPaths.set(".*/build/generated/sources/annotationProcessor/.*")
         check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
         option("NullAway:OnlyNullMarked", "true")
         option("NullAway:JSpecifyMode", "true")
@@ -191,6 +211,7 @@ jacoco {
 
 extensions.configure<PitestPluginExtension>("pitest") {
     pitestVersion.set("1.22.1")
+    junit5PluginVersion.set("1.2.3")
     targetClasses.set(listOf("com.vgrunning.*.domain.*", "com.vgrunning.*.application.*"))
     outputFormats.set(setOf("XML", "HTML"))
     timestampedReports.set(false)
@@ -325,6 +346,7 @@ val generateOpenApiServer = tasks.register<GenerateTask>("generateOpenApiServer"
         mapOf(
             "interfaceOnly" to "true",
             "library" to "spring-boot",
+            "requestMappingMode" to "api_interface",
             "useSpringBoot3" to "true",
             "useJakartaEe" to "true",
             "documentationProvider" to "none",
@@ -335,6 +357,9 @@ val generateOpenApiServer = tasks.register<GenerateTask>("generateOpenApiServer"
     )
     globalProperties.set(
         mapOf(
+            "apis" to "",
+            "models" to "",
+            "supportingFiles" to "",
             "apiDocs" to "false",
             "apiTests" to "false",
             "modelDocs" to "false",
@@ -502,7 +527,7 @@ val frontendCheck = tasks.register("frontendCheck") {
 }
 
 tasks.named<ProcessResources>("processResources") {
-    dependsOn(frontendBuild)
+    mustRunAfter(frontendBuild)
     from(generatedFrontendDirectory) {
         into("static")
     }
@@ -510,6 +535,7 @@ tasks.named<ProcessResources>("processResources") {
 
 val bootJar = tasks.named<BootJar>("bootJar")
 bootJar.configure {
+    dependsOn(frontendBuild)
     from(jooqGenerated.output)
     from(openApiGenerated.output)
 }
@@ -1161,9 +1187,7 @@ val apiCheck = tasks.register("apiCheck") {
         generateOpenApiClient,
         tasks.named("compileJava"),
         lintOpenApi,
-        verifySpectralNegativeCases,
         typecheckGeneratedOpenApiClient,
-        verifyOasdiffBreakingCase,
         checkOpenApiCompatibility,
     )
 }
@@ -1199,6 +1223,70 @@ tasks.register("verifyJavaToolchain") {
     }
 }
 
+tasks.register<Exec>("verifyDocumentationLinks") {
+    group = "verification"
+    description = "Comprueba enlaces Markdown locales y anclas GFM de la documentación versionada."
+    commandLine(nodeExecutable, "scripts/verify-documentation-links.cjs")
+    inputs.dir("docs")
+    inputs.file("README.md")
+    inputs.file("AGENTS.md")
+    inputs.file("scripts/verify-documentation-links.cjs")
+}
+
+val verifyDocumentationLinkChecker = tasks.register<Exec>("verifyDocumentationLinkChecker") {
+    group = "verification"
+    description = "Demuestra que el verificador documental rechaza enlaces rotos y acepta anclas válidas."
+    commandLine(nodeExecutable, "scripts/test-verify-documentation-links.cjs")
+    inputs.file("scripts/verify-documentation-links.cjs")
+    inputs.file("scripts/test-verify-documentation-links.cjs")
+}
+
+val verifyAiGovernance = tasks.register<Exec>("verifyAiGovernance") {
+    group = "verification"
+    description = "Comprueba la política versionada de autoridad y límites operativos de la IA."
+    commandLine(nodeExecutable, "scripts/verify-ai-governance.cjs")
+    inputs.file("AGENTS.md")
+    inputs.file("docs/ai-governance.md")
+    inputs.dir(".agents/skills/implementar-slice")
+    inputs.dir("config/linear-agent")
+    inputs.file("scripts/verify-ai-governance.cjs")
+}
+
+val verifyAiGovernanceChecker = tasks.register<Exec>("verifyAiGovernanceChecker") {
+    group = "verification"
+    description = "Demuestra con fixtures mínimos que la política rechaza invocación implícita y autorización de merge."
+    commandLine(nodeExecutable, "scripts/test-verify-ai-governance.cjs")
+    inputs.file("scripts/verify-ai-governance.cjs")
+    inputs.file("scripts/test-verify-ai-governance.cjs")
+    inputs.file("AGENTS.md")
+    inputs.file("docs/ai-governance.md")
+    inputs.dir(".agents/skills/implementar-slice")
+    inputs.dir("config/linear-agent")
+}
+
+toolingGate.configure {
+    dependsOn(verifyDocumentationLinkChecker, verifyAiGovernanceChecker)
+}
+
+val verifyLocalRuntimeConfiguration = tasks.register("verifyLocalRuntimeConfiguration") {
+    group = "verification"
+    description = "Comprueba el apagado graceful y su límite explícito para desarrollo local."
+    inputs.file("src/main/resources/application.yaml")
+
+    doLast {
+        val configuration = file("src/main/resources/application.yaml").readText()
+        check("server:\n  shutdown: graceful" in configuration) {
+            "El runtime local debe configurar server.shutdown=graceful."
+        }
+        check("lifecycle:\n    timeout-per-shutdown-phase: 30s" in configuration) {
+            "El runtime local debe limitar cada fase de apagado graceful a 30 segundos."
+        }
+        check("config:\n    import: optional:file:.env[.properties]" in configuration) {
+            "El runtime local debe importar opcionalmente la configuración sintética de .env."
+        }
+    }
+}
+
 tasks.named("check") {
     dependsOn(
         "verifyJavaToolchain",
@@ -1208,11 +1296,10 @@ tasks.named("check") {
         "jacocoTestReport",
         "jacocoTestCoverageVerification",
         verifyGeneratedSourceIsolation,
-        apiCheck,
-        frontendCheck,
-        verifySpaPackaging,
     )
 }
+
+apply(from = "gradle/validation/quality-gates.gradle.kts")
 
 // Este control inspecciona los artefactos resueltos, incluso si nadie usa aún sus APIs.
 // forbidden-apis analiza referencias de bytecode y sería complementario, no un sustituto de esta política.

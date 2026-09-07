@@ -1,0 +1,7 @@
+interface:
+  display_name: "Arquitectura hexagonal y Modulith"
+  short_description: "Clasifica y revisa cada clase Java"
+  default_prompt: "Usa $arquitectura-hexagonal-y-modulith antes de crear o mover una clase Java y solicita una revisión independiente de su ubicación."
+
+policy:
+  allow_implicit_invocation: true

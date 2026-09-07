@@ -474,12 +474,12 @@ com.vgrunning.notificationdelivery/
     request/
     delivery/
     suppression/
-  adapter/in/web/
-  adapter/in/scheduling/
-  adapter/in/command/
-  adapter/out/persistence/jooq/
-  adapter/out/brevo/
-  adapter/out/crypto/
+  infrastructure/input/web/
+  infrastructure/input/scheduling/
+  infrastructure/input/command/
+  infrastructure/output/persistence/jooq/
+  infrastructure/output/brevo/
+  infrastructure/output/crypto/
 ```
 
 El dominio no depende de Spring, OpenAPI, jOOQ, JDBC, Brevo o Key Vault. Spring Modulith y ArchUnit impedirán SQL cruzado, dependencias inversas y exposición de paquetes internos.

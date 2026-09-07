@@ -30,9 +30,9 @@ function hasSecurityScheme(security, scheme) {
   return Array.isArray(security) && security.some((requirement) => Object.hasOwn(requirement ?? {}, scheme));
 }
 
-function hasCombinedSecurity(security, first, second) {
+function hasCombinedSecurity(security, ...schemes) {
   return Array.isArray(security) && security.some((requirement) =>
-    Object.hasOwn(requirement ?? {}, first) && Object.hasOwn(requirement ?? {}, second));
+    schemes.every((scheme) => Object.hasOwn(requirement ?? {}, scheme)));
 }
 
 function parameterSchema(document, parameter) {
@@ -117,24 +117,35 @@ module.exports = (document) => {
 
       const effectiveSecurity = operation.security ?? document.security;
       const anonymous = Array.isArray(effectiveSecurity) && effectiveSecurity.length === 0;
-      if (!anonymous && !hasSecurityScheme(effectiveSecurity, "opaqueSession")) {
+      const sessionProtected = hasSecurityScheme(effectiveSecurity, "opaqueSession");
+      const anonymousWithCsrf = !sessionProtected
+        && hasCombinedSecurity(effectiveSecurity, "csrfCookie", "csrfToken");
+      if (!anonymous && !sessionProtected && !anonymousWithCsrf) {
         results.push({
-          message: "Toda operación protegida debe declarar opaqueSession.",
+          message: "La operación debe declarar opaqueSession o el doble envío CSRF anónimo.",
           path: [...operationPath, "security"],
         });
       }
-      if (SAFE_METHODS.has(method) && hasSecurityScheme(effectiveSecurity, "csrfToken")) {
+      if (SAFE_METHODS.has(method)
+        && (hasSecurityScheme(effectiveSecurity, "csrfCookie")
+          || hasSecurityScheme(effectiveSecurity, "csrfToken"))) {
         results.push({
           message: `${method.toUpperCase()} no debe exigir CSRF.`,
           path: [...operationPath, "security"],
         });
       }
-      if (!SAFE_METHODS.has(method) && !anonymous
-        && !hasCombinedSecurity(effectiveSecurity, "opaqueSession", "csrfToken")) {
-        results.push({
-          message: `${method.toUpperCase()} protegido debe exigir opaqueSession y csrfToken conjuntamente.`,
-          path: [...operationPath, "security"],
-        });
+      if (!SAFE_METHODS.has(method)) {
+        const validCsrf = sessionProtected
+          ? hasCombinedSecurity(effectiveSecurity, "opaqueSession", "csrfCookie", "csrfToken")
+          : hasCombinedSecurity(effectiveSecurity, "csrfCookie", "csrfToken");
+        if (!validCsrf) {
+          results.push({
+            message: sessionProtected
+              ? `${method.toUpperCase()} protegido debe exigir opaqueSession, csrfCookie y csrfToken conjuntamente.`
+              : `${method.toUpperCase()} anónimo debe exigir csrfCookie y csrfToken conjuntamente.`,
+            path: [...operationPath, "security"],
+          });
+        }
       }
 
       if (method === "get" && isCollectionResponse(document, responses["200"])) {

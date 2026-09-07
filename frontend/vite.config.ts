@@ -8,12 +8,14 @@ const generatedApiClient = fileURLToPath(
   new URL("../build/generated/openapi/client/typescript", import.meta.url),
 );
 const generatedFrontend = fileURLToPath(new URL("../build/generated/frontend", import.meta.url));
+const axiosEntry = fileURLToPath(new URL("./node_modules/axios/index.js", import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
       "@running-coach/api-client": generatedApiClient,
+      axios: axiosEntry,
     },
   },
   server: {

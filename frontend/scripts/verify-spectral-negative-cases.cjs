@@ -16,6 +16,7 @@ const fixtures = new Map([
   ["missing-problem-details.yaml", "http-semantics"],
   ["wrong-problem-schema.yaml", "http-semantics"],
   ["missing-csrf.yaml", "http-semantics"],
+  ["missing-csrf-cookie.yaml", "http-semantics"],
   ["csrf-on-get.yaml", "http-semantics"],
   ["optional-path-parameter.yaml", "http-semantics"],
   ["unpaginated-collection.yaml", "http-semantics"],

@@ -3,6 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
+**Refinado parcialmente por:** [ADR-0025](0025-spring-session-jdbc-local-login-rate-limit.md) — Propuesto; Spring Session JDBC conserva el `SecurityContext` sin repositorio propio.
 
 ## Contexto
 

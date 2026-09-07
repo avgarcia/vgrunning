@@ -4,9 +4,26 @@ Repositorio de descubrimiento, diseño y preparación técnica del PMV de Runnin
 
 La preparación técnica ya incluye el esqueleto ejecutable Spring Boot, ocho módulos lógicos verificados, persistencia técnica reproducible sobre PostgreSQL 18 y una SPA React mínima empaquetada. No hay todavía funcionalidad ni tablas de negocio.
 
+## Inicio rápido
+
+La guía completa y reproducible está en la [guía del entorno local](docs/local-development.md). No uses datos reales, proveedores externos ni credenciales reales durante esta preparación técnica.
+
+La validación se organiza por superficie con `backendCheck`, `apiCheck`, `frontendCheck`, `docsCheck`, `toolingGate` y `supplyChainCheck`; `qualityGate` conserva el inventario integral. `classifyValidationScope` genera únicamente evidencia en shadow mode y nunca reduce los controles aplicados.
+
+En Windows:
+
+```powershell
+Copy-Item .env.example .env
+npm ci --prefix frontend
+docker compose up -d --wait postgres
+.\gradlew.bat bootRun
+```
+
+Detén el backend con `Ctrl+C` y PostgreSQL con `docker compose down`. Para reconstruir la base local, consulta el procedimiento de recreación de la guía.
+
 ## Base ejecutable
 
-El backend es una única aplicación Spring MVC. Requiere PostgreSQL local antes de arrancar. El shell y las rutas de cliente de la SPA son públicos, pero `/api` permanece cerrado hasta que se implemente `identity-access`; también están abiertos los probes técnicos:
+El backend es una única aplicación Spring MVC. Requiere PostgreSQL local antes de arrancar. El shell y las rutas de cliente de la SPA son públicos. En `/api` solo están disponibles las operaciones de sesión HTTP de `identity-access`; CSRF lo gestiona Spring Security durante el bootstrap de la SPA y el resto permanece cerrado. También están abiertos los probes técnicos:
 
 - `http://localhost:8081/actuator/health/liveness`
 - `http://localhost:8081/actuator/health/readiness`
@@ -53,7 +70,7 @@ Vitest cubre el shell y la configuración del cliente; Playwright ejecuta un smo
 
 ## Contrato HTTP
 
-`api/openapi/running-coach.yaml` es la fuente de verdad del contrato OpenAPI 3.1. La API pública se reserva bajo `/api`, hereda autenticación por sesión opaca y exige además CSRF solo en operaciones protegidas que modifican estado. Todavía declara `paths: {}`: no hay endpoints de negocio ni de salud dentro de la API pública.
+`api/openapi/running-coach.yaml` es la fuente de verdad del contrato OpenAPI 3.1. La API pública se reserva bajo `/api`, hereda autenticación por sesión HTTP y exige además CSRF solo en operaciones protegidas que modifican estado. Todavía declara `paths: {}`: no hay endpoints de negocio ni de salud dentro de la API pública.
 
 ```powershell
 .\gradlew.bat apiCheck                  # Valida el contrato, genera servidor y cliente y ejecuta sus controles.
@@ -62,7 +79,7 @@ Vitest cubre el shell y la configuración del cliente; Playwright ejecuta un smo
 .\gradlew.bat generateOpenApiClient     # Genera el cliente TypeScript bajo build/.
 ```
 
-La generación no se versiona. Los tipos de servidor solo podrán consumirse desde `adapter.http`; los tipos generados no son contratos entre módulos ni tipos de dominio. Spectral bloquea las infracciones automatizables de ADR-0017, entre ellas errores sin Problem Details, escrituras protegidas sin CSRF, colecciones sin paginación acotada, objetos abiertos y ejemplos con secretos plausibles. `apiCheck` requiere Docker para comparar compatibilidad con `main` mediante `oasdiff`.
+La generación no se versiona. Los tipos de servidor solo podrán consumirse desde `adapter.in.web`; los tipos generados no son contratos entre módulos ni tipos de dominio. Spectral bloquea las infracciones automatizables de ADR-0017, entre ellas errores sin Problem Details, escrituras protegidas sin CSRF, colecciones sin paginación acotada, objetos abiertos y ejemplos con secretos plausibles. `apiCheck` requiere Docker para comparar compatibilidad con `main` mediante `oasdiff`.
 
 ## Calidad y seguridad de suministro
 
@@ -72,6 +89,7 @@ La generación no se versiona. Los tipos de servidor solo podrán consumirse des
 .\gradlew.bat check              # Gate local de calidad.
 .\gradlew.bat fastGate           # Gate de PR: check, PIT condicional y Gitleaks.
 .\gradlew.bat toolingGate        # Autopruebas de los propios gates de calidad y seguridad.
+.\gradlew.bat verifyAiGovernance # Verifica Skills, guidance y límites de autoridad de la IA.
 .\gradlew.bat qualityGate        # Gate integral: fastGate, toolingGate, imagen, SBOM, Trivy y reproducibilidad.
 .\gradlew.bat buildOciImage      # Construye la imagen linux/amd64 local.
 .\gradlew.bat generateSbom       # Genera el SBOM SPDX JSON bajo build/reports/security.
@@ -79,6 +97,10 @@ La generación no se versiona. Los tipos de servidor solo podrán consumirse des
 ```
 
 Los mínimos de cobertura global son 80 % de líneas y 70 % de ramas; para paquetes futuros `domain` y `application` son 90 % y 80 %. PIT exige 70 % cuando exista código crítico. Hasta entonces, los gates críticos se registran como no aplicables. Gitleaks, Trivy y los casos negativos se ejecutan con credenciales sintéticas bajo `build/`, nunca versionadas. La imagen canónica se publicará desde `main` en GHCR identificada por commit y digest; esta tarea no despliega infraestructura.
+
+## Gobierno de la IA
+
+La asistencia de IA coordina el trabajo y prepara evidencia, pero no sustituye gates ejecutables ni autoridad humana. La Skill local `$implementar-slice` exige una Definition of Ready completa, validación incremental, una única ejecución final de `qualityGate` y una PR borrador; nunca autoriza fusionar. Consulta el [gobierno operativo de la IA](docs/ai-governance.md).
 
 ## Documentación
 
@@ -98,7 +120,12 @@ Los mínimos de cobertura global son 80 % de líneas y 70 % de ramas; para paque
 - [Diseño detallado del portal del corredor — Fase 2](docs/phase-2-detailed-design-runner-portal.md)
 - [Línea base de acceso y seguridad — Fase 2](docs/phase-2-access-security-baseline.md)
 - [Cierre documental — Fase 2](docs/phase-2-closure.md)
+- [Especificación UX-01 del portal del corredor](docs/ux-01-runner-portal-specification.md)
+- [Plan de prueba de usabilidad UX-01](docs/ux-01-usability-test-plan.md)
+- [Recorridos cognitivos sintéticos UX-01](docs/ux-01-cognitive-walkthroughs/README.md)
 - [Guía de diseño de API HTTP](docs/api-design-guidelines.md)
 - [Architecture Decision Records](docs/adr/README.md)
 - [Mejoras futuras](docs/future-improvements.md)
 - [Controles de calidad documental](docs/documentation-quality-gates.md)
+- [Guía del entorno local](docs/local-development.md)
+- [Gobierno operativo de la IA](docs/ai-governance.md)

@@ -18,7 +18,7 @@ Las cuentas con rol `administrador` o `entrenador` tienen acceso global a los da
 
 ### Decisión actual
 
-El PMV no incorporará MFA. La autenticación seguirá la identidad local, contraseña, sesión opaca, límites de intentos y controles definidos por `ADR-0003`, `ADR-0013` y la línea base de seguridad de acceso.
+El PMV no incorporará MFA. La autenticación seguirá la identidad local, contraseña, sesión HTTP de Spring Session JDBC, límites de intentos y controles definidos por `ADR-0003`, `ADR-0013` y la línea base de seguridad de acceso.
 
 Esta exclusión reduce alcance, pero no demuestra que el riesgo sea irrelevante. La cuenta privilegiada comprometida continúa siendo un riesgo aceptado del PMV y deberá incluirse en el análisis de riesgos y la EIPD de `ADR-0010`.
 
@@ -84,7 +84,7 @@ Permitir un número no acotado de sesiones activas por cuenta aumenta el volumen
 
 ### Decisión actual
 
-El PMV no contará ni limitará las sesiones simultáneas. Cada inicio de sesión creará una sesión independiente. Cada sesión caducará tras `12` horas de inactividad o al alcanzar `7` días de duración absoluta, y los flujos de contraseña, correo y desactivación revocarán todas las sesiones cuando corresponda.
+El PMV no contará ni limitará las sesiones simultáneas. Cada inicio de sesión crea una sesión HTTP independiente gestionada por Spring Session JDBC, que caduca tras `12` horas de inactividad. Los futuros flujos de contraseña, correo y desactivación deberán definir explícitamente cómo invalidan las sesiones de la cuenta.
 
 ### Criterios para reabrir la decisión
 

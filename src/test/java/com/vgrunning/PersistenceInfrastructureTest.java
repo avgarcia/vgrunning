@@ -125,7 +125,7 @@ class PersistenceInfrastructureTest {
                         jdbc.queryForObject(
                                 "SELECT count(*) FROM platform.flyway_schema_history WHERE success AND version IS NOT NULL",
                                 Integer.class))
-                .isEqualTo(2);
+                .isEqualTo(4);
         assertThat(eventColumns)
                 .containsExactlyInAnyOrder(
                         "id",
@@ -152,6 +152,83 @@ class PersistenceInfrastructureTest {
             """,
                                 Integer.class))
                 .isZero();
+    }
+
+    @Test
+    void createsIdentityAccessTablesWithSemanticTimesAndPartialIndexes() {
+        Set<String> identityTables =
+                Set.copyOf(
+                        jdbc.queryForList(
+                                """
+                                SELECT table_name FROM information_schema.tables
+                                 WHERE table_schema = 'identity_access' AND table_type = 'BASE TABLE'
+                                """,
+                                String.class));
+        Set<String> accountColumns =
+                Set.copyOf(
+                        jdbc.queryForList(
+                                """
+                                SELECT column_name FROM information_schema.columns
+                                 WHERE table_schema = 'identity_access' AND table_name = 'account'
+                                """,
+                                String.class));
+        Set<String> timestampColumns =
+                Set.copyOf(
+                        jdbc.queryForList(
+                                """
+                                SELECT table_name || '.' || column_name
+                                  FROM information_schema.columns
+                                 WHERE table_schema = 'identity_access'
+                                   AND data_type = 'timestamp with time zone'
+                                """,
+                                String.class));
+        Set<String> indexes =
+                Set.copyOf(
+                        jdbc.queryForList(
+                                """
+                                SELECT indexname FROM pg_indexes
+                                 WHERE schemaname = 'identity_access'
+                                """,
+                                String.class));
+
+        assertThat(identityTables)
+                .containsExactlyInAnyOrder(
+                        "account",
+                        "account_email",
+                        "access_challenge",
+                        "adult_declaration",
+                        "invitation_acceptance",
+                        "spring_session",
+                        "spring_session_attributes");
+        assertThat(accountColumns)
+                .contains(
+                        "created_at",
+                        "updated_at",
+                        "status_changed_at",
+                        "password_changed_at",
+                        "version");
+        assertThat(timestampColumns)
+                .contains(
+                        "account.created_at",
+                        "account.updated_at",
+                        "account.status_changed_at",
+                        "account_email.confirmed_at",
+                        "account_email.expires_at",
+                        "account_email.released_at",
+                        "access_challenge.created_at",
+                        "access_challenge.expires_at",
+                        "access_challenge.consumed_at",
+                        "access_challenge.replaced_at",
+                        "adult_declaration.declared_at",
+                        "invitation_acceptance.accepted_at");
+        assertThat(indexes)
+                .contains(
+                        "account_email_live_canonical_usage_key",
+                        "account_email_account_usage_reservation_key",
+                        "access_challenge_current_generation_key",
+                        "spring_session_ix1",
+                        "spring_session_ix2",
+                        "spring_session_ix3");
     }
 
     @Test
