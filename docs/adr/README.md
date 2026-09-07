@@ -63,6 +63,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0026](0026-hexagonal-packaging-under-infrastructure.md) | Paquetería hexagonal bajo infraestructura | Aceptado | Todos los `RF` |
 | [ADR-0027](0027-login-attempt-consumption-policy.md) | Consumo de todos los intentos de inicio de sesión | Aceptado | `RF-01`, `RF-02`, `RF-16`, `RF-18`, `RF-19` |
 | [ADR-0028](0028-mapstruct-mapping-boundaries.md) | MapStruct en las fronteras de representaciones | Aceptado | Todos los `RF` implementados mediante contratos HTTP o persistencia |
+| [ADR-0029](0029-cqrs-para-queries-de-solo-lectura.md) | CQRS Básico para Queries de Solo Lectura | Aceptado | Todos los `RF` expuestos mediante UI |
 
 ## Relaciones de refinamiento
 
@@ -84,7 +85,8 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | `ADR-0014` | `ADR-0026` | Reúne adaptadores de entrada y salida bajo infraestructura, reserva `application.port` para interfaces, mantiene `api` como contrato intermodular y elimina `application.model`. |
 | `ADR-0025` | `ADR-0027` | Sustituye el conteo de fallos por el consumo de todos los intentos válidos de login en ambos buckets locales. |
 | `ADR-0026` | `ADR-0028` | Añade `application.mapper` para MapStruct puro y obliga a usar MapStruct en conversiones entre representaciones. |
+| `ADR-0014` | `ADR-0029` | Permite proyecciones directas de lectura con jOOQ sin hidratar agregados de dominio; la independencia de dominio y la contención de jOOQ siguen vigentes. |
 
 ## Resultado del backlog inicial de Fase 2
 
-El backlog inicial y la auditoría H-01 a H-20 se materializan en `ADR-0001` a `ADR-0023`, todos aceptados. `ADR-0024` es una decisión posterior aceptada que refina la estrategia de validación técnica sin sustituir los umbrales ni herramientas de `ADR-0013`. Una decisión arquitectónica nueva o contradictoria deberá abrir otro ADR a partir de evidencia; no se resolverá implícitamente durante la implementación.
+El backlog inicial y la auditoría H-01 a H-20 se materializan en `ADR-0001` a `ADR-0023`, todos aceptados. `ADR-0024` a `ADR-0029` son decisiones posteriores aceptadas que refinan la estrategia técnica sin contradecir las decisiones base. Una decisión arquitectónica nueva o contradictoria deberá abrir otro ADR a partir de evidencia; no se resolverá implícitamente durante la implementación.
