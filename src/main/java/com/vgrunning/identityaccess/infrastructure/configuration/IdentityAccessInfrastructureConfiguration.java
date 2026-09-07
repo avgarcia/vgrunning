@@ -1,18 +1,33 @@
 package com.vgrunning.identityaccess.infrastructure.configuration;
 
+import com.vgrunning.identityaccess.api.provisioning.AccountProvisioningApi;
 import com.vgrunning.identityaccess.application.mapper.AuthenticatedAccountMapper;
+import com.vgrunning.identityaccess.application.mapper.InvitationActivationMapper;
+import com.vgrunning.identityaccess.application.port.in.AcceptInvitationUseCase;
 import com.vgrunning.identityaccess.application.port.in.AuthenticateCredentialsUseCase;
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
+import com.vgrunning.identityaccess.application.port.out.InvitationActivationPublisher;
+import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
+import com.vgrunning.identityaccess.application.port.out.InvitationRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
+import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository;
+import com.vgrunning.identityaccess.application.service.AcceptInvitationService;
 import com.vgrunning.identityaccess.application.service.AuthenticateCredentialsService;
+import com.vgrunning.identityaccess.application.service.ProvisionRunnerAccountService;
+import com.vgrunning.identityaccess.infrastructure.output.event.SpringInvitationActivationPublisher;
+import com.vgrunning.identityaccess.infrastructure.security.AesGcmInvitationPayloadProtector;
 import com.vgrunning.identityaccess.infrastructure.security.Argon2PasswordHasher;
+import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
 import org.mapstruct.factory.Mappers;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 
 /** Compone el caso de uso de autenticación con sus dependencias técnicas inmediatas. */
 @Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(InvitationEncryptionProperties.class)
 public class IdentityAccessInfrastructureConfiguration {
 
     /** Crea el hasher Argon2id con los parámetros aprobados para credenciales locales. */
@@ -36,5 +51,42 @@ public class IdentityAccessInfrastructureConfiguration {
     @Bean
     AuthenticatedAccountMapper authenticatedAccountMapper() {
         return Mappers.getMapper(AuthenticatedAccountMapper.class);
+    }
+
+    @Bean
+    InvitationPayloadProtector invitationPayloadProtector(
+            InvitationEncryptionProperties properties) {
+        if (properties.key() == null || properties.key().isBlank()) {
+            throw new IllegalStateException("Falta PMV_IDENTITY_INVITATION_ENCRYPTION_KEY.");
+        }
+        return new AesGcmInvitationPayloadProtector(properties.key());
+    }
+
+    @Bean
+    AccountProvisioningApi accountProvisioningApi(
+            RunnerInvitationProvisioningRepository invitations,
+            InvitationPayloadProtector protector,
+            NotificationRequestApi notifications) {
+        return new ProvisionRunnerAccountService(invitations, protector, notifications);
+    }
+
+    @Bean
+    AcceptInvitationUseCase acceptInvitationUseCase(
+            InvitationRepository invitations,
+            InvitationActivationPublisher activationPublisher,
+            PasswordHasher passwordHasher,
+            InvitationActivationMapper invitationActivationMapper) {
+        return new AcceptInvitationService(
+                invitations, activationPublisher, passwordHasher, invitationActivationMapper);
+    }
+
+    @Bean
+    InvitationActivationPublisher invitationActivationPublisher(ApplicationEventPublisher events) {
+        return new SpringInvitationActivationPublisher(events);
+    }
+
+    @Bean
+    InvitationActivationMapper invitationActivationMapper() {
+        return Mappers.getMapper(InvitationActivationMapper.class);
     }
 }

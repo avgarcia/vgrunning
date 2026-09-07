@@ -85,16 +85,16 @@ La composición comienza en una columna y no exige un breakpoint fijo. Debe cons
 
 ## Rutas y contrato futuro
 
-Las rutas cliente se aplazan deliberadamente. El prototipo no contiene ni decide una ruta de producto. Esta decisión bloquea UX-02 v0.2 y el cierre de `RC-16`.
+La activación usa la ruta cliente estable `/activar#i=<invitationId>&s=<secret>`. El bootstrap retira el fragmento antes del primer renderizado y conserva sus valores únicamente en memoria. Esta decisión no diseña el shell ni fija una ruta administrativa global.
 
-La propuesta conserva exclusivamente esta trazabilidad futura, sin modificar [OpenAPI](../api/openapi/running-coach.yaml):
+La propuesta conserva la siguiente trazabilidad con [OpenAPI](../api/openapi/running-coach.yaml):
 
 | Slice futura | Operación prevista | Actor |
 | --- | --- | --- |
 | `RC-18` / F01.2 | `POST /api/runners` | Administrador autenticado con CSRF e `Idempotency-Key`. |
-| `RC-19` / F01.3 | `PATCH /api/invitations/{invitationId}` | Anónimo con secreto solo en el cuerpo HTTPS y CSRF. |
+| `RC-19` / F01.3 | `POST /api/invitation-acceptances` | Anónimo con identificador y secreto solo en el cuerpo HTTPS y CSRF. |
 
-Las operaciones, sus Problem Details y sus modelos permanecen sujetos a revisión contract-first antes de implementarse.
+Las operaciones, sus Problem Details y sus modelos se revisan contract-first antes de cada cambio compatible.
 
 ## Trazabilidad y criterio de salida
 
@@ -103,7 +103,7 @@ Las operaciones, sus Problem Details y sus modelos permanecen sujetos a revisió
 | `RF-01` y `CA-RF01-01` | Invitación, dos declaraciones de mayoría de edad, activación y acceso posterior. |
 | `CA-RF01-02` | Datos inválidos, secreto no disponible y ausencia de activación parcial. |
 | `RC-16` | Diseño de formulario, activación, estados, accesibilidad y revisión humana. |
-| `RC-18` y `RC-19` | Dependencias futuras, sin autorización de implementación. |
+| `RC-18` y `RC-19` | Alta administrativa, aceptación anónima y secreto limitado al fragmento y al cuerpo HTTPS. |
 
 La v0.1 está lista para revisión cuando el prototipo y los seis recorridos cognitivos se puedan inspeccionar sin defectos técnicos bloqueantes. No constituye evidencia con personas usuarias ni autoriza cerrar `RC-16`.
 
@@ -113,22 +113,22 @@ La v0.1 está lista para revisión cuando el prototipo y los seis recorridos cog
 
 - Estado: listo para revisión humana
 - Evidencia: `RF-01`, `CA-RF01-01`, `CA-RF01-02`, estados de invitación y activación de esta propuesta.
-- Hallazgos: la respuesta pública indistinguible y el comportamiento posterior al éxito son observables; la operación HTTP sigue fuera de alcance.
-- Acción requerida: revisar los textos y estados antes de materializar F01.2 o F01.3.
+- Hallazgos: la respuesta pública indistinguible y el comportamiento posterior al éxito son observables; la ruta de activación ya está fijada.
+- Acción requerida: revisar los textos y estados antes de validar la entrega implementada.
 - Revisor humano: Revisores de producto y arquitectura.
 
 ### Revisión de preguntas bloqueantes
 
 - Estado: requiere decisión
-- Evidencia: rutas cliente del administrador y de la activación.
-- Hallazgos: se aplazan por decisión del responsable para revisar primero el prototipo. Esta decisión impide cerrar `RC-16` y desbloquear F01.2/F01.3.
-- Acción requerida: fijar rutas estables en UX-02 v0.2.
+- Evidencia: ruta global administrativa y navegación posterior, excluidas de F01.2/F01.3.
+- Hallazgos: `/activar` y el fragmento se han fijado; la navegación administrativa no condiciona la creación ni aceptación de invitaciones.
+- Acción requerida: decidir el shell administrativo antes de incorporarlo a la SPA.
 - Revisor humano: Revisor de producto.
 
 ### Revisión de decisiones de diseño
 
 - Estado: listo para revisión humana
 - Evidencia: entradas separadas, repetición de contraseña, no inicio automático de sesión y respuesta indistinguible.
-- Hallazgos: las decisiones respetan los límites de `RF-01` y la seguridad de identidad; la ruta cliente se conserva como aplazamiento explícito, no como decisión implícita.
+- Hallazgos: las decisiones respetan los límites de `RF-01` y la seguridad de identidad; el secreto permanece limitado al fragmento eliminado durante el bootstrap y al cuerpo HTTPS.
 - Acción requerida: aprobar, corregir o descartar la propuesta v0.1.
 - Revisor humano: Revisor de arquitectura.

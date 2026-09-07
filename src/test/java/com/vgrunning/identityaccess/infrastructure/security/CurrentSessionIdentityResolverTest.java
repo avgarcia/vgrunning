@@ -28,19 +28,21 @@ class CurrentSessionIdentityResolverTest {
                         UsernamePasswordAuthenticationToken.authenticated(
                                 identity, null, java.util.List.of()));
 
-        assertThat(resolver.current()).isSameAs(identity);
+        assertThat(resolver.currentSession()).isSameAs(identity);
     }
 
     @Test
     void rejectsMissingOrUnsupportedAuthentication() {
-        assertThatThrownBy(resolver::current).isInstanceOf(AuthenticationRequiredException.class);
+        assertThatThrownBy(resolver::currentSession)
+                .isInstanceOf(AuthenticationRequiredException.class);
 
         SecurityContextHolder.getContext()
                 .setAuthentication(
                         UsernamePasswordAuthenticationToken.authenticated(
                                 "not-an-identity", null, java.util.List.of()));
 
-        assertThatThrownBy(resolver::current).isInstanceOf(AuthenticationRequiredException.class);
+        assertThatThrownBy(resolver::currentSession)
+                .isInstanceOf(AuthenticationRequiredException.class);
     }
 
     private static SessionPrincipal identity() {

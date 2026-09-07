@@ -1,6 +1,8 @@
 package com.vgrunning.identityaccess.infrastructure.configuration;
 
+import com.vgrunning.identityaccess.infrastructure.security.ActorContextRequestFilter;
 import com.vgrunning.identityaccess.infrastructure.security.CurrentSessionIdentityResolver;
+import com.vgrunning.identityaccess.infrastructure.security.SessionActorMapper;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,5 +57,11 @@ public class SessionSecurityInfrastructureConfiguration {
     @Bean
     CurrentSessionIdentityResolver currentSessionIdentityResolver() {
         return new CurrentSessionIdentityResolver();
+    }
+
+    @Bean
+    ActorContextRequestFilter actorContextRequestFilter(
+            CurrentSessionIdentityResolver sessions, SessionActorMapper mapper) {
+        return new ActorContextRequestFilter(sessions, mapper);
     }
 }

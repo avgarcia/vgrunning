@@ -67,13 +67,13 @@ public class SessionHttpController implements SessionsApi {
     /** Devuelve la identidad almacenada en la sesión HTTP vigente. */
     @Override
     public ResponseEntity<CurrentSession> getCurrentSession() {
-        return ResponseEntity.ok(mapper.toResponse(currentSession.current()));
+        return ResponseEntity.ok(mapper.toResponse(currentSession.currentSession()));
     }
 
     /** Invalida la sesión HTTP vigente sin exponer ni gestionar su identificador. */
     @Override
     public ResponseEntity<Void> deleteCurrentSession() {
-        currentSession.current();
+        currentSession.currentSession();
         sessionLogoutHandler.logout(
                 request, response, SecurityContextHolder.getContext().getAuthentication());
         return ResponseEntity.noContent().build();

@@ -1,5 +1,6 @@
 package com.vgrunning.identityaccess.infrastructure.configuration;
 
+import com.vgrunning.identityaccess.infrastructure.security.ActorContextRequestFilter;
 import com.vgrunning.identityaccess.infrastructure.security.AuthenticationRequiredException;
 import com.vgrunning.identityaccess.infrastructure.security.CsrfValidationException;
 import com.vgrunning.identityaccess.infrastructure.security.OriginValidationFilter;
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
@@ -40,6 +42,7 @@ public class SecurityConfiguration {
             OriginValidationFilter originValidation,
             CsrfTokenRepository csrfTokens,
             SessionAuthenticationStrategy sessionAuthenticationStrategy,
+            ActorContextRequestFilter actorContextRequestFilter,
             HandlerExceptionResolver handlerExceptionResolver)
             throws Exception {
         return http.httpBasic(AbstractHttpConfigurer::disable)
@@ -85,9 +88,14 @@ public class SecurityConfiguration {
                                         .permitAll()
                                         .requestMatchers(HttpMethod.POST, "/api/sessions")
                                         .permitAll()
+                                        .requestMatchers(
+                                                HttpMethod.POST, "/api/invitation-acceptances")
+                                        .permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/sessions/current")
                                         .authenticated()
                                         .requestMatchers(HttpMethod.DELETE, "/api/sessions/current")
+                                        .authenticated()
+                                        .requestMatchers(HttpMethod.POST, "/api/runners")
                                         .authenticated()
                                         .requestMatchers(
                                                 "/actuator",
@@ -104,6 +112,7 @@ public class SecurityConfiguration {
                                         .denyAll())
                 .addFilterBefore(
                         originValidation, org.springframework.security.web.csrf.CsrfFilter.class)
+                .addFilterAfter(actorContextRequestFilter, SecurityContextHolderFilter.class)
                 .build();
     }
 

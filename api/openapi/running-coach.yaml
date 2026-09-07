@@ -11,7 +11,64 @@ servers:
 tags:
   - name: Access
     description: Ciclo de vida de la sesión actual.
+  - name: Runners
+    description: Alta administrativa de corredores pendientes de activación.
+  - name: Invitations
+    description: Aceptación anónima de invitaciones de activación.
 paths:
+  /runners:
+    post:
+      operationId: createRunner
+      tags: [Runners]
+      summary: Crear un corredor pendiente de activación
+      description: >-
+        Un administrador crea atómicamente el perfil, la cuenta pendiente, el desafío de
+        activación y la solicitud de notificación. La clave de idempotencia se conserva 24 horas.
+      security:
+        - opaqueSession: []
+          csrfCookie: []
+          csrfToken: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        $ref: '#/components/requestBodies/RunnerCreationRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/RunnerCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/AuthenticationRequiredProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '409':
+          $ref: '#/components/responses/RunnerCreationConflictProblem'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorProblem'
+  /invitation-acceptances:
+    post:
+      operationId: createInvitationAcceptance
+      tags: [Invitations]
+      summary: Aceptar una invitación de activación
+      description: >-
+        Consume una invitación vigente, registra la declaración de la persona invitada,
+        establece su contraseña y activa la cuenta sin crear una sesión.
+      security:
+        - csrfCookie: []
+          csrfToken: []
+      requestBody:
+        $ref: '#/components/requestBodies/InvitationAcceptanceCreationRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/InvitationAcceptanceCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '403':
+          $ref: '#/components/responses/CsrfValidationFailedProblem'
+        '404':
+          $ref: '#/components/responses/InvitationNotAvailableProblem'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorProblem'
   /sessions:
     post:
       operationId: createSession
@@ -99,6 +156,70 @@ components:
         Token CSRF exigido en solicitudes que modifican estado. Debe coincidir con la
         cookie __Host-pmv_csrf y nunca se transporta en la URL.
   schemas:
+    RunnerCreation:
+      type: object
+      additionalProperties: false
+      required: [givenName, familyName, email, adultDeclarationConfirmed]
+      properties:
+        givenName:
+          type: string
+          minLength: 1
+          maxLength: 120
+        familyName:
+          type: string
+          minLength: 1
+          maxLength: 160
+        email:
+          type: string
+          format: email
+        adultDeclarationConfirmed:
+          type: boolean
+          description: Debe ser true para continuar; el servidor rechaza cualquier otro valor.
+    Runner:
+      type: object
+      additionalProperties: false
+      required: [id, givenName, familyName, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        givenName:
+          type: string
+        familyName:
+          type: string
+        status:
+          type: string
+          enum: [pending_activation]
+    InvitationAcceptanceCreation:
+      type: object
+      additionalProperties: false
+      required: [invitationId, secret, adultDeclarationConfirmed, password]
+      properties:
+        invitationId:
+          type: string
+          format: uuid
+        secret:
+          type: string
+          minLength: 1
+          description: Secreto de un solo uso enviado solo en el cuerpo HTTPS.
+        adultDeclarationConfirmed:
+          type: boolean
+          description: Debe ser true para continuar; el servidor rechaza cualquier otro valor.
+        password:
+          type: string
+          minLength: 12
+          maxLength: 128
+    InvitationAcceptance:
+      type: object
+      additionalProperties: false
+      required: [id, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [accepted]
     SessionCreation:
       type: object
       description: Credenciales presentadas para crear una sesión HTTP.
@@ -176,6 +297,14 @@ components:
       type: string
       format: date-time
   parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: UUID opaco que identifica una única solicitud de alta durante 24 horas.
     cursor:
       name: cursor
       in: query
@@ -189,6 +318,18 @@ components:
       schema:
         $ref: '#/components/schemas/PageLimit'
   requestBodies:
+    RunnerCreationRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RunnerCreation'
+    InvitationAcceptanceCreationRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InvitationAcceptanceCreation'
     SessionCreationRequest:
       description: Credenciales para crear una sesión HTTP.
       required: true
@@ -202,6 +343,16 @@ components:
                 email: runner.synthetic@example.invalid
                 password: <synthetic-password>
   headers:
+    RunnerLocation:
+      description: URI estable del corredor creado.
+      schema:
+        type: string
+        format: uri-reference
+    InvitationAcceptanceLocation:
+      description: URI estable de la aceptación registrada.
+      schema:
+        type: string
+        format: uri-reference
     CurrentSessionLocation:
       description: URI del recurso contextual que representa la sesión recién creada.
       schema:
@@ -224,6 +375,24 @@ components:
         role: corredor
         accountStatus: active
   responses:
+    RunnerCreatedResponse:
+      description: Corredor pendiente creado; no expone cuenta, correo ni secreto.
+      headers:
+        Location:
+          $ref: '#/components/headers/RunnerLocation'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Runner'
+    InvitationAcceptanceCreatedResponse:
+      description: Aceptación registrada y cuenta activada sin sesión automática.
+      headers:
+        Location:
+          $ref: '#/components/headers/InvitationAcceptanceLocation'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InvitationAcceptance'
     SessionCreatedResponse:
       description: Sesión creada y cookies de sesión y CSRF rotadas.
       headers:
@@ -314,6 +483,18 @@ components:
                 code: csrf_validation_failed
     NotFoundProblem:
       description: El recurso no existe o no es visible para el actor.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    RunnerCreationConflictProblem:
+      description: El correo está reservado o la clave de idempotencia se reutilizó con otro cuerpo.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    InvitationNotAvailableProblem:
+      description: La invitación no está disponible. No diferencia secreto, estado o caducidad.
       content:
         application/problem+json:
           schema:

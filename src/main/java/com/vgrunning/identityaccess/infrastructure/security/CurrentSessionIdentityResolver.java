@@ -8,16 +8,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /** Resuelve la identidad de sesión que Spring Security autenticó para la petición actual. */
 public final class CurrentSessionIdentityResolver {
 
-    /**
-     * Obtiene el principal propio de la sesión actual o rechaza una autenticación no compatible.
-     */
-    public SessionPrincipal current() {
-        Authentication authentication =
-                Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-                        .orElseThrow(AuthenticationRequiredException::new);
-        if (authentication.getPrincipal() instanceof SessionPrincipal session) {
-            return session;
-        }
-        throw new AuthenticationRequiredException();
+    /** Obtiene el principal técnico para los adaptadores HTTP del propio módulo. */
+    public SessionPrincipal currentSession() {
+        return findCurrentSession().orElseThrow(AuthenticationRequiredException::new);
+    }
+
+    /** Encuentra el principal de sesión cuando la petición ya fue autenticada. */
+    public Optional<SessionPrincipal> findCurrentSession() {
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Authentication::getPrincipal)
+                .filter(SessionPrincipal.class::isInstance)
+                .map(SessionPrincipal.class::cast);
     }
 }

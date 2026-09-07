@@ -1,59 +1,68 @@
 package com.vgrunning;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+import org.springframework.transaction.annotation.Transactional;
 
-/** Fitness functions de las fronteras de identidad definidas por ADR-0015. */
-@AnalyzeClasses(
-        packages = "com.vgrunning.identityaccess",
-        importOptions = ImportOption.DoNotIncludeTests.class)
-class IdentityAccessLayeringTest {
+/** Fitness functions de la arquitectura hexagonal para todos los módulos de negocio. */
+@AnalyzeClasses(packages = "com.vgrunning", importOptions = ImportOption.DoNotIncludeTests.class)
+class HexagonalLayeringTest {
 
     @ArchTest
     static final ArchRule applicationMustNotDependOnInfrastructureOrHttpSecurity =
             noClasses()
                     .that()
-                    .resideInAnyPackage("..identityaccess.application..")
+                    .resideInAnyPackage("..application..")
                     .should()
                     .dependOnClassesThat()
                     .resideInAnyPackage(
-                            "..identityaccess.infrastructure..",
+                            "..infrastructure..",
                             "jakarta.servlet..",
                             "org.jooq..",
                             "org.vgrunning.generated..")
                     .allowEmptyShould(false);
 
     @ArchTest
-    static final ArchRule domainMustNotDependOnApplicationOrOuterLayers =
+    static final ArchRule domainMustNotDependOnApplicationOrInfrastructure =
             noClasses()
                     .that()
-                    .resideInAnyPackage("..identityaccess.domain..")
+                    .resideInAnyPackage("..domain..")
                     .should()
                     .dependOnClassesThat()
-                    .resideInAnyPackage(
-                            "..identityaccess.application..", "..identityaccess.infrastructure..")
+                    .resideInAnyPackage("..application..", "..infrastructure..")
                     .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule infrastructureInputMustNotUseOutputPorts =
             noClasses()
                     .that()
-                    .resideInAnyPackage("..identityaccess.infrastructure.input..")
+                    .resideInAnyPackage("..infrastructure.input..")
                     .should()
                     .dependOnClassesThat()
-                    .resideInAnyPackage("..identityaccess.application.port.out..")
+                    .resideInAnyPackage("..application.port.out..")
                     .allowEmptyShould(false);
 
     @ArchTest
-    static final ArchRule applicationServicesMayUseOnlyTransactionalSpring =
+    static final ArchRule infrastructureOutputMustNotUseInputPorts =
             noClasses()
                     .that()
-                    .resideInAnyPackage("..identityaccess.application..")
+                    .resideInAnyPackage("..infrastructure.output..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage("..application.port.in..")
+                    .allowEmptyShould(false);
+
+    @ArchTest
+    static final ArchRule applicationMayNotDependOnFrameworksOrPersistence =
+            noClasses()
+                    .that()
+                    .resideInAnyPackage("..application..")
                     .should()
                     .dependOnClassesThat()
                     .resideInAnyPackage(
@@ -72,7 +81,7 @@ class IdentityAccessLayeringTest {
     static final ArchRule applicationMappersMustRemainPure =
             noClasses()
                     .that()
-                    .resideInAnyPackage("..identityaccess.application.mapper..")
+                    .resideInAnyPackage("..application.mapper..")
                     .should()
                     .dependOnClassesThat()
                     .resideInAnyPackage(
@@ -80,16 +89,14 @@ class IdentityAccessLayeringTest {
                             "jakarta.servlet..",
                             "org.jooq..",
                             "org.vgrunning.generated..",
-                            "..identityaccess.infrastructure..")
+                            "..infrastructure..")
                     .allowEmptyShould(false);
 
     @ArchTest
     static final ArchRule applicationPortsAreTopLevelInterfaces =
             classes()
                     .that()
-                    .resideInAnyPackage(
-                            "..identityaccess.application.port.in..",
-                            "..identityaccess.application.port.out..")
+                    .resideInAnyPackage("..application.port.in..", "..application.port.out..")
                     .and()
                     .areTopLevelClasses()
                     .should()
@@ -97,23 +104,20 @@ class IdentityAccessLayeringTest {
                     .allowEmptyShould(false);
 
     @ArchTest
+    static final ArchRule transactionalBoundariesAreApplicationServices =
+            methods()
+                    .that()
+                    .areAnnotatedWith(Transactional.class)
+                    .should()
+                    .beDeclaredInClassesThat()
+                    .resideInAnyPackage("..application.service..")
+                    .allowEmptyShould(false);
+
+    @ArchTest
     static final ArchRule noObsoletePackagesRemain =
             classes()
                     .should()
                     .resideOutsideOfPackages(
-                            "..identityaccess.adapter..",
-                            "..identityaccess.application.model..",
-                            "..identityaccess.application.usecase..",
-                            "..runnerportal.adapter..")
-                    .allowEmptyShould(false);
-
-    @ArchTest
-    static final ArchRule identityAccessMustNotUseSpringJdbcAsPersistenceAbstraction =
-            noClasses()
-                    .that()
-                    .resideInAnyPackage("..identityaccess..")
-                    .should()
-                    .dependOnClassesThat()
-                    .resideInAnyPackage("org.springframework.jdbc.core..")
+                            "..adapter..", "..application.model..", "..application.usecase..")
                     .allowEmptyShould(false);
 }

@@ -42,7 +42,7 @@ La API inicial no incluye `/v1` ni otro segmento de versión. Una incompatibilid
 
 | Evitar | Usar | Motivo |
 | --- | --- | --- |
-| `POST /api/auth/account-activations` | `PATCH /api/invitations/{invitationId}` | Se modifica el estado de una invitación real. |
+| `POST /api/auth/account-activations` | `POST /api/invitation-acceptances` | La aceptación conserva identidad, estado y consumo único; no es una acción oculta en una ruta. |
 | `POST /api/auth/password-resets` | `PATCH /api/accounts/{accountId}/credentials/current` | Se sustituye la credencial identificada. |
 | `POST /api/auth/email-change-confirmations` | `PATCH /api/accounts/{accountId}/email-addresses/{emailAddressId}` | Se verifica una dirección pendiente. |
 | `POST /api/auth/password-reset-requests` | `POST /api/access-challenges` | Se crea un desafío con estado y caducidad propios. |
