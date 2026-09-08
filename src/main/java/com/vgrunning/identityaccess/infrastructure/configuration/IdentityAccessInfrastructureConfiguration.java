@@ -6,17 +6,21 @@ import com.vgrunning.identityaccess.application.mapper.InvitationActivationMappe
 import com.vgrunning.identityaccess.application.port.in.AcceptInvitationUseCase;
 import com.vgrunning.identityaccess.application.port.in.AuthenticateCredentialsUseCase;
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
+import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationActivationPublisher;
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
 import com.vgrunning.identityaccess.application.port.out.InvitationRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
 import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository;
+import com.vgrunning.identityaccess.application.port.out.SecretGenerator;
 import com.vgrunning.identityaccess.application.service.AcceptInvitationService;
 import com.vgrunning.identityaccess.application.service.AuthenticateCredentialsService;
 import com.vgrunning.identityaccess.application.service.ProvisionRunnerAccountService;
 import com.vgrunning.identityaccess.infrastructure.output.event.SpringInvitationActivationPublisher;
 import com.vgrunning.identityaccess.infrastructure.security.AesGcmInvitationPayloadProtector;
 import com.vgrunning.identityaccess.infrastructure.security.Argon2PasswordHasher;
+import com.vgrunning.identityaccess.infrastructure.security.SecureRandomSecretGenerator;
+import com.vgrunning.identityaccess.infrastructure.security.Sha256DigestAdapter;
 import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
 import org.mapstruct.factory.Mappers;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -63,11 +67,24 @@ public class IdentityAccessInfrastructureConfiguration {
     }
 
     @Bean
+    DigestPort identityAccessDigestPort() {
+        return new Sha256DigestAdapter();
+    }
+
+    @Bean
+    SecretGenerator identityAccessSecretGenerator() {
+        return new SecureRandomSecretGenerator();
+    }
+
+    @Bean
     AccountProvisioningApi accountProvisioningApi(
             RunnerInvitationProvisioningRepository invitations,
             InvitationPayloadProtector protector,
-            NotificationRequestApi notifications) {
-        return new ProvisionRunnerAccountService(invitations, protector, notifications);
+            NotificationRequestApi notifications,
+            DigestPort digest,
+            SecretGenerator secrets) {
+        return new ProvisionRunnerAccountService(
+                invitations, protector, notifications, digest, secrets);
     }
 
     @Bean
@@ -75,9 +92,14 @@ public class IdentityAccessInfrastructureConfiguration {
             InvitationRepository invitations,
             InvitationActivationPublisher activationPublisher,
             PasswordHasher passwordHasher,
-            InvitationActivationMapper invitationActivationMapper) {
+            InvitationActivationMapper invitationActivationMapper,
+            DigestPort digest) {
         return new AcceptInvitationService(
-                invitations, activationPublisher, passwordHasher, invitationActivationMapper);
+                invitations,
+                activationPublisher,
+                passwordHasher,
+                invitationActivationMapper,
+                digest);
     }
 
     @Bean

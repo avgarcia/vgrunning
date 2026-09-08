@@ -4,12 +4,11 @@ import com.vgrunning.identityaccess.application.exception.InvalidInvitationAccep
 import com.vgrunning.identityaccess.application.exception.InvitationNotAvailableException;
 import com.vgrunning.identityaccess.application.mapper.InvitationActivationMapper;
 import com.vgrunning.identityaccess.application.port.in.AcceptInvitationUseCase;
+import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationActivationPublisher;
 import com.vgrunning.identityaccess.application.port.out.InvitationRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +21,7 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
     private final InvitationActivationPublisher activationPublisher;
     private final PasswordHasher passwords;
     private final InvitationActivationMapper mapper;
+    private final DigestPort digest;
 
     @Override
     @Transactional
@@ -36,7 +36,7 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
                 invitations
                         .findAvailable(command.invitationId())
                         .orElseThrow(InvitationNotAvailableException::new);
-        if (!MessageDigest.isEqual(invitation.getVerifier(), sha256(command.secret()))) {
+        if (!MessageDigest.isEqual(invitation.getVerifier(), digest.sha256(command.secret()))) {
             throw new InvitationNotAvailableException();
         }
         String password = Normalizer.normalize(command.password(), Normalizer.Form.NFC);
@@ -47,14 +47,5 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
         UUID acceptanceId = invitations.accept(invitation, passwords.hash(password), correlationId);
         activationPublisher.publish(mapper.toActivation(invitation, correlationId));
         return new AcceptedInvitation(acceptanceId, "accepted");
-    }
-
-    private static byte[] sha256(String value) {
-        try {
-            return MessageDigest.getInstance("SHA-256")
-                    .digest(value.getBytes(StandardCharsets.UTF_8));
-        } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException(exception);
-        }
     }
 }

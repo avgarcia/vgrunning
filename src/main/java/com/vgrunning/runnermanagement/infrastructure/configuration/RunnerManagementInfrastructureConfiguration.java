@@ -3,10 +3,12 @@ package com.vgrunning.runnermanagement.infrastructure.configuration;
 import com.vgrunning.identityaccess.api.provisioning.AccountProvisioningApi;
 import com.vgrunning.runnermanagement.application.port.in.ActivateRunnerUseCase;
 import com.vgrunning.runnermanagement.application.port.in.CreateRunnerUseCase;
+import com.vgrunning.runnermanagement.application.port.out.DigestPort;
 import com.vgrunning.runnermanagement.application.port.out.RunnerActivationRepository;
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository;
 import com.vgrunning.runnermanagement.application.service.ActivateRunnerService;
 import com.vgrunning.runnermanagement.application.service.CreateRunnerService;
+import com.vgrunning.runnermanagement.infrastructure.security.Sha256DigestAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,9 +16,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class RunnerManagementInfrastructureConfiguration {
     @Bean
+    DigestPort runnerManagementDigestPort() {
+        return new Sha256DigestAdapter();
+    }
+
+    @Bean
     CreateRunnerUseCase createRunnerUseCase(
-            AccountProvisioningApi accounts, RunnerCreationRepository runners) {
-        return new CreateRunnerService(accounts, runners);
+            AccountProvisioningApi accounts, RunnerCreationRepository runners, DigestPort digest) {
+        return new CreateRunnerService(accounts, runners, digest);
     }
 
     @Bean

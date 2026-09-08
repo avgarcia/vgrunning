@@ -4,17 +4,15 @@ import com.vgrunning.identityaccess.api.provisioning.AccountProvisioningApi;
 import com.vgrunning.identityaccess.api.provisioning.ProvisionRunnerAccount;
 import com.vgrunning.identityaccess.api.provisioning.ProvisionedRunnerAccount;
 import com.vgrunning.identityaccess.application.exception.InvitationProvisioningForbiddenException;
+import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
 import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository;
+import com.vgrunning.identityaccess.application.port.out.SecretGenerator;
 import com.vgrunning.identityaccess.domain.SealedPayload;
 import com.vgrunning.identityaccess.domain.account.valueobject.EmailAddress;
 import com.vgrunning.notificationdelivery.api.request.CreateNotificationRequest;
 import com.vgrunning.notificationdelivery.api.request.EncryptedValue;
 import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.SecureRandom;
-import java.util.Base64;
 import java.util.Locale;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 /** Crea la identidad pendiente y deja una solicitud de correo en la misma transacción. */
 @RequiredArgsConstructor
 public class ProvisionRunnerAccountService implements AccountProvisioningApi {
-    private static final SecureRandom RANDOM = new SecureRandom();
-
     private final RunnerInvitationProvisioningRepository invitations;
     private final InvitationPayloadProtector protector;
     private final NotificationRequestApi notifications;
+    private final DigestPort digest;
+    private final SecretGenerator secrets;
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
@@ -40,7 +38,7 @@ public class ProvisionRunnerAccountService implements AccountProvisioningApi {
         String presentationEmail = EmailAddress.presentationValue(command.email());
         UUID accountId = UUID.randomUUID();
         UUID invitationId = UUID.randomUUID();
-        String secret = secret();
+        String secret = secrets.generateUrlSafeSecret();
         ProvisionedRunnerAccount account =
                 invitations.provision(
                         new RunnerInvitationProvisioningRepository.PendingRunnerInvitation(
@@ -51,7 +49,7 @@ public class ProvisionRunnerAccountService implements AccountProvisioningApi {
                                 presentationEmail,
                                 email.canonicalValue(),
                                 command.actor().accountId(),
-                                sha256(secret),
+                                digest.sha256(secret),
                                 command.correlationId()));
         notifications.create(
                 new CreateNotificationRequest(
@@ -72,20 +70,5 @@ public class ProvisionRunnerAccountService implements AccountProvisioningApi {
 
     private static EncryptedValue toEncryptedValue(SealedPayload payload) {
         return new EncryptedValue(payload.keyId(), payload.nonce(), payload.ciphertext());
-    }
-
-    private static String secret() {
-        byte[] bytes = new byte[32];
-        RANDOM.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
-    private static byte[] sha256(String value) {
-        try {
-            return MessageDigest.getInstance("SHA-256")
-                    .digest(value.getBytes(StandardCharsets.UTF_8));
-        } catch (java.security.NoSuchAlgorithmException exception) {
-            throw new IllegalStateException(exception);
-        }
     }
 }

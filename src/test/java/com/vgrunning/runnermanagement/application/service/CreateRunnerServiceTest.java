@@ -11,8 +11,11 @@ import com.vgrunning.runnermanagement.application.exception.IdempotencyKeyReused
 import com.vgrunning.runnermanagement.application.exception.InvalidRunnerCreationException;
 import com.vgrunning.runnermanagement.application.exception.RunnerCreationForbiddenException;
 import com.vgrunning.runnermanagement.application.port.in.CreateRunnerUseCase.CreateRunner;
+import com.vgrunning.runnermanagement.application.port.out.DigestPort;
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository;
 import com.vgrunning.runnermanagement.domain.Runner;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
@@ -28,7 +31,7 @@ class CreateRunnerServiceTest {
     void createsAPendingRunnerForAnAdministrator() {
         AccountsFake accounts = new AccountsFake();
         RunnersFake runners = new RunnersFake();
-        CreateRunnerService service = new CreateRunnerService(accounts, runners);
+        CreateRunnerService service = new CreateRunnerService(accounts, runners, digest());
 
         Runner result =
                 service.create(
@@ -46,7 +49,7 @@ class CreateRunnerServiceTest {
     void refusesNonAdministratorsBeforeReservingAnything() {
         AccountsFake accounts = new AccountsFake();
         RunnersFake runners = new RunnersFake();
-        CreateRunnerService service = new CreateRunnerService(accounts, runners);
+        CreateRunnerService service = new CreateRunnerService(accounts, runners, digest());
 
         assertThatThrownBy(
                         () ->
@@ -64,7 +67,7 @@ class CreateRunnerServiceTest {
     void replaysTheSameRequestWithoutProvisioningAnotherAccount() {
         AccountsFake accounts = new AccountsFake();
         RunnersFake runners = new RunnersFake(ReservationMode.REPLAY);
-        CreateRunnerService service = new CreateRunnerService(accounts, runners);
+        CreateRunnerService service = new CreateRunnerService(accounts, runners, digest());
 
         Runner result =
                 service.create(
@@ -81,7 +84,7 @@ class CreateRunnerServiceTest {
     void rejectsAnIdempotencyKeyUsedForAnotherRequest() {
         AccountsFake accounts = new AccountsFake();
         RunnersFake runners = new RunnersFake(ReservationMode.CONFLICT);
-        CreateRunnerService service = new CreateRunnerService(accounts, runners);
+        CreateRunnerService service = new CreateRunnerService(accounts, runners, digest());
 
         assertThatThrownBy(
                         () ->
@@ -101,7 +104,7 @@ class CreateRunnerServiceTest {
     void rejectsInvalidRequestsBeforeReservingAnything() {
         AccountsFake accounts = new AccountsFake();
         RunnersFake runners = new RunnersFake();
-        CreateRunnerService service = new CreateRunnerService(accounts, runners);
+        CreateRunnerService service = new CreateRunnerService(accounts, runners, digest());
 
         assertThatThrownBy(
                         () ->
@@ -130,6 +133,17 @@ class CreateRunnerServiceTest {
                         InvalidRunnerCreationException.class,
                         exception -> assertThat(exception.code()).isEqualTo("invalid_request"));
         assertThat(runners.reserved).isFalse();
+    }
+
+    private static DigestPort digest() {
+        return value -> {
+            try {
+                return MessageDigest.getInstance("SHA-256")
+                        .digest(value.getBytes(StandardCharsets.UTF_8));
+            } catch (java.security.NoSuchAlgorithmException exception) {
+                throw new IllegalStateException(exception);
+            }
+        };
     }
 
     private static final class AccountsFake implements AccountProvisioningApi {

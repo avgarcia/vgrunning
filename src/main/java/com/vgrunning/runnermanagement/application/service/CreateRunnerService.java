@@ -8,10 +8,10 @@ import com.vgrunning.runnermanagement.application.exception.IdempotencyKeyReused
 import com.vgrunning.runnermanagement.application.exception.InvalidRunnerCreationException;
 import com.vgrunning.runnermanagement.application.exception.RunnerCreationForbiddenException;
 import com.vgrunning.runnermanagement.application.port.in.CreateRunnerUseCase;
+import com.vgrunning.runnermanagement.application.port.out.DigestPort;
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository;
 import com.vgrunning.runnermanagement.domain.Runner;
 import com.vgrunning.runnermanagement.domain.RunnerName;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.text.Normalizer;
 import java.util.Locale;
@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CreateRunnerService implements CreateRunnerUseCase {
     private final AccountProvisioningApi accounts;
     private final RunnerCreationRepository runners;
+    private final DigestPort digest;
 
     @Override
     @Transactional
@@ -95,18 +96,8 @@ public class CreateRunnerService implements CreateRunnerUseCase {
         return normalized;
     }
 
-    private static byte[] fingerprint(CreateRunner command) {
-        try {
-            return MessageDigest.getInstance("SHA-256")
-                    .digest(
-                            (command.givenName()
-                                            + "\n"
-                                            + command.familyName()
-                                            + "\n"
-                                            + command.email())
-                                    .getBytes(StandardCharsets.UTF_8));
-        } catch (java.security.NoSuchAlgorithmException exception) {
-            throw new IllegalStateException(exception);
-        }
+    private byte[] fingerprint(CreateRunner command) {
+        return digest.sha256(
+                command.givenName() + "\n" + command.familyName() + "\n" + command.email());
     }
 }

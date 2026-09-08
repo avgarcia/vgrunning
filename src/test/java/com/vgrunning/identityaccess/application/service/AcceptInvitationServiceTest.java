@@ -8,6 +8,7 @@ import com.vgrunning.identityaccess.application.exception.InvalidInvitationAccep
 import com.vgrunning.identityaccess.application.exception.InvitationNotAvailableException;
 import com.vgrunning.identityaccess.application.mapper.InvitationActivationMapper;
 import com.vgrunning.identityaccess.application.port.in.AcceptInvitationUseCase.AcceptInvitation;
+import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationActivationPublisher;
 import com.vgrunning.identityaccess.application.port.out.InvitationRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
@@ -33,7 +34,8 @@ class AcceptInvitationServiceTest {
         InvitationsFake invitations = new InvitationsFake(sha256("secret"));
         EventsFake events = new EventsFake();
         AcceptInvitationService service =
-                new AcceptInvitationService(invitations, events, passwords(), ACTIVATION_MAPPER);
+                new AcceptInvitationService(
+                        invitations, events, passwords(), ACTIVATION_MAPPER, digest());
 
         var accepted =
                 service.accept(
@@ -49,7 +51,7 @@ class AcceptInvitationServiceTest {
         InvitationsFake invitations = new InvitationsFake(sha256("secret"));
         AcceptInvitationService service =
                 new AcceptInvitationService(
-                        invitations, event -> {}, passwords(), ACTIVATION_MAPPER);
+                        invitations, event -> {}, passwords(), ACTIVATION_MAPPER, digest());
 
         assertThatThrownBy(
                         () ->
@@ -66,7 +68,8 @@ class AcceptInvitationServiceTest {
         unavailable.available = false;
         EventsFake events = new EventsFake();
         AcceptInvitationService unavailableService =
-                new AcceptInvitationService(unavailable, events, passwords(), ACTIVATION_MAPPER);
+                new AcceptInvitationService(
+                        unavailable, events, passwords(), ACTIVATION_MAPPER, digest());
 
         assertThatThrownBy(
                         () ->
@@ -78,7 +81,8 @@ class AcceptInvitationServiceTest {
 
         InvitationsFake mismatched = new InvitationsFake(sha256("secret"));
         AcceptInvitationService mismatchedService =
-                new AcceptInvitationService(mismatched, events, passwords(), ACTIVATION_MAPPER);
+                new AcceptInvitationService(
+                        mismatched, events, passwords(), ACTIVATION_MAPPER, digest());
 
         assertThatThrownBy(
                         () ->
@@ -94,7 +98,7 @@ class AcceptInvitationServiceTest {
         InvitationsFake invitations = new InvitationsFake(sha256("secret"));
         AcceptInvitationService service =
                 new AcceptInvitationService(
-                        invitations, event -> {}, passwords(), ACTIVATION_MAPPER);
+                        invitations, event -> {}, passwords(), ACTIVATION_MAPPER, digest());
 
         assertThatThrownBy(
                         () ->
@@ -124,6 +128,10 @@ class AcceptInvitationServiceTest {
         } catch (java.security.NoSuchAlgorithmException exception) {
             throw new IllegalStateException(exception);
         }
+    }
+
+    private static DigestPort digest() {
+        return AcceptInvitationServiceTest::sha256;
     }
 
     private static PasswordHasher passwords() {

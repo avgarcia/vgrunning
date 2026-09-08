@@ -7,11 +7,15 @@ import com.vgrunning.identityaccess.api.actor.ActorContext;
 import com.vgrunning.identityaccess.api.provisioning.ProvisionRunnerAccount;
 import com.vgrunning.identityaccess.api.provisioning.ProvisionedRunnerAccount;
 import com.vgrunning.identityaccess.application.exception.InvitationProvisioningForbiddenException;
+import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
 import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository;
+import com.vgrunning.identityaccess.application.port.out.SecretGenerator;
 import com.vgrunning.identityaccess.domain.SealedPayload;
 import com.vgrunning.notificationdelivery.api.request.CreateNotificationRequest;
 import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -28,7 +32,8 @@ class ProvisionRunnerAccountServiceTest {
         ProtectorFake protector = new ProtectorFake();
         NotificationsFake notifications = new NotificationsFake();
         ProvisionRunnerAccountService service =
-                new ProvisionRunnerAccountService(invitations, protector, notifications);
+                new ProvisionRunnerAccountService(
+                        invitations, protector, notifications, digest(), secrets());
 
         ProvisionedRunnerAccount account =
                 service.provision(
@@ -57,7 +62,8 @@ class ProvisionRunnerAccountServiceTest {
         InvitationsFake invitations = new InvitationsFake();
         NotificationsFake notifications = new NotificationsFake();
         ProvisionRunnerAccountService service =
-                new ProvisionRunnerAccountService(invitations, new ProtectorFake(), notifications);
+                new ProvisionRunnerAccountService(
+                        invitations, new ProtectorFake(), notifications, digest(), secrets());
 
         assertThatThrownBy(
                         () ->
@@ -75,6 +81,21 @@ class ProvisionRunnerAccountServiceTest {
                         });
         assertThat(invitations.invitation).isNull();
         assertThat(notifications.request).isNull();
+    }
+
+    private static DigestPort digest() {
+        return value -> {
+            try {
+                return MessageDigest.getInstance("SHA-256")
+                        .digest(value.getBytes(StandardCharsets.UTF_8));
+            } catch (java.security.NoSuchAlgorithmException exception) {
+                throw new IllegalStateException(exception);
+            }
+        };
+    }
+
+    private static SecretGenerator secrets() {
+        return () -> "test-secret";
     }
 
     private static final class InvitationsFake implements RunnerInvitationProvisioningRepository {
