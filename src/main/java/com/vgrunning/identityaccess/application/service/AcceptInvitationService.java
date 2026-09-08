@@ -36,7 +36,7 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
                 invitations
                         .findAvailable(command.invitationId())
                         .orElseThrow(InvitationNotAvailableException::new);
-        if (!MessageDigest.isEqual(invitation.getVerifier(), digest.sha256(command.secret()))) {
+        if (!MessageDigest.isEqual(invitation.verifier(), digest.sha256(command.secret()))) {
             throw new InvitationNotAvailableException();
         }
         String password = Normalizer.normalize(command.password(), Normalizer.Form.NFC);
