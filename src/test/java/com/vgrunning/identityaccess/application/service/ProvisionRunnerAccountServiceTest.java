@@ -7,6 +7,7 @@ import com.vgrunning.identityaccess.api.actor.ActorContext;
 import com.vgrunning.identityaccess.api.provisioning.ProvisionRunnerAccount;
 import com.vgrunning.identityaccess.api.provisioning.ProvisionedRunnerAccount;
 import com.vgrunning.identityaccess.application.exception.InvitationProvisioningForbiddenException;
+import com.vgrunning.identityaccess.application.port.out.ActivationLinkFactory;
 import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
 import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository;
@@ -33,7 +34,12 @@ class ProvisionRunnerAccountServiceTest {
         NotificationsFake notifications = new NotificationsFake();
         ProvisionRunnerAccountService service =
                 new ProvisionRunnerAccountService(
-                        invitations, protector, notifications, digest(), secrets());
+                        invitations,
+                        protector,
+                        notifications,
+                        digest(),
+                        secrets(),
+                        activationLinks());
 
         ProvisionedRunnerAccount account =
                 service.provision(
@@ -63,7 +69,12 @@ class ProvisionRunnerAccountServiceTest {
         NotificationsFake notifications = new NotificationsFake();
         ProvisionRunnerAccountService service =
                 new ProvisionRunnerAccountService(
-                        invitations, new ProtectorFake(), notifications, digest(), secrets());
+                        invitations,
+                        new ProtectorFake(),
+                        notifications,
+                        digest(),
+                        secrets(),
+                        activationLinks());
 
         assertThatThrownBy(
                         () ->
@@ -96,6 +107,10 @@ class ProvisionRunnerAccountServiceTest {
 
     private static SecretGenerator secrets() {
         return () -> "test-secret";
+    }
+
+    private static ActivationLinkFactory activationLinks() {
+        return (invitationId, secret) -> "/activar#i=" + invitationId + "&s=" + secret;
     }
 
     private static final class InvitationsFake implements RunnerInvitationProvisioningRepository {

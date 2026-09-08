@@ -4,6 +4,7 @@ import com.vgrunning.identityaccess.api.provisioning.AccountProvisioningApi;
 import com.vgrunning.identityaccess.api.provisioning.ProvisionRunnerAccount;
 import com.vgrunning.identityaccess.api.provisioning.ProvisionedRunnerAccount;
 import com.vgrunning.identityaccess.application.exception.InvitationProvisioningForbiddenException;
+import com.vgrunning.identityaccess.application.port.out.ActivationLinkFactory;
 import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
 import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository;
@@ -13,7 +14,6 @@ import com.vgrunning.identityaccess.domain.account.valueobject.EmailAddress;
 import com.vgrunning.notificationdelivery.api.request.CreateNotificationRequest;
 import com.vgrunning.notificationdelivery.api.request.EncryptedValue;
 import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
-import java.util.Locale;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Propagation;
@@ -27,6 +27,7 @@ public class ProvisionRunnerAccountService implements AccountProvisioningApi {
     private final NotificationRequestApi notifications;
     private final DigestPort digest;
     private final SecretGenerator secrets;
+    private final ActivationLinkFactory activationLinks;
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
@@ -59,11 +60,7 @@ public class ProvisionRunnerAccountService implements AccountProvisioningApi {
                         toEncryptedValue(protector.protect(presentationEmail)),
                         toEncryptedValue(
                                 protector.protect(
-                                        String.format(
-                                                Locale.ROOT,
-                                                "/activar#i=%s&s=%s",
-                                                invitationId,
-                                                secret))),
+                                        activationLinks.activationFragment(invitationId, secret))),
                         command.correlationId()));
         return account;
     }

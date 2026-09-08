@@ -6,6 +6,7 @@ import com.vgrunning.identityaccess.application.mapper.InvitationActivationMappe
 import com.vgrunning.identityaccess.application.port.in.AcceptInvitationUseCase;
 import com.vgrunning.identityaccess.application.port.in.AuthenticateCredentialsUseCase;
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
+import com.vgrunning.identityaccess.application.port.out.ActivationLinkFactory;
 import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationActivationPublisher;
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
@@ -17,6 +18,7 @@ import com.vgrunning.identityaccess.application.service.AcceptInvitationService;
 import com.vgrunning.identityaccess.application.service.AuthenticateCredentialsService;
 import com.vgrunning.identityaccess.application.service.ProvisionRunnerAccountService;
 import com.vgrunning.identityaccess.infrastructure.output.event.SpringInvitationActivationPublisher;
+import com.vgrunning.identityaccess.infrastructure.output.provider.ActivationRouteLinkFactory;
 import com.vgrunning.identityaccess.infrastructure.security.AesGcmInvitationPayloadProtector;
 import com.vgrunning.identityaccess.infrastructure.security.Argon2PasswordHasher;
 import com.vgrunning.identityaccess.infrastructure.security.SecureRandomSecretGenerator;
@@ -77,14 +79,20 @@ public class IdentityAccessInfrastructureConfiguration {
     }
 
     @Bean
+    ActivationLinkFactory activationLinkFactory() {
+        return new ActivationRouteLinkFactory();
+    }
+
+    @Bean
     AccountProvisioningApi accountProvisioningApi(
             RunnerInvitationProvisioningRepository invitations,
             InvitationPayloadProtector protector,
             NotificationRequestApi notifications,
             DigestPort digest,
-            SecretGenerator secrets) {
+            SecretGenerator secrets,
+            ActivationLinkFactory activationLinks) {
         return new ProvisionRunnerAccountService(
-                invitations, protector, notifications, digest, secrets);
+                invitations, protector, notifications, digest, secrets, activationLinks);
     }
 
     @Bean
