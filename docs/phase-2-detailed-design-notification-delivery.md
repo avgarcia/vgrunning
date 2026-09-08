@@ -95,7 +95,7 @@ Quedan fuera:
 | Allowlist | Los rangos de origen de Brevo pueden cambiar. | Alta | Configuración operativa actualizable y Bearer obligatorio aunque la allowlist esté correcta. |
 | Respuestas al correo | El club mantendrá atendido el buzón configurado como `Reply-To`. | Media | Es requisito operativo previo a producción; un buzón no monitorizado invalida esta decisión y deberá sustituirse por `no-reply`. |
 | Entrega física | Brevo y el servidor receptor pueden aceptar un mensaje que la persona no llegue a leer. | Alta | `entregado` significa recepción por servidor, nunca lectura. |
-| `idempotencyKey` en envío individual | La documentación de Brevo describe esa clave bajo el envío por lotes; su efecto de deduplicación real (no solo correlación) en `POST /v3/smtp/email` no está confirmado por prueba propia. | Media | Validar con prueba sintética antes de habilitar producción (`ADR-0031`). Si solo correlacionase, la reconciliación pasa a política de fallo cerrado: resultado incierto cierra como `fallo-definitivo/resultado-desconocido` sin reintento. |
+| `idempotencyKey` en envío individual | La guía de idempotencia de Brevo documenta, con ejemplo `curl` contra `POST /v3/smtp/email`, que repetir el header `idempotencyKey` dentro de un TTL de `30` minutos devuelve un error `duplicate_parameter` en vez de procesar la solicitud; la referencia formal del endpoint no confirma ese comportamiento ni su código HTTP exacto. Queda por confirmar con prueba propia si ese error se emite *antes* de encolar un segundo envío físico (deduplicación real) o solo lo detecta después. | Media | Validar con prueba sintética antes de habilitar producción (`ADR-0031`). Si el envío físico duplicado ocurre igualmente, la reconciliación pasa a política de fallo cerrado: resultado incierto cierra como `fallo-definitivo/resultado-desconocido` sin reintento. |
 
 ## Lenguaje ubicuo
 
@@ -305,7 +305,7 @@ Resultado explícito:
 Timeout, `408`, `5xx` o pérdida de conexión después de transmitir producen `resultado-incierto`. La reconciliación se apoya en el `idempotencyKey` de Brevo en lugar de en una ventana de búsqueda activa por referencia:
 
 - se reintenta con la **misma clave de idempotencia** en el bucle ordinario de backoff mientras `now() < first_transmit_at + 30 minutos` — si Brevo suprime el duplicado físico (ver la incertidumbre declarada en *Supuestos e incertidumbres*), la repetición no crea un segundo envío;
-- una respuesta de clave duplicada confirma `aceptado-proveedor`, igual que en el diseño anterior;
+- una respuesta de error `duplicate_parameter` (documentada por Brevo para una clave repetida dentro del TTL, aunque no en la referencia formal del endpoint) se interpreta como `aceptado-proveedor`, no como fallo; el adaptador debe distinguir ese código concreto de un error real, y el valor exacto del código HTTP queda pendiente de confirmar con la prueba sintética;
 - cerrada la ventana de 30 minutos sin respuesta concluyente, termina como `fallo-definitivo/resultado-desconocido` y alerta; no se reenvía después, porque la clave de idempotencia ya habría caducado y el duplicado dejaría de estar controlado.
 
 Si la prueba sintética pendiente (ver *Supuestos e incertidumbres*) confirma que `idempotencyKey` en `POST /v3/smtp/email` solo correlaciona sin suprimir el envío físico, esta política pasa a ser de **fallo cerrado**: un resultado incierto se cierra directamente como `fallo-definitivo/resultado-desconocido` con alerta, sin reintentar, para no arriesgar un duplicado no controlado.
