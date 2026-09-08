@@ -1,5 +1,6 @@
 package com.vgrunning.runnermanagement.application.port.out;
 
+import com.vgrunning.runnermanagement.domain.Runner;
 import java.beans.ConstructorProperties;
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -7,20 +8,18 @@ import java.util.UUID;
 
 /** Puerto de persistencia de perfil, auditoría e idempotencia del alta. */
 public interface RunnerCreationRepository {
-    Reservation reserve(UUID administratorId, UUID idempotencyKey, byte[] fingerprint);
+    Optional<StoredCreation> reserve(UUID administratorId, UUID idempotencyKey, byte[] fingerprint);
 
-    StoredRunner create(NewRunner runner);
+    Runner create(NewRunner runner);
 
-    void complete(UUID administratorId, UUID idempotencyKey, StoredRunner runner);
-
-    record Reservation(Optional<StoredCreation> existing) {}
+    void complete(UUID administratorId, UUID idempotencyKey, Runner runner);
 
     final class StoredCreation {
         private final byte[] fingerprint;
-        private final StoredRunner runner;
+        private final Runner runner;
 
         @ConstructorProperties({"fingerprint", "runner"})
-        public StoredCreation(byte[] fingerprint, StoredRunner runner) {
+        public StoredCreation(byte[] fingerprint, Runner runner) {
             this.fingerprint = java.util.Objects.requireNonNull(fingerprint).clone();
             this.runner = java.util.Objects.requireNonNull(runner);
         }
@@ -29,12 +28,10 @@ public interface RunnerCreationRepository {
             return fingerprint.clone();
         }
 
-        public StoredRunner runner() {
+        public Runner runner() {
             return runner;
         }
     }
-
-    record StoredRunner(UUID id, String givenName, String familyName, String status) {}
 
     record NewRunner(
             UUID runnerId,

@@ -12,7 +12,6 @@ import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
-import java.text.Normalizer;
 import java.util.Base64;
 import java.util.Locale;
 import java.util.UUID;
@@ -33,8 +32,7 @@ public class ProvisionRunnerAccountService implements AccountProvisioningApi {
             throw new InvitationProvisioningForbiddenException();
         }
         EmailAddress email = EmailAddress.from(command.email());
-        String presentationEmail =
-                Normalizer.normalize(command.email().strip(), Normalizer.Form.NFC);
+        String presentationEmail = EmailAddress.presentationValue(command.email());
         UUID accountId = UUID.randomUUID();
         UUID invitationId = UUID.randomUUID();
         String secret = secret();

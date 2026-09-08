@@ -2,7 +2,7 @@ package com.vgrunning.runnermanagement.infrastructure.output.persistence.jooq;
 
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository.NewRunner;
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository.StoredCreation;
-import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository.StoredRunner;
+import com.vgrunning.runnermanagement.domain.Runner;
 import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -25,7 +25,7 @@ public interface RunnerPersistenceMapper {
     @Mapping(target = "givenName", source = "givenName", qualifiedByName = "required")
     @Mapping(target = "familyName", source = "familyName", qualifiedByName = "required")
     @Mapping(target = "status", source = "status", qualifiedByName = "required")
-    StoredRunner toStoredRunner(RunnerRecord runner);
+    Runner toDomain(RunnerRecord runner);
 
     @Mapping(
             target = "fingerprint",
@@ -33,7 +33,7 @@ public interface RunnerPersistenceMapper {
     @Mapping(
             target = "runner",
             expression =
-                    "java(java.util.Objects.requireNonNull(toStoredRunner(java.util.Objects.requireNonNull(runner))))")
+                    "java(java.util.Objects.requireNonNull(toDomain(java.util.Objects.requireNonNull(runner))))")
     StoredCreation toStoredCreation(byte[] fingerprint, RunnerRecord runner);
 
     @Named("required")
