@@ -6,8 +6,10 @@ import com.vgrunning.identityaccess.api.provisioning.ProvisionedRunnerAccount;
 import com.vgrunning.identityaccess.application.exception.InvitationProvisioningForbiddenException;
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
 import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository;
+import com.vgrunning.identityaccess.domain.SealedPayload;
 import com.vgrunning.identityaccess.domain.account.valueobject.EmailAddress;
 import com.vgrunning.notificationdelivery.api.request.CreateNotificationRequest;
+import com.vgrunning.notificationdelivery.api.request.EncryptedValue;
 import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -16,6 +18,8 @@ import java.util.Base64;
 import java.util.Locale;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Crea la identidad pendiente y deja una solicitud de correo en la misma transacción. */
 @RequiredArgsConstructor
@@ -27,6 +31,7 @@ public class ProvisionRunnerAccountService implements AccountProvisioningApi {
     private final NotificationRequestApi notifications;
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public ProvisionedRunnerAccount provision(ProvisionRunnerAccount command) {
         if (!command.actor().isAdministrator()) {
             throw new InvitationProvisioningForbiddenException();
@@ -53,12 +58,20 @@ public class ProvisionRunnerAccountService implements AccountProvisioningApi {
                         UUID.randomUUID(),
                         "invitation:" + invitationId,
                         invitationId,
-                        protector.protect(presentationEmail),
-                        protector.protect(
-                                String.format(
-                                        Locale.ROOT, "/activar#i=%s&s=%s", invitationId, secret)),
+                        toEncryptedValue(protector.protect(presentationEmail)),
+                        toEncryptedValue(
+                                protector.protect(
+                                        String.format(
+                                                Locale.ROOT,
+                                                "/activar#i=%s&s=%s",
+                                                invitationId,
+                                                secret))),
                         command.correlationId()));
         return account;
+    }
+
+    private static EncryptedValue toEncryptedValue(SealedPayload payload) {
+        return new EncryptedValue(payload.keyId(), payload.nonce(), payload.ciphertext());
     }
 
     private static String secret() {

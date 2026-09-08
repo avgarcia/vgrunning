@@ -9,8 +9,8 @@ import com.vgrunning.identityaccess.api.provisioning.ProvisionedRunnerAccount;
 import com.vgrunning.identityaccess.application.exception.InvitationProvisioningForbiddenException;
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
 import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository;
+import com.vgrunning.identityaccess.domain.SealedPayload;
 import com.vgrunning.notificationdelivery.api.request.CreateNotificationRequest;
-import com.vgrunning.notificationdelivery.api.request.EncryptedValue;
 import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -94,9 +94,9 @@ class ProvisionRunnerAccountServiceTest {
         private final List<String> values = new ArrayList<>();
 
         @Override
-        public EncryptedValue protect(String value) {
+        public SealedPayload protect(String value) {
             values.add(value);
-            return new EncryptedValue("test", new byte[] {1}, new byte[] {2});
+            return new SealedPayload("test", new byte[] {1}, new byte[] {2});
         }
     }
 

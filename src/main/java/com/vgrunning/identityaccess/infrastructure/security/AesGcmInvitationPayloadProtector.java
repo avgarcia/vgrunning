@@ -1,7 +1,7 @@
 package com.vgrunning.identityaccess.infrastructure.security;
 
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
-import com.vgrunning.notificationdelivery.api.request.EncryptedValue;
+import com.vgrunning.identityaccess.domain.SealedPayload;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
@@ -27,13 +27,13 @@ public final class AesGcmInvitationPayloadProtector implements InvitationPayload
     }
 
     @Override
-    public EncryptedValue protect(String plaintext) {
+    public SealedPayload protect(String plaintext) {
         byte[] nonce = new byte[NONCE_LENGTH];
         RANDOM.nextBytes(nonce);
         try {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(TAG_LENGTH, nonce));
-            return new EncryptedValue(
+            return new SealedPayload(
                     "local-v1", nonce, cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8)));
         } catch (GeneralSecurityException exception) {
             throw new IllegalStateException("No se ha podido cifrar la invitación.", exception);
