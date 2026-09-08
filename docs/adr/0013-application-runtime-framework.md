@@ -3,7 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
-**Refinado parcialmente por:** [ADR-0024](0024-hybrid-validation-ai-authority.md) — Aceptado; estrategia de activación y autoridad de validación, sin cambio de umbrales ni herramientas; [ADR-0025](0025-spring-session-jdbc-local-login-rate-limit.md) — Propuesto; sustituye el repositorio propio de sesiones por Spring Session JDBC y concreta Bucket4j local.
+**Refinado parcialmente por:** [ADR-0024](0024-hybrid-validation-ai-authority.md) — Aceptado; estrategia de activación y autoridad de validación, sin cambio de umbrales ni herramientas; [ADR-0025](0025-spring-session-jdbc-local-login-rate-limit.md) — Aceptado; sustituye el repositorio propio de sesiones por Spring Session JDBC y concreta Bucket4j local.
 
 ## Contexto
 
@@ -62,6 +62,8 @@ El build validará la especificación, regenerará ambos extremos y fallará si 
 ### Seguridad y sesiones
 
 Spring Security para aplicaciones servlet materializará autenticación, cookies, CSRF y cabeceras. Un repositorio propio de sesiones opacas persistirá mediante jOOQ/JDBC exclusivamente el verificador y los metadatos definidos por `ADR-0003`; no se usará una sesión HTTP en memoria como fuente de verdad.
+
+*Derogado por `ADR-0025` (Aceptado): Spring Session JDBC sustituye el repositorio propio de sesiones; Spring Security y Argon2id, descritos a continuación, no cambian.*
 
 Argon2id se configurará explícitamente con al menos `19 MiB`, `2` iteraciones y paralelismo `1`; no se aceptarán valores por defecto inferiores. Su coste se medirá en el entorno objetivo y los límites de intentos protegerán la capacidad del servidor.
 

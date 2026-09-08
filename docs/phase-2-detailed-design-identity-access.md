@@ -24,12 +24,12 @@ Este diseño cubre completamente `RF-01` y la parte de cuentas y roles de `RF-02
 - `ADR-0015`: aplicación de autorización y `ActorContext` explícito.
 - `ADR-0016`: secretos, observabilidad, copias y operación en Azure.
 - `ADR-0017`: API HTTP orientada a recursos y semántica REST.
-- `ADR-0018` (Aceptado): ciclo de vida del perfil, caducidad total del alta de corredor, inactividad, reactivación y retención posterior.
-- `ADR-0025` (Propuesto): Spring Session JDBC y Bucket4j local para la topología inicial de un nodo.
-- `ADR-0026` (Aceptado): paquetería hexagonal con entradas, salidas y framework bajo infraestructura.
+- `ADR-0018`: ciclo de vida del perfil, caducidad total del alta de corredor, inactividad, reactivación y retención posterior.
+- `ADR-0025`: Spring Session JDBC y Bucket4j local para la topología inicial de un nodo.
+- `ADR-0026`: paquetería hexagonal con entradas, salidas y framework bajo infraestructura.
 - [Guía de diseño de API HTTP](api-design-guidelines.md).
 
-Si este documento contradice una fuente aceptada, prevalece el ADR o la línea base y deberá corregirse el diseño antes de implementar.
+Este documento no anota el estado de cada ADR: `docs/adr/README.md` es la única fuente de estados y relaciones de refinamiento, y se actualiza cuando un ADR cambia. Si este documento contradice una fuente aceptada, prevalece el ADR o la línea base y deberá corregirse el diseño antes de implementar.
 
 ## Razonamiento de diseño
 
