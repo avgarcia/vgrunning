@@ -3,7 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-14
 **Responsable de revisión:** Revisor de arquitectura
-**Refinado parcialmente por:** [ADR-0023](0023-recovery-objectives-independent-key-custody.md)
+**Refinado parcialmente por:** [ADR-0023](0023-recovery-objectives-independent-key-custody.md) y [ADR-0031](0031-notification-delivery-provider-delegation.md)
 
 ## Contexto
 

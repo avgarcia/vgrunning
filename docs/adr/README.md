@@ -63,6 +63,9 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0026](0026-hexagonal-packaging-under-infrastructure.md) | Paquetería hexagonal bajo infraestructura | Aceptado | Todos los `RF` |
 | [ADR-0027](0027-login-attempt-consumption-policy.md) | Consumo de todos los intentos de inicio de sesión | Aceptado | `RF-01`, `RF-02`, `RF-16`, `RF-18`, `RF-19` |
 | [ADR-0028](0028-mapstruct-mapping-boundaries.md) | MapStruct en las fronteras de representaciones | Aceptado | Todos los `RF` implementados mediante contratos HTTP o persistencia |
+| ADR-0029 | *(número quemado)* CQRS para queries de solo lectura | Descartado | — Un borrador se descartó antes de mergear; su regla útil se incorpora como refinamiento en `ADR-0030`. El número no se reutiliza para evitar confundir dos decisiones distintas si se consulta una rama que aún lo referencie. |
+| [ADR-0030](0030-publication-jsonb-snapshot-model.md) | Instantáneas de publicación en JSONB y modelo relacional mínimo | Aceptado | `RF-08` a `RF-10`, `RF-14` a `RF-16`, `RF-20`, `RF-21` |
+| [ADR-0031](0031-notification-delivery-provider-delegation.md) | Delegación de supresión, eventos y operación en el proveedor de correo | Aceptado | `RF-01`, `RF-15`, `RF-20` |
 
 ## Relaciones de refinamiento
 
@@ -84,7 +87,14 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | `ADR-0014` | `ADR-0026` | Reúne adaptadores de entrada y salida bajo infraestructura, reserva `application.port` para interfaces, mantiene `api` como contrato intermodular y elimina `application.model`. |
 | `ADR-0025` | `ADR-0027` | Sustituye el conteo de fallos por el consumo de todos los intentos válidos de login en ambos buckets locales. |
 | `ADR-0026` | `ADR-0028` | Añade `application.mapper` para MapStruct puro y obliga a usar MapStruct en conversiones entre representaciones. |
+| `ADR-0007` | `ADR-0030` | Sustituye el modelo relacional completo de instantáneas (9 tablas) por 3 tablas más un documento `JSONB` para el contenido congelado; la congelación de destinatarios en la primera publicación y la inmutabilidad de versiones siguen vigentes. |
+| `ADR-0012` | `ADR-0030` | Concreta qué invariantes de `publication` se expresan como restricción física (unicidad de plan, versión, destinatario) y cuáles pasan a validación de código; la estrategia transaccional general sigue vigente. |
+| `ADR-0021` | `ADR-0030` | El `ETag` deja de ser una columna de revisión propia y pasa a derivarse de `active_version_number`, resuelto mediante una sentencia CAS; miembro efectivo, miembro elegible y `omitido-inactivo` siguen vigentes. |
+| `ADR-0010` | `ADR-0031` | Retira el tratamiento de la huella HMAC de supresión y su bloqueante de producción; la supresión pasa a ser responsabilidad del proveedor de correo como encargado del tratamiento. |
+| `ADR-0011` | `ADR-0031` | Sustituye supresión local, inbox de eventos, ledger de transiciones, pausa persistida y cuatro calendarios de reintento por delegación en el proveedor, proyección directa, circuit breaker en memoria y backoff único; la creación transaccional, prioridad y orden siguen vigentes. |
+| `ADR-0012` | `ADR-0031` | Retira de `notification-delivery` la coordinación de inbox y ledger; lease y `SKIP LOCKED` siguen vigentes. |
+| `ADR-0016` | `ADR-0031` | Reduce el alcance de Key Vault en este módulo a la clave del payload, la API key de Brevo y el Bearer del webhook; retira la rotación de clave HMAC. |
 
 ## Resultado del backlog inicial de Fase 2
 
-El backlog inicial y la auditoría H-01 a H-20 se materializan en `ADR-0001` a `ADR-0023`, todos aceptados. `ADR-0024` es una decisión posterior aceptada que refina la estrategia de validación técnica sin sustituir los umbrales ni herramientas de `ADR-0013`. Una decisión arquitectónica nueva o contradictoria deberá abrir otro ADR a partir de evidencia; no se resolverá implícitamente durante la implementación.
+El backlog inicial y la auditoría H-01 a H-20 se materializan en `ADR-0001` a `ADR-0023`, todos aceptados. `ADR-0024` a `ADR-0028` son decisiones posteriores aceptadas que refinan implementación, sesión, paquetería y mapeo sin sustituir los umbrales, herramientas ni el mapa modular de sus ADR base. `ADR-0029` fue descartado antes de mergear y su número no se reutiliza. `ADR-0030` y `ADR-0031` refinan el modelo persistente de `publication` y `notification-delivery` antes de su implementación, aprovechando que ninguno de los dos módulos tiene código ni migraciones propias más allá de una tabla. Una decisión arquitectónica nueva o contradictoria deberá abrir otro ADR a partir de evidencia; no se resolverá implícitamente durante la implementación.
