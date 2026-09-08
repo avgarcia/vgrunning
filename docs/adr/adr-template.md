@@ -2,6 +2,7 @@
 
 **Estado:** Propuesto
 **Fecha:** YYYY-MM-DD
+**Fecha de aceptación:** YYYY-MM-DD — omitir si coincide con `Fecha`; incluir solo cuando la aceptación ocurre en una fecha distinta a la de propuesta
 **Responsable de revisión:** Revisor de arquitectura
 **Refina parcialmente:** ADR-NNNN — sustituir por un enlace y omitir si no aplica
 **Refinado parcialmente por:** ADR-NNNN — sustituir por un enlace y omitir si no aplica

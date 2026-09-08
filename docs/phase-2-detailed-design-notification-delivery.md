@@ -126,7 +126,7 @@ En código, OpenAPI y persistencia se usarán `notification request` y `delivery
 
 `identity-access` decide cuándo existen invitación, reactivación, recuperación, cambio de correo o aviso de seguridad. Entrega el tipo, la generación vigente, el destino y el payload mínimo, pero no accede al esquema de notificaciones.
 
-`publication` decide cuándo existe una publicación o republicación, crea una solicitud por miembro efectivo sin copiar su correo y aporta el contenido aprobado. También implementa el puerto de elegibilidad definido por `notification-delivery`, consulta conjuntamente estado y correo vigente mediante `runner-management` y devuelve un resultado cerrado; entrega no importa módulos de negocio.
+`publication` decide cuándo existe una publicación o republicación, crea una solicitud por miembro efectivo de la publicación sin copiar su correo y aporta el contenido aprobado. También implementa el puerto de elegibilidad definido por `notification-delivery`, consulta conjuntamente estado y correo vigente mediante `runner-management` y devuelve un resultado cerrado; entrega no importa módulos de negocio.
 
 La dependencia queda:
 
@@ -379,7 +379,7 @@ DeliveryEligibilityPolicy
   evaluate(requestContext) -> eligible(currentVerifiedEmail) | ineligible | retry-later
 ```
 
-`NotificationCommand` es una jerarquía cerrada por tipo. Los comandos de identidad contienen clave lógica, origen opaco, destino, plantilla, payload mínimo y caducidad; los de publicación contienen miembro efectivo y orden, pero no destino. El consumidor no elige prioridad, estado, reintentos, idempotencia ni nombres de plantilla arbitrarios.
+`NotificationCommand` es una jerarquía cerrada por tipo. Los comandos de identidad contienen clave lógica, origen opaco, destino, plantilla, payload mínimo y caducidad; los de publicación contienen miembro efectivo de la publicación y orden, pero no destino. El consumidor no elige prioridad, estado, reintentos, idempotencia ni nombres de plantilla arbitrarios.
 
 Los contratos no exponen entidades, tablas, jOOQ, tipos de Brevo, cuerpos renderizados, secretos descifrados, referencia de mensaje ni estado técnico a módulos de producto.
 

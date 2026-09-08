@@ -2,7 +2,7 @@
 
 **Estado:** Validado — Fase 1 cerrada
 **Fecha:** 2026-08-10
-**Última actualización:** 2026-08-24 — decisiones H-01 a H-20 de la auditoría documental incorporadas para nueva revisión
+**Última actualización:** 2026-09-08 — decisiones H-01 a H-20 de la auditoría documental incorporadas para nueva revisión; ajustes de coherencia del plan de corrección (sesión, SLA, RF-12, supuesto de escala)
 
 ## Actores y permisos
 
@@ -29,7 +29,7 @@ El corredor solo accede a sus propios datos mientras permanece `active`. El admi
 - **RF-09.** Publicación atómica del plan semanal: todos sus entrenamientos se hacen visibles a la vez.
 - **RF-10.** Registro de la versión publicada y de los destinatarios efectivos de cada publicación, para conservar trazabilidad si cambian las etiquetas, segmentos o asignaciones posteriores.
 - **RF-11.** Catálogo de entrenamientos: rodaje, tirada larga, series, cambios de ritmo/fartlek, cuestas y carrera/test.
-- **RF-12.** Objetivos por frecuencia cardiaca o ritmo relativo al corredor, según el tipo de entrenamiento, y texto libre de aclaraciones. La aplicación representa `Z1..Z5` o una distancia y desviación relativas a las referencias externas acordadas entre corredor y entrenador; no almacena, calcula ni valida zonas, marcas o ritmos personales y no bloquea la publicación si el corredor desconoce esa referencia.
+- **RF-12.** Objetivos por zona de esfuerzo (`Z1..Z5`) o ritmo relativo al corredor, según el tipo de entrenamiento, y texto libre de aclaraciones. La aplicación representa `Z1..Z5` o una distancia y desviación relativas a las referencias externas acordadas entre corredor y entrenador; **no captura, almacena, calcula ni valida frecuencia cardiaca ni ningún otro dato deportivo o de salud personal**, y no bloquea la publicación si el corredor desconoce esa referencia.
 - **RF-13.** Lugar de encuentro opcional e informativo en entrenamientos presenciales. Su ausencia no bloquea guardado ni publicación, queda diferenciada de un lugar informado y nunca se completa desde otro entrenamiento.
 - **RF-14.** Estados del plan: borrador y publicado.
 - **RF-15.** Administrador o entrenador puede editar uno o varios entrenamientos futuros de un plan publicado mediante una única republicación atómica; el entrenamiento de hoy y los anteriores permanecen inmutables. Se considera cambio relevante cualquier diferencia canónica visible para el corredor en entrenamientos futuros: alta o retirada de un día, modalidad, estructura, carga, objetivo, recuperación, aclaración o ubicación. Quedan excluidos los cambios solo técnicos o de auditoría y una propuesta canónicamente idéntica. Cada nueva versión crea una solicitud de notificación para cada destinatario efectivo congelado y la entrega aplica `RF-20`.
@@ -43,7 +43,7 @@ El corredor solo accede a sus propios datos mientras permanece `active`. El admi
 ### Deseable
 
 - Filtros y búsquedas operativas de corredores, segmentos y planes.
-- Registro básico del estado de entrega del correo electrónico de publicación o republicación.
+- Registro básico del estado de entrega del correo electrónico de publicación o republicación (observabilidad técnica interna, no un evento de notificación adicional al corredor: RF-20 ya cierra el catálogo de correos que se envían).
 
 ### Opcional
 
@@ -77,7 +77,7 @@ Al cerrar Fase 1, esta matriz fue el contrato de entrada para Fase 2. Tras el ci
 | RF-09 | Flujo y consistencia de publicación atómica | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
 | RF-10 | Versionado y registro de destinatarios efectivos | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
 | RF-11 | Modelo de catálogo y tipos de entrenamiento | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
-| RF-12 | Modelo de objetivos por frecuencia cardiaca, ritmo y aclaraciones | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
+| RF-12 | Modelo de objetivos por zona de esfuerzo, ritmo y aclaraciones (sin datos de frecuencia cardiaca personal) | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
 | RF-13 | Captura y consulta del lugar de encuentro presencial | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
 | RF-14 | Máquina de estados de borrador y publicado | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
 | RF-15 | Flujo de republicación y destinatarios afectados | [Materializado y trazado en Fase 2](phase-2-high-level-design.md#trazabilidad-de-requisitos) |
@@ -96,10 +96,10 @@ La comprobación de que cada requisito `RF-01` a `RF-21` enlaza con diseño, cri
 | --- | --- |
 | Canal | Aplicación web adaptable, plenamente utilizable desde móvil. |
 | Accesibilidad | Todo el PMV web cumple WCAG `2.2` nivel `AA`, incluidos reflow a `320 CSS px`, zoom del navegador al `400 %`, texto al `200 %`, navegación por teclado, foco visible, etiquetas, errores y tamaño mínimo de objetivos `24 × 24 CSS px` con las excepciones normativas. |
-| Escala | Más de 500 corredores registrados; picos iniciales inferiores a 100 usuarios concurrentes. |
-| Disponibilidad | Nivel normal de SaaS; no se ha definido un SLA formal. |
+| Escala | Más de 500 corredores registrados (dato real del club). Picos iniciales inferiores a 100 usuarios concurrentes es un **supuesto de partida sin medición**, no un dato observado: se adopta para dimensionar la arquitectura inicial y debe revisarse con tráfico real tras el primer trimestre en producción. |
+| Disponibilidad | Nivel normal de SaaS; no se ha definido un SLA formal frente a la persona usuaria. RF-20 fija una ventana interna de `120` minutos para resolver la elegibilidad de un envío de correo: es un límite de procesamiento verificable, no un compromiso de disponibilidad del servicio. |
 | Conectividad | Sin requisito de uso sin conexión como prioridad. |
-| Seguridad | Autenticación por correo electrónico y contraseña; acceso por rol y aislamiento de los datos del corredor. |
+| Seguridad | Autenticación por correo electrónico y contraseña; acceso por rol y aislamiento de los datos del corredor. Sesión con caducidad de `12` horas de inactividad y `7` días de duración absoluta; se revoca al restablecer contraseña, cambiar correo o desactivar la cuenta (`ADR-0025`). |
 | Notificaciones | Correo electrónico en publicación y republicación de planes. |
 | Datos | La aplicación gestiona datos personales e información de seguimiento declarada; cumplimiento RGPD, retención y derechos de acceso son precondiciones de salida a producción. |
 

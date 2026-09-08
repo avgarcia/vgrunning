@@ -127,10 +127,10 @@ Se descarta porque incendio, pérdida, indisponibilidad o error de una sola pers
 
 No quedan decisiones de producto o arquitectura pendientes para aceptar este ADR. Permanecen estos artefactos y evidencias bloqueantes para producción:
 
-- designar nominalmente a la persona custodio y documentar aceptación, sustitución y acceso de emergencia fuera del repositorio;
-- seleccionar y versionar la herramienta estándar de cifrado híbrido, formato de sobre y comandos de recuperación sin cambiar las propiedades decididas;
-- crear las identidades separadas de Azure y Scaleway, MFA, Object Lock, retención y runbooks;
-- ejecutar con éxito la primera restauración externa completa y corregir cualquier desviación de objetivos.
+- **Bloqueante para producción:** designar nominalmente a la persona custodio y documentar aceptación, sustitución y acceso de emergencia fuera del repositorio. Responsable: Propietario del servicio. Tratamiento: designación formal y documentada antes de producción.
+- **Bloqueante para producción:** seleccionar y versionar la herramienta estándar de cifrado híbrido, formato de sobre y comandos de recuperación sin cambiar las propiedades decididas. Responsable: Revisor de arquitectura. Tratamiento: fijar herramienta y formato antes de producción.
+- **Bloqueante para producción:** crear las identidades separadas de Azure y Scaleway, MFA, Object Lock, retención y runbooks. Responsable: Persona operadora. Tratamiento: aprovisionar y probar antes de producción.
+- **Bloqueante para producción:** ejecutar con éxito la primera restauración externa completa y corregir cualquier desviación de objetivos. Responsable: Persona operadora y Revisor de arquitectura. Tratamiento: ejecutar el simulacro descrito en *Validación prevista* y cerrar desviaciones antes de producción.
 
 ## Referencias oficiales
 

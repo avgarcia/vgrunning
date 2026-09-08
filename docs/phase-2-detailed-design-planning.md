@@ -421,6 +421,8 @@ La purga y anonimización serán idempotentes, auditables y reaplicables despué
 
 La política de `12` meses y los datos reales siguen pendientes de revisión especializada. Este diseño no ofrece asesoramiento jurídico ni declara lícito el tratamiento.
 
+Este plazo corresponde a la categoría «Auditoría y seguridad» de la matriz de `ADR-0010` (12 meses, evento inicial: fecha del evento).
+
 ## Observabilidad
 
 Métricas agregadas:

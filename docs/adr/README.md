@@ -15,9 +15,10 @@ Los ADRs no sustituyen los documentos de diseño de Fase 2. Cada ADR debe enlaza
 - El nombre sigue el formato `NNNN-titulo-en-kebab-case.md`.
 - El identificador visible sigue el formato `ADR-NNNN`.
 - Los estados permitidos son `Propuesto`, `Aceptado`, `Reemplazado` y `Descartado`.
-- Un ADR aceptado solo se modifica para corregir errores menores, añadir enlaces o registrar que ha sido reemplazado. Un cambio de decisión requiere un ADR nuevo.
+- Un ADR aceptado solo se modifica para corregir errores menores, añadir enlaces o registrar que ha sido reemplazado. Un cambio de decisión requiere un ADR nuevo — esto incluye actualizar en el sitio un árbol de paquetes, una tabla de estados o cualquier otro contenido que un ADR posterior refine: el ADR base conserva lo que decía cuando se aceptó, y el ADR posterior es la única fuente del estado vigente. (Precedente corregido: ver nota de refinamiento en `ADR-0014`.)
 - Un refinamiento parcial conserva ambos ADR en estado `Aceptado`. El ADR posterior declara `Refina parcialmente`, el anterior declara `Refinado parcialmente por` y el índice registra el alcance exacto de la relación.
 - El responsable de revisión por defecto es el Revisor de arquitectura. En el flujo actual de único mantenedor, el autor asume ese rol y registra la aceptación del riesgo en la PR.
+- `Fecha` es la fecha de propuesta y, salvo que se indique lo contrario, también la de aceptación. `Fecha de aceptación` solo se añade cuando la aceptación ocurre en una fecha distinta; no es obligatoria si coincide con `Fecha`. `Validación documental` es un campo narrativo adicional, no sustitutivo, para cuando la aceptación lleva condiciones, evidencias o caveats que una fecha sola no transmite (por ejemplo, `ADR-0010`, con evidencias jurídicas pendientes).
 
 ## Cuándo crear un ADR
 
@@ -94,6 +95,35 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | `ADR-0011` | `ADR-0031` | Sustituye supresión local, inbox de eventos, ledger de transiciones, pausa persistida y cuatro calendarios de reintento por delegación en el proveedor, proyección directa, circuit breaker en memoria y backoff único; la creación transaccional, prioridad y orden siguen vigentes. |
 | `ADR-0012` | `ADR-0031` | Retira de `notification-delivery` la coordinación de inbox y ledger; lease y `SKIP LOCKED` siguen vigentes. |
 | `ADR-0016` | `ADR-0031` | Reduce el alcance de Key Vault en este módulo a la clave del payload, la API key de Brevo y el Bearer del webhook; retira la rotación de clave HMAC. |
+
+## Bloqueantes activos para producción
+
+Consolida los 18 bloqueantes declarados en «Decisiones pendientes» de los 6 ADRs que los tienen, para no tener que releerlos completos. Cada fila remite a su ADR de origen (enlazado en el índice superior); esta tabla no sustituye su texto completo, solo evita perder la vista de conjunto.
+
+| ADR | Bloqueante | Alcance | Responsable |
+| --- | --- | --- | --- |
+| `ADR-0010` | Documentar identidad y contacto del responsable; adquirir dominio y crear `privacidad@` | Producción | Responsable del tratamiento |
+| `ADR-0010` | Revisión especializada de bases jurídicas, consentimiento explícito, interés legítimo y plazos | Producción | Responsable del tratamiento con asesoramiento de privacidad |
+| `ADR-0010` | Inventariar y aprobar DPA/subencargados/regiones/transferencias de Azure, GHCR, Scaleway, Grafana Cloud, Brevo y buzón | Producción | Responsable del tratamiento y Revisor de arquitectura |
+| `ADR-0010` | Análisis de riesgos y EIPD aprobada con stack, escala y proveedores reales | Producción | Responsable del tratamiento con asesoramiento de privacidad o DPO |
+| `ADR-0010` | Aprobar información de privacidad, RAT, procedimiento de derechos, automatización de retención/bloqueo/destrucción, brechas, medidas y simulacros | Producción | Responsable del tratamiento |
+| `ADR-0011` | Adquirir y controlar dominio; definir y autenticar remitente con Brevo | Producción | Propietario del servicio |
+| `ADR-0011` | Aprobar Brevo como encargado (DPA, subencargados, ubicaciones, retención, transferencias) | Producción | Responsable del tratamiento con asesoramiento de privacidad |
+| `ADR-0016` | Adquirir dominio, configurar DNS y completar TLS | Producción | Propietario del servicio |
+| `ADR-0016` | Aprobar Azure, GHCR, Scaleway y Grafana Cloud como encargados/subencargados | Producción | Responsable del tratamiento |
+| `ADR-0016` | Escribir y probar runbooks de despliegue, rollback, restauración, rotación, incidentes, saturación, caída y salida de proveedor | Producción | Persona operadora y Revisor de arquitectura |
+| `ADR-0018` | Confirmar base jurídica y proporcionalidad de conservar cuenta/perfil/clasificación 24 meses tras finalizar la relación | Datos personales reales y producción | Responsable del tratamiento con Revisor de privacidad o DPO |
+| `ADR-0018` | Usar solo datos ficticios/sintéticos/anonimizados mientras el punto anterior no se resuelva | Desarrollo y pruebas (restricción vigente) | Revisor de arquitectura |
+| `ADR-0023` | Designar nominalmente a la persona custodio y documentar aceptación, sustitución y acceso de emergencia | Producción | Propietario del servicio |
+| `ADR-0023` | Seleccionar y versionar herramienta de cifrado híbrido, formato de sobre y comandos de recuperación | Producción | Revisor de arquitectura |
+| `ADR-0023` | Crear identidades separadas de Azure y Scaleway, MFA, Object Lock, retención y runbooks | Producción | Persona operadora |
+| `ADR-0023` | Ejecutar con éxito la primera restauración externa completa y corregir desviaciones | Producción | Persona operadora y Revisor de arquitectura |
+| `ADR-0025` | Concretar y probar la invalidación de todas las sesiones de una cuenta mediante Spring Session | Recuperación, cambio de contraseña y desactivación | Revisor de arquitectura |
+| `ADR-0025` | Definir proxies confiables y su configuración antes de interpretar `Forwarded`/`X-Forwarded-For` | Confiar en cabeceras de origen | Responsable de plataforma |
+
+Ecos que remiten a estos mismos bloqueantes sin añadir uno nuevo: `ADR-0004:128`, `ADR-0009:132` y `ADR-0015:130` (→ `ADR-0010`); `ADR-0011:191` y `ADR-0013:159` (→ `ADR-0016`).
+
+Bloqueantes adicionales, declarados en los diseños detallados de Fase 2 (no en ADRs): la tabla de `phase-2-detailed-design-notification-delivery.md` («Decisiones pendientes») y los bullets de la misma sección en `phase-2-detailed-design-publication.md`.
 
 ## Resultado del backlog inicial de Fase 2
 

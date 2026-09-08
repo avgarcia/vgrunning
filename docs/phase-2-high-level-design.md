@@ -12,7 +12,7 @@ Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazab
 
 ## Alcance y restricciones heredadas
 
-- Aplicación web adaptable para un único club, con más de 500 corredores registrados y picos iniciales inferiores a 100 usuarios concurrentes.
+- Aplicación web adaptable para un único club, con más de 500 corredores registrados (dato real) y picos iniciales inferiores a 100 usuarios concurrentes (supuesto de partida sin medición, ver `phase-1-requirements.md`; revisar con tráfico real).
 - Roles operativos: administrador, entrenador y corredor. El corredor solo accede a sus propios datos; el entrenador accede globalmente solo a corredores `active`; el administrador dispone de acceso auditado a estados no operativos.
 - La modalidad se expresa mediante una etiqueta controlada y cada entrenamiento tiene modalidad propia; ambas son informativas e independientes. El lugar de encuentro es texto libre opcional por entrenamiento presencial y no se limita a El Retiro.
 - Las reglas de segmentos se limitan a condiciones de etiquetas con operador Y, varios valores por etiqueta e inclusiones o exclusiones manuales.
@@ -28,6 +28,7 @@ Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazab
 - Aplicar autorización en cada operación y no solo en la interfaz. El aislamiento de cada corredor es una regla de datos y de acceso.
 - Representar el seguimiento con valores estructurados y comentario opcional, deshabilitado hasta obtener el consentimiento explícito y separado definido por `ADR-0010`; no solicitar campos de salud ni ampliar ese ámbito, sin ignorar que el texto libre puede contenerlos.
 - Registrar eventos internos durables con Spring Modulith JDBC, consumidores idempotentes y recuperación ordenada antes de considerar un broker externo.
+- Cifrar con AEAD, usando claves gestionadas en Azure Key Vault, únicamente los secretos portadores vigentes que no tienen ya un verificador irreversible: el payload de la outbox de correo (`notification-delivery`), que contiene el enlace de acceso en claro durante su ventana de entrega. El resto de secretos (sesión, desafíos de invitación y recuperación) se valida mediante verificador `SHA-256`, sin persistir el valor en claro; el destino de una notificación se persiste sin cifrar porque `identity-access` ya guarda el correo del corredor en claro.
 
 ## Componentes lógicos confirmados
 
@@ -37,7 +38,7 @@ Materializar el contrato de entrada de Fase 1 en un diseño de alto nivel trazab
 | Gestión de corredores | Perfil y ciclo de vida operativo del corredor, sin credenciales, roles ni clasificación. | `RF-02`, `RF-03`, `RF-16` a `RF-19` | Corredor y su vínculo con la cuenta. |
 | Clasificación y segmentación | Taxonomías, asignaciones, reglas dinámicas y excepciones manuales que producen segmentos reutilizables y solapables. | `RF-02` a `RF-06`, `RF-08` | Etiqueta, valor permitido, asignación, segmento, criterio, inclusión y exclusión. |
 | Planificación | Gestión de grupos exclusivos, planes semanales, fases, bloques, catálogo, objetivos, modalidad, lugar de encuentro e historial operativo. | `RF-04`, `RF-07`, `RF-08`, `RF-11`, `RF-12`, `RF-13`, `RF-14` | Grupo de planificación, reconfiguración, excepción de grupo, plan semanal, entrenamiento, fase, bloque, tipo, objetivo, modalidad, ubicación y cambio de planificación. |
-| Publicación | Candidatura, captura de miembros, publicación y actualización atómicas, reglas temporales, versiones, destinatarios, visibilidad y cobertura semanal derivada. | `RF-08`, `RF-09`, `RF-10`, `RF-14`, `RF-15`, `RF-16`, `RF-20`, `RF-21` | Candidatura derivada, publicación actual, versión publicada, día cambiado, miembro efectivo y cobertura semanal. |
+| Publicación | Candidatura, captura de miembros, publicación y actualización atómicas, reglas temporales, versiones, destinatarios, visibilidad y cobertura semanal derivada. | `RF-08`, `RF-09`, `RF-10`, `RF-14`, `RF-15`, `RF-16`, `RF-20`, `RF-21` | Candidatura derivada, publicación actual, versión publicada, día cambiado, miembro efectivo de la publicación y cobertura semanal. |
 | Entrega de notificaciones | Outbox, entrega de correo, leases, reintentos, webhooks y supresión. | `RF-01`, `RF-15`, `RF-20` | Solicitud y eventos técnicos de notificación. |
 | Seguimiento y revisión | Registro de ejecución, historial de respuesta y consulta global por entrenador. | `RF-17`, `RF-18`, `RF-19` | Registro de seguimiento vinculado a corredor, entrenamiento y publicación. |
 | Portal del corredor | Fachada móvil de consulta de planes, entrenamientos, ubicación e historial propios. | `RF-16`, `RF-18` | Vista derivada sin datos propios inicialmente. |
