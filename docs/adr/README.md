@@ -67,6 +67,7 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | ADR-0029 | *(número quemado)* CQRS para queries de solo lectura | Descartado | — Un borrador se descartó antes de mergear; su regla útil se incorpora como refinamiento en `ADR-0030`. El número no se reutiliza para evitar confundir dos decisiones distintas si se consulta una rama que aún lo referencie. |
 | [ADR-0030](0030-publication-jsonb-snapshot-model.md) | Instantáneas de publicación en JSONB y modelo relacional mínimo | Aceptado | `RF-08` a `RF-10`, `RF-14` a `RF-16`, `RF-20`, `RF-21` |
 | [ADR-0031](0031-notification-delivery-provider-delegation.md) | Delegación de supresión, eventos y operación en el proveedor de correo | Aceptado | `RF-01`, `RF-15`, `RF-20` |
+| [ADR-0032](0032-simplified-recovery-key-custody.md) | Custodia simplificada de la clave privada de recuperación | Aceptado | Todos los `RF`; disponibilidad, seguridad, datos y privacidad |
 
 ## Relaciones de refinamiento
 
@@ -95,10 +96,11 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | `ADR-0011` | `ADR-0031` | Sustituye supresión local, inbox de eventos, ledger de transiciones, pausa persistida y cuatro calendarios de reintento por delegación en el proveedor, proyección directa, circuit breaker en memoria y backoff único; la creación transaccional, prioridad y orden siguen vigentes. |
 | `ADR-0012` | `ADR-0031` | Retira de `notification-delivery` la coordinación de inbox y ledger; lease y `SKIP LOCKED` siguen vigentes. |
 | `ADR-0016` | `ADR-0031` | Reduce el alcance de Key Vault en este módulo a la clave del payload, la API key de Brevo y el Bearer del webhook; retira la rotación de clave HMAC. |
+| `ADR-0023` | `ADR-0032` | Sustituye la segunda copia bajo persona custodio designada por fragmentación Shamir 2 de 2 sostenida por el propio operador, con contacto de emergencia pasivo; escenarios, objetivos, permisos y cadencia de simulacros de `ADR-0023` siguen vigentes. |
 
 ## Bloqueantes activos para producción
 
-Consolida los 18 bloqueantes declarados en «Decisiones pendientes» de los 6 ADRs que los tienen, para no tener que releerlos completos. Cada fila remite a su ADR de origen (enlazado en el índice superior); esta tabla no sustituye su texto completo, solo evita perder la vista de conjunto.
+Consolida los 19 bloqueantes declarados en «Decisiones pendientes» de los 7 ADRs que los tienen, para no tener que releerlos completos. Cada fila remite a su ADR de origen (enlazado en el índice superior); esta tabla no sustituye su texto completo, solo evita perder la vista de conjunto.
 
 | ADR | Bloqueante | Alcance | Responsable |
 | --- | --- | --- | --- |
@@ -114,10 +116,11 @@ Consolida los 18 bloqueantes declarados en «Decisiones pendientes» de los 6 AD
 | `ADR-0016` | Escribir y probar runbooks de despliegue, rollback, restauración, rotación, incidentes, saturación, caída y salida de proveedor | Producción | Persona operadora y Revisor de arquitectura |
 | `ADR-0018` | Confirmar base jurídica y proporcionalidad de conservar cuenta/perfil/clasificación 24 meses tras finalizar la relación | Datos personales reales y producción | Responsable del tratamiento con Revisor de privacidad o DPO |
 | `ADR-0018` | Usar solo datos ficticios/sintéticos/anonimizados mientras el punto anterior no se resuelva | Desarrollo y pruebas (restricción vigente) | Revisor de arquitectura |
-| `ADR-0023` | Designar nominalmente a la persona custodio y documentar aceptación, sustitución y acceso de emergencia | Producción | Propietario del servicio |
 | `ADR-0023` | Seleccionar y versionar herramienta de cifrado híbrido, formato de sobre y comandos de recuperación | Producción | Revisor de arquitectura |
 | `ADR-0023` | Crear identidades separadas de Azure y Scaleway, MFA, Object Lock, retención y runbooks | Producción | Persona operadora |
 | `ADR-0023` | Ejecutar con éxito la primera restauración externa completa y corregir desviaciones | Producción | Persona operadora y Revisor de arquitectura |
+| `ADR-0032` | Elegir gestor de secretos personal y soporte físico del segundo fragmento; documentar fragmentación/reconstrucción fuera del repositorio | Producción | Propietario del servicio |
+| `ADR-0032` | Designar contacto de emergencia y configurar el acceso de emergencia en el gestor de secretos elegido | Producción | Propietario del servicio |
 | `ADR-0025` | Concretar y probar la invalidación de todas las sesiones de una cuenta mediante Spring Session | Recuperación, cambio de contraseña y desactivación | Revisor de arquitectura |
 | `ADR-0025` | Definir proxies confiables y su configuración antes de interpretar `Forwarded`/`X-Forwarded-For` | Confiar en cabeceras de origen | Responsable de plataforma |
 
@@ -127,4 +130,4 @@ Bloqueantes adicionales, declarados en los diseños detallados de Fase 2 (no en 
 
 ## Resultado del backlog inicial de Fase 2
 
-El backlog inicial y la auditoría H-01 a H-20 se materializan en `ADR-0001` a `ADR-0023`, todos aceptados. `ADR-0024` a `ADR-0028` son decisiones posteriores aceptadas que refinan implementación, sesión, paquetería y mapeo sin sustituir los umbrales, herramientas ni el mapa modular de sus ADR base. `ADR-0029` fue descartado antes de mergear y su número no se reutiliza. `ADR-0030` y `ADR-0031` refinan el modelo persistente de `publication` y `notification-delivery` antes de su implementación, aprovechando que ninguno de los dos módulos tiene código ni migraciones propias más allá de una tabla. Una decisión arquitectónica nueva o contradictoria deberá abrir otro ADR a partir de evidencia; no se resolverá implícitamente durante la implementación.
+El backlog inicial y la auditoría H-01 a H-20 se materializan en `ADR-0001` a `ADR-0023`, todos aceptados. `ADR-0024` a `ADR-0028` son decisiones posteriores aceptadas que refinan implementación, sesión, paquetería y mapeo sin sustituir los umbrales, herramientas ni el mapa modular de sus ADR base. `ADR-0029` fue descartado antes de mergear y su número no se reutiliza. `ADR-0030` y `ADR-0031` refinan el modelo persistente de `publication` y `notification-delivery` antes de su implementación, aprovechando que ninguno de los dos módulos tiene código ni migraciones propias más allá de una tabla. `ADR-0032` refina la custodia de la clave privada de recuperación de `ADR-0023`, sustituyendo una persona custodio designada —que nunca llegó a existir— por fragmentación sostenida por el propio operador. Una decisión arquitectónica nueva o contradictoria deberá abrir otro ADR a partir de evidencia; no se resolverá implícitamente durante la implementación.
