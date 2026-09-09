@@ -35,7 +35,7 @@ jobs:
           fi
 
           git diff --name-only "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" > changed-files.txt
-          if grep -Eq '^(src/|frontend/|api/|build\.gradle\.kts$|gradle/|gradle\.properties$|gradle\.lockfile$|Dockerfile$|\.dockerignore$|security/|\.github/workflows/)' changed-files.txt; then
+          if grep -Eq '^(src/|frontend/|api/|build\.gradle\.kts$|gradle/|gradle\.properties$|gradle\.lockfile$|Dockerfile$|\.dockerignore$|\.trivyignore$|\.github/workflows/)' changed-files.txt; then
             echo "code=true" >> "$GITHUB_OUTPUT"
             echo "container=true" >> "$GITHUB_OUTPUT"
           else
@@ -102,6 +102,11 @@ jobs:
         if: needs.changes.outputs.code == 'true'
       - run: ./gradlew fastGate --no-daemon
         if: needs.changes.outputs.code == 'true'
+        env:
+          # En pull request Gitleaks solo escanea los commits de la rama. El barrido completo del
+          # historial queda para push a main, el cron nocturno y workflow_dispatch, donde la variable
+          # está vacía. Requiere el fetch-depth: 0 del checkout de este job.
+          GITLEAKS_LOG_OPTS: ${{ github.event_name == 'pull_request' && format('{0}..{1}', github.event.pull_request.base.sha, github.event.pull_request.head.sha) || '' }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always() && needs.changes.outputs.code == 'true'
         with:

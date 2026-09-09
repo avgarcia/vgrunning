@@ -1,5 +1,10 @@
 title = "Running Coach secret scanning"
 
+# Amplia el ruleset por defecto de Gitleaks en lugar de sustituirlo: sin esto la configuracion propia
+# reemplaza las reglas integradas y solo se detecta el marcador sintetico de la prueba negativa.
+[extend]
+useDefault = true
+
 [[rules]]
 id = "running-coach-synthetic-secret"
 description = "Rejects the synthetic credential marker used by the permanent gate test."
@@ -7,7 +12,13 @@ regex = '''RC_SECRET_[A-Za-z0-9]{32}'''
 secretGroup = 0
 
 [allowlist]
-description = "Generated and dependency directories are not source owned by the project."
+description = "Generated and dependency directories, and the synthetic local material of the repository."
+# Clave HMAC sintetica de desarrollo local retirada en commits posteriores. Su valor Base64 decodifica
+# literalmente a "Base64-synthetic-local-hmac-key-32-bytes"; permanece en el historial y la regla
+# generic-api-key del ruleset por defecto la marca en cada escaneo de historial.
+regexes = [
+  '''QmFzZTY0LXN5bnRoZXRpYy1sb2NhbC1obWFjLWtleS0zMi1ieXRlcw==''',
+]
 paths = [
   '''(^|.*/)\.gradle/''',
   '''(^|.*/)build/''',
