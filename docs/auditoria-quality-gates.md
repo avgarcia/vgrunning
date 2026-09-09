@@ -4,7 +4,7 @@
 **Fecha:** 2026-09-09
 **Alcance:** `build.gradle.kts`, `gradle/validation/quality-gates.gradle.kts`, `.github/workflows/**`, `.gitleaks.toml`, `security/trivy-exceptions.json`, `config/validation-matrix.json`, `scripts/**`
 
-**Estado de aplicación:** prioridad 1 en `#52`. Prioridad 2 en `#65`, salvo el punto 7. Prioridad 3 en `#66`: los puntos 11, 13, 14 y 16 aplicados; los puntos 12 y 15 descartados. Prioridad 4 aplicada parcialmente. Los hallazgos siguen redactados en presente tal como se detectaron; consulta esta sección para saber cuáles ya están corregidos.
+**Estado de aplicación:** prioridad 1 en `#52`. Prioridad 2 en `#65`, salvo el punto 7. Prioridad 3 en `#66`: los puntos 11, 13, 14 y 16 aplicados; los puntos 12 y 15 descartados. Prioridad 4 aplicada salvo el punto 21, descartado. Los hallazgos siguen redactados en presente tal como se detectaron; consulta esta sección para saber cuáles ya están corregidos.
 
 **Prioridad 4 — qué se aplicó y qué no:**
 
@@ -14,20 +14,19 @@
 | 18 | Descartado | Misma familia que los puntos 7, 12 y 15: la medición no sostiene el ahorro. `tooling-gate` corre en 1m27s en CI, y el propio hallazgo `R-01` de este informe usa `verifyQualityNegativeCases` como evidencia de que la config de gitleaks importa — el punto 1 de la prioridad 1 solo se detectó por ese razonamiento |
 | 19 | Aplicado | `collect-validation-baseline.cjs` y su test no tenían consumidor en ningún workflow ni fichero de build |
 | 20 | Ya aplicado en `#65` | Definición única del grafo de puertas |
-| 21 | Sin aplicar | Acoplado a `verifyOciReproducibility`, que construye dos veces sin caché y compara el digest local. `docker/build-push-action` con `cache-from: type=gha` introduce justo la caché que esa verificación existe para evitar. Requiere una PR propia que reconsidere ambas tareas juntas |
-| 22 | Sin aplicar | El ahorro que documentaba `S-03` (1h15m) era una medición local; en CI `container-security` tarda 2m31s. El beneficio de pasar el jar entre jobs con `upload-artifact` no está claro a esa escala, y merece medirse antes de construir el paso |
+| 21 | Descartado | `docker buildx build` construye la imagen en 14s en CI (job real de `#68`, 21:48:09→21:48:23), y `COPY ${JAR_FILE}` es la segunda instrucción del `Dockerfile`: no hay apenas prefijo cacheable antes de esa capa, que invalida en cada commit porque el jar cambia siempre. `cache-from/cache-to type=gha` solo podría acelerar el `FROM` de la imagen base, unos segundos sobre 14s totales. Además, el pool de caché del repo ya está en 10,7 GB / 106 entradas (`gh api .../actions/cache/usage`), por encima del límite efectivo, con desalojo LRU activo: un `cache-to type=gha,mode=max` en cada build competiría por espacio con la caché de Gradle de `setup-gradle`, que sí es determinante (minutos, no segundos) en cuatro jobs. Añadir además el backend `gha` exige `docker/setup-buildx-action` con driver `docker-container` en los tres jobs que invocan `buildx` (`buildOciImage`, `verifyOciReproducibility`, `generateSbom`), para no dejar a `verifyOciReproducibility` certificando un digest de un builder distinto al que publica `publishOciImage` — más las variables de entorno del backend `gha`, que un `run:` normal no expone sin esa acción. Coste y riesgo por un ahorro que la medición no sostiene: misma familia que 7, 12, 15 y 18 |
+| 22 | Aplicado en `#68` | `quality-gate` sube el jar como artefacto y `container-security`, `oci-reproducibility` y `publish-ghcr` lo reutilizan vía `PREBUILT_BOOT_JAR` en lugar de reconstruirlo. Confirmado en CI real: `container-security` pasó de ~164s en paralelo a 1m14s de build de Gradle tras `quality-gate` |
 | 23 | Aplicado | Se elige eliminar `verifyLocalRuntimeConfiguration`, la opción más simple de las dos que proponía este mismo informe, en vez de sustituirla por un `@SpringBootTest` |
 | 24 | Aplicado, tras confirmación explícita | No era solo tooling muerto de CI: `docs/documentation-quality-gates.md` lo describía activamente como el mecanismo que preparaba evidencia para los ocho controles documentales de cierre de fase, y `docs/ai-governance.md` declaraba que se conservaba. Se elimina `plugins/documentation-quality-review` completo, se vacía `.agents/plugins/marketplace.json` (que lo registraba como plugin instalado), y se actualizan los tres documentos que lo describían como proceso activo — incluido `.agents/skills/gestionar-adrs/SKILL.md`, que invocaba sus Skills por nombre — para que la revisión pase a ser manual contra la tabla de controles ya existente |
 
-Los puntos 21 y 22 quedan pendientes de una decisión explícita antes de tocarlos.
-
-**Puntos descartados y por qué.** Los tres cayeron al medir lo que el informe había estimado:
+**Puntos descartados y por qué.** Los cuatro cayeron al medir lo que el informe había estimado:
 
 | Punto | Proponía | Medición | Decisión |
 | --- | --- | --- | --- |
 | 7 | Sacar PIT y `toolingGate` de la puerta de PR por coste | `tooling-gate` 1m30s, `quality-gate` 2m49s incluyendo PIT | Descartado: el coste no existe |
 | 12 | Bajar el suelo global de líneas de 0,80 a 0,65 | Cobertura de líneas real: 91,5 % | Descartado: regalaría 26 puntos de margen ya conquistados |
 | 15 | SpotBugs de `Confidence.LOW` a `MEDIUM` más `excludeFilter` | 0 `BugInstance` en `LOW` | Descartado: ni fricción ni solape observados; un `excludeFilter` vacío es peor que ninguno |
+| 21 | `docker/build-push-action` con `cache-from: type=gha` | `buildOciImage` tarda 14s en CI; casi nada del `Dockerfile` es cacheable tras la capa del jar; pool de caché del repo ya saturado (10,7 GB / 106 entradas) | Descartado: la caché competiría con la de Gradle por un ahorro de segundos |
 
 El error de fondo del punto 12 fue razonar sobre el censo de ficheros (47 de infraestructura frente a 9 de dominio) en lugar de medir: la infraestructura de este proyecto está bien cubierta, no arrastra la media.
 
