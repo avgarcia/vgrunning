@@ -8,8 +8,11 @@ import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationActivationPublisher;
 import com.vgrunning.identityaccess.application.port.out.InvitationRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
+import com.vgrunning.identityaccess.domain.AdultDeclaration;
+import com.vgrunning.identityaccess.domain.account.valueobject.RawPassword;
 import java.security.MessageDigest;
-import java.text.Normalizer;
+import java.time.Clock;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +25,7 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
     private final PasswordHasher passwords;
     private final InvitationActivationMapper mapper;
     private final DigestPort digest;
+    private final Clock clock;
 
     @Override
     @Transactional
@@ -36,15 +40,27 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
                 invitations
                         .findAvailable(command.invitationId())
                         .orElseThrow(InvitationNotAvailableException::new);
+        if (invitation.expiresAt().isBefore(OffsetDateTime.now(clock))) {
+            throw new InvitationNotAvailableException();
+        }
         if (!MessageDigest.isEqual(invitation.verifier(), digest.sha256(command.secret()))) {
             throw new InvitationNotAvailableException();
         }
-        String password = Normalizer.normalize(command.password(), Normalizer.Form.NFC);
-        if (password.length() < 12 || password.length() > 128) {
+        RawPassword password;
+        try {
+            password = RawPassword.from(command.password());
+        } catch (IllegalArgumentException exception) {
             throw new InvalidInvitationAcceptanceException();
         }
         UUID correlationId = UUID.randomUUID();
-        UUID acceptanceId = invitations.accept(invitation, passwords.hash(password), correlationId);
+        UUID acceptanceId =
+                invitations
+                        .accept(
+                                invitation,
+                                passwords.hash(password.value()),
+                                AdultDeclaration.initialActivation(),
+                                correlationId)
+                        .orElseThrow(InvitationNotAvailableException::new);
         activationPublisher.publish(mapper.toActivation(invitation, correlationId));
         return new AcceptedInvitation(acceptanceId, "accepted");
     }

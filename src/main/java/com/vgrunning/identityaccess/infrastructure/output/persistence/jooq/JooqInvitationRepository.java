@@ -6,8 +6,8 @@ import static org.vgrunning.generated.jooq.identity_access.tables.AccountEmail.A
 import static org.vgrunning.generated.jooq.identity_access.tables.AdultDeclaration.ADULT_DECLARATION;
 import static org.vgrunning.generated.jooq.identity_access.tables.InvitationAcceptance.INVITATION_ACCEPTANCE;
 
-import com.vgrunning.identityaccess.application.exception.InvitationNotAvailableException;
 import com.vgrunning.identityaccess.application.port.out.InvitationRepository;
+import com.vgrunning.identityaccess.domain.AdultDeclaration;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +40,11 @@ public class JooqInvitationRepository implements InvitationRepository {
     }
 
     @Override
-    public UUID accept(ActivationInvitation invitation, String passwordHash, UUID correlationId) {
+    public Optional<UUID> accept(
+            ActivationInvitation invitation,
+            String passwordHash,
+            AdultDeclaration adultDeclaration,
+            UUID correlationId) {
         int accountUpdated =
                 jooq.update(ACCOUNT)
                         .set(ACCOUNT.PASSWORD_HASH, passwordHash)
@@ -61,7 +65,7 @@ public class JooqInvitationRepository implements InvitationRepository {
                         .and(ACCESS_CHALLENGE.EXPIRES_AT.gt(DSL.currentOffsetDateTime()))
                         .execute();
         if (accountUpdated != 1 || challengeUpdated != 1) {
-            throw new InvitationNotAvailableException();
+            return Optional.empty();
         }
         jooq.update(ACCOUNT_EMAIL)
                 .set(ACCOUNT_EMAIL.CONFIRMED_AT, DSL.currentOffsetDateTime())
@@ -74,10 +78,10 @@ public class JooqInvitationRepository implements InvitationRepository {
         jooq.insertInto(ADULT_DECLARATION)
                 .set(ADULT_DECLARATION.ID, UUID.randomUUID())
                 .set(ADULT_DECLARATION.ACCOUNT_ID, invitation.accountId())
-                .set(ADULT_DECLARATION.ACTOR_KIND, "invitee")
-                .set(ADULT_DECLARATION.ORIGIN, "initial_activation")
+                .set(ADULT_DECLARATION.ACTOR_KIND, adultDeclaration.actorKind())
+                .set(ADULT_DECLARATION.ORIGIN, adultDeclaration.origin())
                 .set(ADULT_DECLARATION.DECLARED_AT, DSL.currentOffsetDateTime())
-                .set(ADULT_DECLARATION.TEXT_VERSION, "ux-02-v0.1")
+                .set(ADULT_DECLARATION.TEXT_VERSION, adultDeclaration.textVersion())
                 .execute();
         jooq.insertInto(INVITATION_ACCEPTANCE)
                 .set(INVITATION_ACCEPTANCE.ID, acceptanceId)
@@ -86,6 +90,6 @@ public class JooqInvitationRepository implements InvitationRepository {
                 .set(INVITATION_ACCEPTANCE.ACCEPTED_AT, DSL.currentOffsetDateTime())
                 .set(INVITATION_ACCEPTANCE.CORRELATION_ID, correlationId)
                 .execute();
-        return acceptanceId;
+        return Optional.of(acceptanceId);
     }
 }

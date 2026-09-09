@@ -24,6 +24,7 @@ import com.vgrunning.identityaccess.infrastructure.security.Argon2PasswordHasher
 import com.vgrunning.identityaccess.infrastructure.security.SecureRandomSecretGenerator;
 import com.vgrunning.identityaccess.infrastructure.security.Sha256DigestAdapter;
 import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
+import java.time.Clock;
 import org.mapstruct.factory.Mappers;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationEventPublisher;
@@ -96,18 +97,25 @@ public class IdentityAccessInfrastructureConfiguration {
     }
 
     @Bean
+    Clock identityAccessClock() {
+        return Clock.systemUTC();
+    }
+
+    @Bean
     AcceptInvitationUseCase acceptInvitationUseCase(
             InvitationRepository invitations,
             InvitationActivationPublisher activationPublisher,
             PasswordHasher passwordHasher,
             InvitationActivationMapper invitationActivationMapper,
-            DigestPort digest) {
+            DigestPort digest,
+            Clock clock) {
         return new AcceptInvitationService(
                 invitations,
                 activationPublisher,
                 passwordHasher,
                 invitationActivationMapper,
-                digest);
+                digest,
+                clock);
     }
 
     @Bean

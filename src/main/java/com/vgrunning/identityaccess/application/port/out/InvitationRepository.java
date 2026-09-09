@@ -1,5 +1,6 @@
 package com.vgrunning.identityaccess.application.port.out;
 
+import com.vgrunning.identityaccess.domain.AdultDeclaration;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Objects;
@@ -10,7 +11,16 @@ import java.util.UUID;
 public interface InvitationRepository {
     Optional<ActivationInvitation> findAvailable(UUID invitationId);
 
-    UUID accept(ActivationInvitation invitation, String passwordHash, UUID correlationId);
+    /**
+     * Aplica la transición de estado completa. Devuelve vacío, sin lanzar, cuando la invitación o
+     * la cuenta ya no están en el estado esperado en el momento de escribir: decidir si eso es un
+     * fallo de negocio corresponde al llamante, no a este adaptador.
+     */
+    Optional<UUID> accept(
+            ActivationInvitation invitation,
+            String passwordHash,
+            AdultDeclaration adultDeclaration,
+            UUID correlationId);
 
     // El verificador se clona al construir y al leer, y equals/hashCode comparan su contenido:
     // el footgun que evita esta regla ya está cubierto explícitamente más abajo.
