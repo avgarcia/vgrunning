@@ -4,7 +4,21 @@
 **Fecha:** 2026-09-09
 **Alcance:** `build.gradle.kts`, `gradle/validation/quality-gates.gradle.kts`, `.github/workflows/**`, `.gitleaks.toml`, `security/trivy-exceptions.json`, `config/validation-matrix.json`, `scripts/**`
 
-**Estado de aplicación:** prioridad 1 aplicada en `#52`; prioridad 2 aplicada en esta rama, salvo el punto 7, descartado por evidencia de CI (ver más abajo). Los hallazgos siguen redactados en presente tal como se detectaron; consulta esta línea para saber cuáles ya están corregidos.
+**Estado de aplicación:** prioridad 1 aplicada en `#52`. Prioridad 2 aplicada en `#65`, salvo el punto 7. Prioridad 3 aplicada parcialmente: los puntos 11, 13, 14 y 16 sí; los puntos 12 y 15 quedan descartados. Los hallazgos siguen redactados en presente tal como se detectaron; consulta esta sección para saber cuáles ya están corregidos.
+
+**Puntos descartados y por qué.** Los tres cayeron al medir lo que el informe había estimado:
+
+| Punto | Proponía | Medición | Decisión |
+| --- | --- | --- | --- |
+| 7 | Sacar PIT y `toolingGate` de la puerta de PR por coste | `tooling-gate` 1m30s, `quality-gate` 2m49s incluyendo PIT | Descartado: el coste no existe |
+| 12 | Bajar el suelo global de líneas de 0,80 a 0,65 | Cobertura de líneas real: 91,5 % | Descartado: regalaría 26 puntos de margen ya conquistados |
+| 15 | SpotBugs de `Confidence.LOW` a `MEDIUM` más `excludeFilter` | 0 `BugInstance` en `LOW` | Descartado: ni fricción ni solape observados; un `excludeFilter` vacío es peor que ninguno |
+
+El error de fondo del punto 12 fue razonar sobre el censo de ficheros (47 de infraestructura frente a 9 de dominio) en lugar de medir: la infraestructura de este proyecto está bien cubierta, no arrastra la media.
+
+**Corrección al punto 14.** Tal como estaba redactado no es implementable. `includes` filtra por el nombre del elemento, y en una regla `BUNDLE` ese nombre es el del informe, así que una regla agregada acotada a `domain` y `application` habría quedado inerte y habría pasado siempre. JaCoCo no sabe agregar sobre un subconjunto de paquetes: la aproximación real es `element = "PACKAGE"`.
+
+**Supuesto declarado:**
 
 **Supuesto declarado:** no es verificable desde el repositorio qué checks son *required* en la protección de rama de `main`. Todas las afirmaciones sobre "bloquea" o "no bloquea" asumen que los jobs de `quality-gate.yml` son obligatorios y que ningún check adicional se exige fuera de los ficheros versionados.
 
