@@ -4,6 +4,8 @@
 **Fecha:** 2026-09-09
 **Alcance:** `build.gradle.kts`, `gradle/validation/quality-gates.gradle.kts`, `.github/workflows/**`, `.gitleaks.toml`, `security/trivy-exceptions.json`, `config/validation-matrix.json`, `scripts/**`
 
+**Estado de aplicación:** prioridad 1 aplicada en `#52`; prioridad 2 aplicada en esta rama, salvo el punto 7, descartado por evidencia de CI (ver más abajo). Los hallazgos siguen redactados en presente tal como se detectaron; consulta esta línea para saber cuáles ya están corregidos.
+
 **Supuesto declarado:** no es verificable desde el repositorio qué checks son *required* en la protección de rama de `main`. Todas las afirmaciones sobre "bloquea" o "no bloquea" asumen que los jobs de `quality-gate.yml` son obligatorios y que ningún check adicional se exige fuera de los ficheros versionados.
 
 **Censo usado en el análisis:** 113 ficheros Java en `src/main/java` (47 en `infrastructure`, 33 en `application`, 9 en `domain`, resto `api`/`package-info`), 44 en `src/test/java`, 147 commits, 2 identidades de autor.

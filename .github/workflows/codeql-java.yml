@@ -3,8 +3,22 @@ name: codeql-java
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle/**'
+      - 'gradle.lockfile'
+      - '.github/workflows/codeql-java.yml'
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle/**'
+      - 'gradle.lockfile'
+      - '.github/workflows/codeql-java.yml'
 
 permissions:
   contents: read
