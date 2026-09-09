@@ -35,12 +35,21 @@ jobs:
           fi
 
           git diff --name-only "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" > changed-files.txt
-          if grep -Eq '^(src/|frontend/|api/|build\.gradle\.kts$|gradle/|gradle\.properties$|gradle\.lockfile$|Dockerfile$|\.dockerignore$|\.trivyignore$|\.github/workflows/)' changed-files.txt; then
-            echo "code=true" >> "$GITHUB_OUTPUT"
+
+          # fastGate incluye docsCheck, así que un cambio solo documental también debe ejecutarlo.
+          # La imagen OCI, en cambio, no depende de la documentación: container mantiene su ámbito.
+          artefactos='^(src/|frontend/|api/|build\.gradle\.kts$|gradle/|gradle\.properties$|gradle\.lockfile$|Dockerfile$|\.dockerignore$|\.trivyignore$|\.github/workflows/)'
+          documentacion='^(docs/|README\.md$|AGENTS\.md$|\.agents/|config/linear-agent/)'
+
+          if grep -Eq "$artefactos" changed-files.txt; then
             echo "container=true" >> "$GITHUB_OUTPUT"
           else
-            echo "code=false" >> "$GITHUB_OUTPUT"
             echo "container=false" >> "$GITHUB_OUTPUT"
+          fi
+          if grep -Eq "$artefactos" changed-files.txt || grep -Eq "$documentacion" changed-files.txt; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
           fi
           if grep -Eq '^(build\.gradle\.kts$|gradle/|gradle\.properties$|gradle\.lockfile$|frontend/(eslint\.config\.js|package(-lock)?\.json)$|\.gitleaks\.toml$|src/quality-fixtures/|\.github/workflows/)' changed-files.txt; then
             echo "tooling=true" >> "$GITHUB_OUTPUT"
@@ -221,8 +230,8 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - run: npm ci --prefix frontend
-      - run: npm --prefix frontend run playwright:install -- --with-deps
+      # publishOciImage no ejecuta pruebas end to end: no necesita Chromium, y el npm ci lo hace ya
+      # la tarea installFrontendDependencies de la que depende bootJar.
       - run: ./gradlew publishOciImage --no-daemon
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -231,3 +240,32 @@ jobs:
           name: image-metadata-${{ github.sha }}
           path: build/reports/security/image-metadata.json
           if-no-files-found: error
+
+  # Único check que debería exigirse en la protección de rama: falla si cualquier control obligatorio
+  # ha terminado en error o se ha cancelado. Un job saltado cuenta como correcto, así que esto NO
+  # resuelve el verde vacío de una PR sin cambios de código; eso exige sustituir el job changes por
+  # filtros paths: nativos.
+  quality-gate-ok:
+    name: quality-gate-ok
+    if: always()
+    needs: [changes, validation-scope, quality-gate, tooling-gate, container-security]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Comprobar que ningún control obligatorio ha fallado
+        shell: bash
+        # El resultado llega por env y no interpolado en el script: evita inyectar la expresión en la
+        # línea de comandos. Los literales de las expresiones de Actions van entre comillas simples.
+        env:
+          RESULTADOS: ${{ join(needs.*.result, ',') }}
+        run: |
+          echo "Resultados de los controles obligatorios: $RESULTADOS"
+          IFS=',' read -ra estados <<< "$RESULTADOS"
+          for estado in "${estados[@]}"; do
+            case "$estado" in
+              success|skipped) ;;
+              *)
+                echo "::error::Un control obligatorio terminó en estado '$estado'."
+                exit 1
+                ;;
+            esac
+          done

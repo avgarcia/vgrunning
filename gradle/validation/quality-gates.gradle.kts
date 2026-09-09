@@ -56,14 +56,39 @@ tasks.named("verifySpaPackaging") {
     dependsOn(spaDeliveryTest)
 }
 
+// Autopruebas de las propias herramientas: demuestran sobre fixtures que una infracción bloquea.
+// No verifican el código de la aplicación, así que nunca deben ser el único control de una superficie.
 tasks.named("toolingGate") {
-    dependsOn("verifyQualityNegativeCases", "verifySpectralNegativeCases", "verifyOasdiffBreakingCase", verifyValidationScopeClassifier)
+    dependsOn(
+        "verifyQualityNegativeCases",
+        "verifySpectralNegativeCases",
+        "verifyOasdiffBreakingCase",
+        "verifyDocumentationLinkChecker",
+        "verifyAiGovernanceChecker",
+        verifyValidationScopeClassifier,
+    )
 }
 
+// Puerta de pull request: todo lo que verifica el artefacto real y no necesita construir la imagen OCI.
+// Antes solo cubría el backend, de modo que la SPA, el contrato OpenAPI, la documentación y el
+// empaquetado no tenían ninguna verificación en pull request.
 tasks.named("fastGate") {
-    dependsOn(backendCheck)
+    dependsOn(
+        backendCheck,
+        "apiCheck",
+        "frontendCheck",
+        docsCheck,
+        "gitleaks",
+        "verifySpaPackaging",
+    )
 }
 
+// Puerta completa: la de pull request más las autopruebas de tooling y el análisis de la imagen OCI.
 tasks.named("qualityGate") {
-    dependsOn(backendCheck, "apiCheck", "frontendCheck", docsCheck, "gitleaks", "toolingGate", supplyChainCheck, "verifySpaPackaging", classifyValidationScope)
+    dependsOn(
+        tasks.named("fastGate"),
+        "toolingGate",
+        supplyChainCheck,
+        classifyValidationScope,
+    )
 }

@@ -851,33 +851,21 @@ val trivy = tasks.register("trivy") {
     }
 }
 
-val qualityGate = tasks.register("qualityGate") {
+// Las tres puertas se declaran vacías aquí y reciben todas sus dependencias en un único sitio,
+// gradle/validation/quality-gates.gradle.kts, para que el grafo se lea de un vistazo.
+tasks.register("qualityGate") {
     group = "verification"
     description = "Ejecuta todos los controles obligatorios de calidad, contrato y seguridad de suministro."
 }
 
-val fastGate = tasks.register("fastGate") {
+tasks.register("fastGate") {
     group = "verification"
     description = "Ejecuta los controles obligatorios de PR sin autopruebas de tooling ni análisis de imagen OCI."
-    dependsOn(
-        tasks.named("check"),
-        tasks.named("pitest"),
-        verifyCriticalQualityScope,
-        gitleaks,
-    )
 }
 
-val toolingGate = tasks.register("toolingGate") {
+tasks.register("toolingGate") {
     group = "verification"
     description = "Ejecuta las autopruebas de las herramientas de calidad y seguridad."
-}
-
-qualityGate.configure {
-    dependsOn(
-        fastGate,
-        trivy,
-        verifyOciReproducibility,
-    )
 }
 
 val verifyQualityNegativeCases = tasks.register("verifyQualityNegativeCases") {
@@ -1087,13 +1075,6 @@ val verifyQualityNegativeCases = tasks.register("verifyQualityNegativeCases") {
     }
 }
 
-toolingGate.configure {
-    dependsOn(verifyQualityNegativeCases)
-}
-
-qualityGate.configure {
-    dependsOn(toolingGate)
-}
 val verifySpaPackaging = tasks.register("verifySpaPackaging") {
     group = "verification"
     description = "Comprueba que bootJar contiene la SPA y no contiene dependencias Node."
@@ -1283,9 +1264,6 @@ val verifyAiGovernanceChecker = tasks.register<Exec>("verifyAiGovernanceChecker"
     inputs.dir("config/linear-agent")
 }
 
-toolingGate.configure {
-    dependsOn(verifyDocumentationLinkChecker, verifyAiGovernanceChecker)
-}
 
 val verifyLocalRuntimeConfiguration = tasks.register("verifyLocalRuntimeConfiguration") {
     group = "verification"

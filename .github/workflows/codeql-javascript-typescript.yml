@@ -3,8 +3,18 @@ name: codeql-javascript-typescript
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'api/openapi/**'
+      - 'scripts/**'
+      - '.github/workflows/codeql-javascript-typescript.yml'
   push:
     branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'api/openapi/**'
+      - 'scripts/**'
+      - '.github/workflows/codeql-javascript-typescript.yml'
 
 permissions:
   contents: read
