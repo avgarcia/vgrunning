@@ -672,12 +672,37 @@ val gitleaks = tasks.register("gitleaks") {
     }
 }
 
+// PREBUILT_BOOT_JAR apunta al jar descargado desde el artefacto que sube el job quality-gate. jOOQ,
+// OpenAPI y el build de frontend ya se ejecutaron una vez para producirlo; sin esta variable,
+// buildOciImage sigue reconstruyendo el jar desde cero, como en una ejecución local o en quality-gate.
+val prebuiltBootJarPath = providers.environmentVariable("PREBUILT_BOOT_JAR")
+val usePrebuiltBootJar = prebuiltBootJarPath.isPresent
+
+val verifyPrebuiltBootJar = tasks.register("verifyPrebuiltBootJar") {
+    group = "distribution"
+    description = "Comprueba que el jar reutilizado desde el artefacto de CI existe y no está vacío."
+    onlyIf { usePrebuiltBootJar }
+    doLast {
+        val jarFile = file(prebuiltBootJarPath.get())
+        check(jarFile.isFile && jarFile.length() > 0) {
+            "PREBUILT_BOOT_JAR apunta a un jar inexistente o vacío: ${jarFile.absolutePath}."
+        }
+    }
+}
+
+val bootJarArchiveFile: Provider<File> =
+    if (usePrebuiltBootJar) {
+        prebuiltBootJarPath.map { path -> file(path) }
+    } else {
+        bootJar.flatMap { it.archiveFile }.map { it.asFile }
+    }
+
 val buildOciImage = tasks.register("buildOciImage") {
     group = "distribution"
     description = "Construye la imagen OCI linux/amd64 a partir del bootJar."
-    dependsOn(bootJar)
+    dependsOn(if (usePrebuiltBootJar) verifyPrebuiltBootJar else bootJar)
     mustRunAfter(tasks.named("check"))
-    inputs.file(bootJar.flatMap { it.archiveFile })
+    inputs.file(bootJarArchiveFile)
     inputs.files("Dockerfile", ".dockerignore")
     inputs.property("revision", gitRevision)
     inputs.property("sourceDateEpoch", sourceDateEpoch)
@@ -686,7 +711,7 @@ val buildOciImage = tasks.register("buildOciImage") {
 
     doLast {
         val revision = gitRevision.get()
-        val archive = bootJar.get().archiveFile.get().asFile
+        val archive = bootJarArchiveFile.get()
         val archivePath = archive.relativeTo(projectDir).invariantSeparatorsPath
         val image = localOciImage.get()
         val exitCode =
@@ -725,7 +750,7 @@ val verifyOciReproducibility = tasks.register("verifyOciReproducibility") {
     group = "verification"
     description = "Comprueba dos construcciones OCI sin caché con el mismo digest local."
     dependsOn(buildOciImage)
-    inputs.file(bootJar.flatMap { it.archiveFile })
+    inputs.file(bootJarArchiveFile)
     inputs.files("Dockerfile", ".dockerignore")
     inputs.property("revision", gitRevision)
     inputs.property("sourceDateEpoch", sourceDateEpoch)
@@ -733,7 +758,7 @@ val verifyOciReproducibility = tasks.register("verifyOciReproducibility") {
 
     doLast {
         val revision = gitRevision.get()
-        val archive = bootJar.get().archiveFile.get().asFile
+        val archive = bootJarArchiveFile.get()
         val archivePath = archive.relativeTo(projectDir).invariantSeparatorsPath
         val firstImage = "vgrunning-repro-a:$revision"
         val secondImage = "vgrunning-repro-b:$revision"

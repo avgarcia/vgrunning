@@ -93,6 +93,16 @@ jobs:
           # historial queda para push a main, el cron nocturno y workflow_dispatch, donde la variable
           # está vacía. Requiere el fetch-depth: 0 del checkout de este job.
           GITLEAKS_LOG_OPTS: ${{ github.event_name == 'pull_request' && format('{0}..{1}', github.event.pull_request.base.sha, github.event.pull_request.head.sha) || '' }}
+      # Comparte el jar con container-security, oci-reproducibility y publish-ghcr para que no repitan
+      # la cadena completa de codegen jOOQ/OpenAPI y build de frontend, ya ejecutada aquí como parte
+      # de fastGate. Retención corta: solo hace falta durante este run.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: needs.changes.outputs.code == 'true'
+        with:
+          name: boot-jar
+          path: build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 1
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always() && needs.changes.outputs.code == 'true'
         with:
@@ -127,7 +137,9 @@ jobs:
   container-security:
     name: container-security
     if: github.event_name != 'pull_request' || needs.changes.outputs.container == 'true'
-    needs: changes
+    # Depende de quality-gate para reutilizar su jar: siempre que container == 'true' también
+    # code == 'true' (ver el paso filter de changes), así que quality-gate lo habrá construido.
+    needs: [changes, quality-gate]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -137,13 +149,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: '24.19.0'
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
       - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
-      - run: npm ci --prefix frontend
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: boot-jar
+          path: build/libs
+      - name: Localizar el jar reutilizado desde quality-gate
+        shell: bash
+        run: echo "PREBUILT_BOOT_JAR=$(ls build/libs/*.jar)" >> "$GITHUB_ENV"
       - run: ./gradlew trivy --no-daemon
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
@@ -165,13 +178,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: '24.19.0'
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
       - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
-      - run: npm ci --prefix frontend
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: boot-jar
+          path: build/libs
+      - name: Localizar el jar reutilizado desde quality-gate
+        shell: bash
+        run: echo "PREBUILT_BOOT_JAR=$(ls build/libs/*.jar)" >> "$GITHUB_ENV"
       - run: ./gradlew verifyOciReproducibility --no-daemon
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
@@ -196,19 +210,19 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: '24.19.0'
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
       - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      # publishOciImage no ejecuta pruebas end to end: no necesita Chromium, y el npm ci lo hace ya
-      # la tarea installFrontendDependencies de la que depende bootJar.
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: boot-jar
+          path: build/libs
+      - name: Localizar el jar reutilizado desde quality-gate
+        shell: bash
+        run: echo "PREBUILT_BOOT_JAR=$(ls build/libs/*.jar)" >> "$GITHUB_ENV"
       - run: ./gradlew publishOciImage --no-daemon
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
