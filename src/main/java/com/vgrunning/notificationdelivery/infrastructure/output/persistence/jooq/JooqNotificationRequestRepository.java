@@ -1,7 +1,7 @@
 package com.vgrunning.notificationdelivery.infrastructure.output.persistence.jooq;
 
 import com.vgrunning.notificationdelivery.api.request.CreateNotificationRequest;
-import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
+import com.vgrunning.notificationdelivery.application.port.out.NotificationRequestRepository;
 import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 /** Guarda solicitudes autocontenidas de correo sin ejecutar llamadas externas en la transacción. */
 @Repository
 @RequiredArgsConstructor
-public class JooqNotificationRequestApi implements NotificationRequestApi {
+public class JooqNotificationRequestRepository implements NotificationRequestRepository {
     private final DSLContext jooq;
     private final NotificationRequestPersistenceMapper mapper;
 
