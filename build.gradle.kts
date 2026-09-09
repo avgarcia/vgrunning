@@ -164,7 +164,7 @@ dependencies {
     testAnnotationProcessor("org.projectlombok:lombok:1.18.44")
 
     errorprone("com.google.errorprone:error_prone_core:2.50.0")
-    errorprone("com.uber.nullaway:nullaway:0.14.0")
+    errorprone("com.uber.nullaway:nullaway:0.14.1")
 }
 
 spotless {
@@ -1027,7 +1027,7 @@ val verifyQualityNegativeCases = tasks.register("verifyQualityNegativeCases") {
                 dependencies {
                     compileOnly(\"org.jspecify:jspecify:1.0.1\")
                     errorprone(\"com.google.errorprone:error_prone_core:2.50.0\")
-                    errorprone(\"com.uber.nullaway:nullaway:0.14.0\")
+                    errorprone(\"com.uber.nullaway:nullaway:0.14.1\")
                 }
 
                 tasks.withType<JavaCompile>().configureEach {
