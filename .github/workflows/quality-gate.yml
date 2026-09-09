@@ -253,14 +253,18 @@ jobs:
     steps:
       - name: Comprobar que ningún control obligatorio ha fallado
         shell: bash
+        # El resultado llega por env y no interpolado en el script: evita inyectar la expresión en la
+        # línea de comandos. Los literales de las expresiones de Actions van entre comillas simples.
+        env:
+          RESULTADOS: ${{ join(needs.*.result, ',') }}
         run: |
-          resultados='${{ join(needs.*.result, " ") }}'
-          echo "Resultados de los controles obligatorios: $resultados"
-          for resultado in $resultados; do
-            case "$resultado" in
+          echo "Resultados de los controles obligatorios: $RESULTADOS"
+          IFS=',' read -ra estados <<< "$RESULTADOS"
+          for estado in "${estados[@]}"; do
+            case "$estado" in
               success|skipped) ;;
               *)
-                echo "::error::Un control obligatorio terminó en estado '$resultado'."
+                echo "::error::Un control obligatorio terminó en estado '$estado'."
                 exit 1
                 ;;
             esac
