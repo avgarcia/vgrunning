@@ -4,7 +4,22 @@
 **Fecha:** 2026-09-09
 **Alcance:** `build.gradle.kts`, `gradle/validation/quality-gates.gradle.kts`, `.github/workflows/**`, `.gitleaks.toml`, `security/trivy-exceptions.json`, `config/validation-matrix.json`, `scripts/**`
 
-**Estado de aplicación:** prioridad 1 aplicada en `#52`. Prioridad 2 aplicada en `#65`, salvo el punto 7. Prioridad 3 aplicada parcialmente: los puntos 11, 13, 14 y 16 sí; los puntos 12 y 15 quedan descartados. Los hallazgos siguen redactados en presente tal como se detectaron; consulta esta sección para saber cuáles ya están corregidos.
+**Estado de aplicación:** prioridad 1 en `#52`. Prioridad 2 en `#65`, salvo el punto 7. Prioridad 3 en `#66`: los puntos 11, 13, 14 y 16 aplicados; los puntos 12 y 15 descartados. Prioridad 4 aplicada parcialmente. Los hallazgos siguen redactados en presente tal como se detectaron; consulta esta sección para saber cuáles ya están corregidos.
+
+**Prioridad 4 — qué se aplicó y qué no:**
+
+| Punto | Estado | Nota |
+| --- | --- | --- |
+| 17 | Aplicado a medias | Se elimina el clasificador en shadow mode (`classify-validation-scope.mjs`, `validation-matrix.json`, sus tests, el job `validation-scope-shadow`), sin consumidor real. **No** se sustituye el job `changes` por `dorny/paths-filter`: ya se arregló en P2, alimenta `quality-gate-ok`, y una reescritura no aporta nada que el regex actual no dé ya — un solo filtro alimentando dos salidas distintas (`code`, `container`) no se expresa mejor con `paths-filter` |
+| 18 | Descartado | Misma familia que los puntos 7, 12 y 15: la medición no sostiene el ahorro. `tooling-gate` corre en 1m27s en CI, y el propio hallazgo `R-01` de este informe usa `verifyQualityNegativeCases` como evidencia de que la config de gitleaks importa — el punto 1 de la prioridad 1 solo se detectó por ese razonamiento |
+| 19 | Aplicado | `collect-validation-baseline.cjs` y su test no tenían consumidor en ningún workflow ni fichero de build |
+| 20 | Ya aplicado en `#65` | Definición única del grafo de puertas |
+| 21 | Sin aplicar | Acoplado a `verifyOciReproducibility`, que construye dos veces sin caché y compara el digest local. `docker/build-push-action` con `cache-from: type=gha` introduce justo la caché que esa verificación existe para evitar. Requiere una PR propia que reconsidere ambas tareas juntas |
+| 22 | Sin aplicar | El ahorro que documentaba `S-03` (1h15m) era una medición local; en CI `container-security` tarda 2m31s. El beneficio de pasar el jar entre jobs con `upload-artifact` no está claro a esa escala, y merece medirse antes de construir el paso |
+| 23 | Aplicado | Se elige eliminar `verifyLocalRuntimeConfiguration`, la opción más simple de las dos que proponía este mismo informe, en vez de sustituirla por un `@SpringBootTest` |
+| 24 | Aplicado, tras confirmación explícita | No era solo tooling muerto de CI: `docs/documentation-quality-gates.md` lo describía activamente como el mecanismo que preparaba evidencia para los ocho controles documentales de cierre de fase, y `docs/ai-governance.md` declaraba que se conservaba. Se elimina `plugins/documentation-quality-review` completo, se vacía `.agents/plugins/marketplace.json` (que lo registraba como plugin instalado), y se actualizan los tres documentos que lo describían como proceso activo — incluido `.agents/skills/gestionar-adrs/SKILL.md`, que invocaba sus Skills por nombre — para que la revisión pase a ser manual contra la tabla de controles ya existente |
+
+Los puntos 21 y 22 quedan pendientes de una decisión explícita antes de tocarlos.
 
 **Puntos descartados y por qué.** Los tres cayeron al medir lo que el informe había estimado:
 

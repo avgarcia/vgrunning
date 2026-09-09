@@ -2,7 +2,7 @@
 
 **Estado:** Vigente
 **Fecha:** 2026-08-15
-**Última actualización:** 2026-09-08 — simplificada la gobernanza de revisión para el flujo de único mantenedor (Bloque 4.1 del plan de corrección de la auditoría documental): se elimina el reparto de roles por control y la declaración de ausencia de revisión independiente pasa a hacerse una sola vez, en este documento
+**Última actualización:** 2026-09-09 — se retira el plugin `documentation-quality-review`: las ocho Skills que preparaban evidencia por control quedan sin mantenimiento activo y se sustituyen por la revisión manual descrita en «Ejecución de los controles». 2026-09-08 — simplificada la gobernanza de revisión para el flujo de único mantenedor (Bloque 4.1 del plan de corrección de la auditoría documental): se elimina el reparto de roles por control y la declaración de ausencia de revisión independiente pasa a hacerse una sola vez, en este documento
 
 ## Objetivo
 
@@ -52,23 +52,11 @@ Durante la revisión de una PR documental se debe confirmar lo siguiente:
 - Las operaciones HTTP no son acciones nominalizadas, no codifican roles en sus rutas y justifican recurso, método, estado, seguridad e idempotencia.
 - Se ha ejecutado `git diff --check`.
 
-## Ejecución con Skills
+## Ejecución de los controles
 
-Las Skills del complemento `documentation-quality-review` preparan evidencia y hallazgos para los ocho controles documentales generales:
+Los ocho controles documentales generales se comprueban por revisión manual de quien cierra la fase o firma la PR, contra la tabla de «Aplicación de los controles» anterior. El diseño de API HTTP es la excepción: se apoya en herramienta determinista (Spectral, `oasdiff`) más la revisión de API HTTP definida en la guía de API.
 
-| Control | Skill o herramienta |
-| --- | --- |
-| Trazabilidad entre fases | `validate-phase-traceability` |
-| Requisitos verificables | `validate-verifiable-requirements` |
-| Consistencia terminológica | `validate-terminology` |
-| Matriz de decisiones | `validate-design-decisions` |
-| Preguntas abiertas bloqueantes | `validate-blocking-questions` |
-| Criterios de aceptación | `validate-acceptance-criteria` |
-| Control de cambios de alcance | `validate-scope-changes` |
-| Validación de privacidad | `validate-privacy-readiness` |
-| Diseño de API HTTP | Spectral, `oasdiff` y revisión de API HTTP definida en la guía de API |
-
-Ninguna Skill ni herramienta aprueba una PR ni sustituye el criterio de una persona.
+Ninguna herramienta aprueba una PR ni sustituye el criterio de una persona.
 
 ## Revisión
 

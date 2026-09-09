@@ -26,8 +26,8 @@ Usa `docs/adr/README.md` como índice y convención canónica, y `docs/adr/adr-t
 
 ## Revisar
 
-- Para una decisión nueva o modificada, usa `validate-design-decisions`, `validate-scope-changes`, `validate-phase-traceability` y `validate-blocking-questions` cuando estén disponibles.
-- Usa `validate-terminology` al introducir o renombrar conceptos operativos.
+- Para una decisión nueva o modificada, comprueba manualmente motivo, alternativa descartada, impacto y fase de materialización contra `docs/documentation-quality-gates.md`.
+- Al introducir o renombrar conceptos operativos, comprueba que se definen una sola vez y se usan con el mismo significado en todos los documentos afectados.
 - Antes de cerrar Fase 2, comprueba que `RF-01` a `RF-20` enlazan con diseño, criterios de aceptación y ADR o una justificación explícita.
 - Declara en la PR los cambios de alcance, supuestos, riesgos y la ausencia de revisión independiente cuando aplique.
 
