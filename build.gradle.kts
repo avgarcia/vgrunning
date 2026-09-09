@@ -24,7 +24,7 @@ plugins {
     id("org.springframework.boot") version "4.1.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("nu.studer.jooq") version "10.2.1"
-    id("org.openapi.generator") version "7.24.0"
+    id("org.openapi.generator") version "7.25.0"
     id("com.diffplug.spotless") version "8.10.0"
     id("com.github.spotbugs") version "6.5.11"
     id("net.ltgt.errorprone") version "5.1.1"
