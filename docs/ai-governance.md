@@ -46,4 +46,4 @@ Se mantienen estos escenarios representativos para revisar cualquier cambio de i
 
 ## Configuración externa permitida
 
-En Linear se mantiene Coding Sessions desactivado y no se habilitan Loops, Triage automático, MCP externos ni acceso a GitHub. En el repositorio se conserva `gestionar-adrs` y el plugin `documentation-quality-review`; no se instala Graphify ni se crea `.codex/hooks.json`.
+En Linear se mantiene Coding Sessions desactivado y no se habilitan Loops, Triage automático, MCP externos ni acceso a GitHub. En el repositorio se conserva `gestionar-adrs`; no se instala Graphify ni se crea `.codex/hooks.json`.

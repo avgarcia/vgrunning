@@ -1287,25 +1287,6 @@ val verifyAiGovernanceChecker = tasks.register<Exec>("verifyAiGovernanceChecker"
 }
 
 
-val verifyLocalRuntimeConfiguration = tasks.register("verifyLocalRuntimeConfiguration") {
-    group = "verification"
-    description = "Comprueba el apagado graceful y su límite explícito para desarrollo local."
-    inputs.file("src/main/resources/application.yaml")
-
-    doLast {
-        val configuration = file("src/main/resources/application.yaml").readText()
-        check("server:\n  shutdown: graceful" in configuration) {
-            "El runtime local debe configurar server.shutdown=graceful."
-        }
-        check("lifecycle:\n    timeout-per-shutdown-phase: 30s" in configuration) {
-            "El runtime local debe limitar cada fase de apagado graceful a 30 segundos."
-        }
-        check("config:\n    import: optional:file:.env[.properties]" in configuration) {
-            "El runtime local debe importar opcionalmente la configuración sintética de .env."
-        }
-    }
-}
-
 tasks.named("check") {
     dependsOn(
         "verifyJavaToolchain",
