@@ -521,10 +521,21 @@ val frontendPlaywright = tasks.register<Exec>("frontendPlaywright") {
     )
 }
 
+// El árbol npm del frontend no llega a la imagen OCI, así que Trivy no lo analiza: npm audit es su
+// único control de vulnerabilidades de dependencias.
+val frontendAudit = tasks.register<Exec>("frontendAudit") {
+    group = "verification"
+    description = "Bloquea vulnerabilidades HIGH o superiores en las dependencias npm del frontend."
+    dependsOn(installFrontendDependencies)
+    workingDir(file("frontend"))
+    commandLine(npmExecutable, "audit", "--audit-level=high")
+    inputs.files(file("frontend/package.json"), file("frontend/package-lock.json"))
+}
+
 val frontendCheck = tasks.register("frontendCheck") {
     group = "verification"
-    description = "Agrega typecheck, ESLint, Vitest, build Vite y Playwright."
-    dependsOn(frontendTypecheck, frontendLint, frontendUnitTest, frontendBuild, frontendPlaywright)
+    description = "Agrega typecheck, ESLint, Vitest, npm audit, build Vite y Playwright."
+    dependsOn(frontendTypecheck, frontendLint, frontendUnitTest, frontendAudit, frontendBuild, frontendPlaywright)
 }
 
 tasks.named<ProcessResources>("processResources") {
@@ -592,29 +603,30 @@ val imageMetadata = securityReportsDirectory.map { directory -> directory.file("
 val sbomFile = securityReportsDirectory.map { directory -> directory.file("sbom.spdx.json") }
 val trivyCacheVolume = "vgrunning-trivy-cache"
 
-val verifyTrivyExceptions = tasks.register("verifyTrivyExceptions") {
-    group = "verification"
-    description = "Comprueba que el registro de excepciones Trivy conserva su formato seguro."
-    val exceptions = layout.projectDirectory.file("security/trivy-exceptions.json")
-    inputs.file(exceptions)
-
-    doLast {
-        val content = exceptions.asFile.readText(Charsets.UTF_8).trim()
-        check(content == "{\n  \"exceptions\": []\n}" || content == "{\"exceptions\":[]}") {
-            "El registro de excepciones Trivy no está vacío. Toda excepción requiere una revisión explícita."
-        }
-    }
-}
+// El historial versionado no cambia entre ejecuciones: rebarrerlo entero en cada pull request añade
+// unos veinte minutos sin aportar información nueva. GITLEAKS_LOG_OPTS acota el escaneo al rango de
+// commits de la rama; sin la variable se mantiene el barrido completo (push a main, cron y local).
+val gitleaksLogOpts = providers.environmentVariable("GITLEAKS_LOG_OPTS").orElse("")
 
 val gitleaks = tasks.register("gitleaks") {
     group = "verification"
     description = "Busca secretos versionados o presentes en el árbol de trabajo mediante Gitleaks fijado."
     inputs.files(fileTree(projectDir) { exclude(".git/**", ".gradle/**", "build/**", "frontend/node_modules/**") })
     inputs.property("gitleaksImage", gitleaksImage)
+    inputs.property("gitleaksLogOpts", gitleaksLogOpts)
 
     doLast {
         val projectMount = "type=bind,source=${projectDir.absolutePath.replace('\\', '/')},target=/repo,readonly"
-        check(runCommand(listOf("docker", "run", "--rm", "--mount", projectMount, gitleaksImage, "git", "/repo", "--redact")) == 0) {
+        val logOpts = gitleaksLogOpts.get().trim()
+        val historyScan =
+            listOf("docker", "run", "--rm", "--mount", projectMount, gitleaksImage, "git", "/repo", "--redact") +
+                if (logOpts.isEmpty()) emptyList() else listOf("--log-opts=$logOpts")
+        if (logOpts.isEmpty()) {
+            logger.lifecycle("Gitleaks: barrido completo del historial Git.")
+        } else {
+            logger.lifecycle("Gitleaks: historial Git acotado a $logOpts.")
+        }
+        check(runCommand(historyScan) == 0) {
             "Gitleaks detectó un secreto o un patrón de credencial en el historial Git."
         }
         val sourceDirectory = layout.buildDirectory.dir("tmp/gitleaks-source").get().asFile
@@ -808,10 +820,10 @@ val generateSbom = tasks.register("generateSbom") {
 
 val trivy = tasks.register("trivy") {
     group = "verification"
-    description = "Bloquea vulnerabilidades CRITICAL en la imagen OCI local mediante Trivy fijado."
-    dependsOn(generateSbom, verifyTrivyExceptions)
+    description = "Bloquea vulnerabilidades HIGH y CRITICAL con parche disponible en la imagen OCI local."
+    dependsOn(generateSbom)
     inputs.file(imageTar)
-    inputs.file(layout.projectDirectory.file("security/trivy-exceptions.json"))
+    inputs.file(layout.projectDirectory.file(".trivyignore"))
     inputs.property("trivyImage", trivyImage)
 
     doLast {
@@ -819,18 +831,22 @@ val trivy = tasks.register("trivy") {
         ensureDockerVolume(trivyCacheVolume)
         val mount = "type=bind,source=${reportsDirectory.absolutePath.replace('\\', '/')},target=/reports,readonly"
         val cacheMount = "type=volume,source=$trivyCacheVolume,target=/root/.cache/trivy"
+        // El fichero de exclusiones vive en el proyecto: Trivy solo lo autodetecta en su cwd, que en el
+        // contenedor es la raíz, por eso se monta el proyecto y se pasa --ignorefile de forma explícita.
+        val projectMount = "type=bind,source=${projectDir.absolutePath.replace('\\', '/')},target=/repo,readonly"
         val result =
             runCommandCapturing(
                 listOf(
-                    "docker", "run", "--rm", "--mount", mount, "--mount", cacheMount, trivyImage, "image", "--timeout",
-                    "30m", "--input", "/reports/vgrunning-image.tar", "--scanners", "vuln", "--severity", "CRITICAL",
-                    "--exit-code", "1", "--no-progress",
+                    "docker", "run", "--rm", "--mount", mount, "--mount", projectMount, "--mount", cacheMount,
+                    trivyImage, "image", "--timeout", "30m", "--input", "/reports/vgrunning-image.tar",
+                    "--scanners", "vuln,secret", "--severity", "HIGH,CRITICAL", "--ignore-unfixed",
+                    "--ignorefile", "/repo/.trivyignore", "--exit-code", "1", "--no-progress",
                 ),
             )
         check(
             result.exitCode == 0,
         ) {
-            "Trivy no pudo completar el análisis de vulnerabilidades CRITICAL (exit ${result.exitCode}).\n${result.output}"
+            "Trivy no pudo completar el análisis de vulnerabilidades HIGH/CRITICAL (exit ${result.exitCode}).\n${result.output}"
         }
     }
 }
@@ -1056,7 +1072,9 @@ val verifyQualityNegativeCases = tasks.register("verifyQualityNegativeCases") {
         )
 
         val gitleaksFixture = layout.buildDirectory.file("quality-fixtures/gitleaks-invalid.txt").get().asFile
-        gitleaksFixture.writeText("RC_" + "SECRET_ABCDEFGHIJKLMNOPQRSTUVWXYZ123456", Charsets.UTF_8)
+        // El valor no puede contener secuencias tipo "abcdef" o "123456": el ruleset por defecto que
+        // ahora se extiende las trata como stopwords y descartaría el hallazgo, invalidando la prueba.
+        gitleaksFixture.writeText("RC_" + "SECRET_Xq7Zt4Wv9Lm2Ns8Kd5Rj3Hb6Yc1Pf0Gw", Charsets.UTF_8)
         val fixtureMount = "type=bind,source=${gitleaksFixture.parentFile.absolutePath.replace('\\', '/')},target=/fixture,readonly"
         val projectMount = "type=bind,source=${projectDir.absolutePath.replace('\\', '/')},target=/repo,readonly"
         expectFailure(

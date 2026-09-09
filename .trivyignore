@@ -1,0 +1,9 @@
+# Exclusiones de Trivy.
+#
+# Cada línea es un identificador de vulnerabilidad y admite fecha de expiración:
+#   CVE-2024-12345 exp:2026-12-31
+#
+# Reglas:
+# - Toda exclusión necesita fecha de expiración; sin ella la excepción se vuelve permanente por olvido.
+# - Las vulnerabilidades sin parche disponible NO se listan aquí: ya las descarta --ignore-unfixed.
+# - Justifica la exclusión en el comentario inmediatamente anterior a la entrada.

@@ -46,7 +46,7 @@
     },
     {
       "name": "tooling-supply-chain",
-      "patterns": ["build.gradle.kts", "settings.gradle.kts", "gradle/**", "gradle.properties", "gradle.lockfile", "frontend/package.json", "frontend/package-lock.json", "frontend/.npmrc", "Dockerfile", ".dockerignore", "security/**", ".gitleaks.toml", ".github/workflows/**", "config/validation-matrix.json", "scripts/classify-validation-scope.mjs", "scripts/test-classify-validation-scope.mjs"],
+      "patterns": ["build.gradle.kts", "settings.gradle.kts", "gradle/**", "gradle.properties", "gradle.lockfile", "frontend/package.json", "frontend/package-lock.json", "frontend/.npmrc", "Dockerfile", ".dockerignore", ".trivyignore", ".gitleaks.toml", ".github/workflows/**", "config/validation-matrix.json", "scripts/classify-validation-scope.mjs", "scripts/test-classify-validation-scope.mjs"],
       "gates": ["qualityGate"],
       "semanticReview": false
     }
