@@ -29,9 +29,7 @@ public class CreateRunnerService implements CreateRunnerUseCase {
     @Override
     @Transactional
     public Runner create(ActorContext actor, UUID idempotencyKey, CreateRunner command) {
-        if (!actor.isAdministrator()) {
-            throw new RunnerCreationForbiddenException();
-        }
+        actor.requireAdministrator(RunnerCreationForbiddenException::new);
         CreateRunner normalized = normalize(command);
         byte[] fingerprint = fingerprint(normalized);
         return runners.reserve(actor.accountId(), idempotencyKey, fingerprint)

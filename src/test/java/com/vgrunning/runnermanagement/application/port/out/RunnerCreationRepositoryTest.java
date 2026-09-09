@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository.StoredCreation;
 import com.vgrunning.runnermanagement.domain.Runner;
+import com.vgrunning.runnermanagement.domain.RunnerName;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -12,8 +13,8 @@ class RunnerCreationRepositoryTest {
     private static final Runner RUNNER =
             new Runner(
                     UUID.fromString("50000000-0000-0000-0000-000000000001"),
-                    "Lucía",
-                    "Martín",
+                    new RunnerName("Lucía"),
+                    new RunnerName("Martín"),
                     "pending_activation");
 
     @Test
@@ -35,7 +36,11 @@ class RunnerCreationRepositoryTest {
         StoredCreation differentRunner =
                 new StoredCreation(
                         new byte[] {1, 2, 3},
-                        new Runner(UUID.randomUUID(), "Ana", "López", "pending_activation"));
+                        new Runner(
+                                UUID.randomUUID(),
+                                new RunnerName("Ana"),
+                                new RunnerName("López"),
+                                "pending_activation"));
 
         assertThat(first).isEqualTo(same).hasSameHashCodeAs(same);
         assertThat(first).isNotEqualTo(differentFingerprint);

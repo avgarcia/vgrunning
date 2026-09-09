@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository.NewRunner;
 import com.vgrunning.runnermanagement.domain.Runner;
+import com.vgrunning.runnermanagement.domain.RunnerName;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,12 @@ class RunnerPersistenceMapperTest {
                 .containsExactly(
                         runnerId, runner.accountId(), "Lucía", "Martín", "pending_activation");
         assertThat(mapper.toDomain(record))
-                .isEqualTo(new Runner(runnerId, "Lucía", "Martín", "pending_activation"));
+                .isEqualTo(
+                        new Runner(
+                                runnerId,
+                                new RunnerName("Lucía"),
+                                new RunnerName("Martín"),
+                                "pending_activation"));
         assertThat(mapper.toStoredCreation(new byte[] {1, 2}, record).fingerprint())
                 .containsExactly(1, 2);
         assertThat(mapper.toDomain(null)).isNull();

@@ -31,6 +31,24 @@ class SealedPayloadTest {
     }
 
     @Test
+    void equalsAndHashCodeCompareArrayContentNotReference() {
+        SealedPayload first = new SealedPayload("key-1", new byte[] {1, 2}, new byte[] {3, 4});
+        SealedPayload same = new SealedPayload("key-1", new byte[] {1, 2}, new byte[] {3, 4});
+        SealedPayload differentNonce =
+                new SealedPayload("key-1", new byte[] {9, 9}, new byte[] {3, 4});
+        SealedPayload differentCiphertext =
+                new SealedPayload("key-1", new byte[] {1, 2}, new byte[] {9, 9});
+        SealedPayload differentKeyId =
+                new SealedPayload("key-2", new byte[] {1, 2}, new byte[] {3, 4});
+
+        assertThat(first).isEqualTo(same).hasSameHashCodeAs(same);
+        assertThat(first).isNotEqualTo(differentNonce);
+        assertThat(first).isNotEqualTo(differentCiphertext);
+        assertThat(first).isNotEqualTo(differentKeyId);
+        assertThat(first).isNotEqualTo("not-a-sealed-payload");
+    }
+
+    @Test
     void rejectsNullFields() {
         assertThatThrownBy(() -> new SealedPayload(null, new byte[] {1}, new byte[] {2}))
                 .isInstanceOf(NullPointerException.class);

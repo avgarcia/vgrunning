@@ -12,6 +12,7 @@ import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
 import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository;
 import com.vgrunning.identityaccess.application.port.out.SecretGenerator;
+import com.vgrunning.identityaccess.domain.RunnerInvitation;
 import com.vgrunning.identityaccess.domain.SealedPayload;
 import com.vgrunning.notificationdelivery.api.request.CreateNotificationRequest;
 import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
@@ -48,11 +49,10 @@ class ProvisionRunnerAccountServiceTest {
                                 new ActorContext(ADMIN_ID, "administrador"),
                                 UUID.fromString("10000000-0000-0000-0000-000000000002")));
 
-        assertThat(invitations.invitation.getPresentationEmail())
-                .isEqualTo("Lucía@example.invalid");
-        assertThat(invitations.invitation.getCanonicalEmail()).isEqualTo("lucía@example.invalid");
-        assertThat(invitations.invitation.getSecretVerifier()).hasSize(32);
-        assertThat(account.invitationId()).isEqualTo(invitations.invitation.getInvitationId());
+        assertThat(invitations.invitation.presentationEmail()).isEqualTo("Lucía@example.invalid");
+        assertThat(invitations.invitation.canonicalEmail()).isEqualTo("lucía@example.invalid");
+        assertThat(invitations.invitation.secretVerifier()).hasSize(32);
+        assertThat(account.invitationId()).isEqualTo(invitations.invitation.invitationId());
         assertThat(notifications.request.logicalKey())
                 .isEqualTo("invitation:" + account.invitationId());
         assertThat(protector.values)
@@ -114,14 +114,14 @@ class ProvisionRunnerAccountServiceTest {
     }
 
     private static final class InvitationsFake implements RunnerInvitationProvisioningRepository {
-        private PendingRunnerInvitation invitation;
+        private RunnerInvitation invitation;
 
         @Override
-        public ProvisionedRunnerAccount provision(PendingRunnerInvitation value) {
+        public ProvisionedRunnerAccount provision(RunnerInvitation value) {
             invitation = value;
             return new ProvisionedRunnerAccount(
-                    value.getAccountId(),
-                    value.getInvitationId(),
+                    value.accountId(),
+                    value.invitationId(),
                     OffsetDateTime.now(ZoneOffset.UTC).plusDays(30));
         }
     }

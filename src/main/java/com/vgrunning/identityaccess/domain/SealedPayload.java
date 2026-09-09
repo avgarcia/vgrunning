@@ -1,28 +1,39 @@
 package com.vgrunning.identityaccess.domain;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 /** Contenido cifrado con AEAD, propiedad del módulo que lo produce. */
-public final class SealedPayload {
-    private final String keyId;
-    private final byte[] nonce;
-    private final byte[] ciphertext;
-
-    public SealedPayload(String keyId, byte[] nonce, byte[] ciphertext) {
-        this.keyId = Objects.requireNonNull(keyId);
-        this.nonce = Objects.requireNonNull(nonce).clone();
-        this.ciphertext = Objects.requireNonNull(ciphertext).clone();
+// El nonce y el ciphertext se clonan al construir y al leer, y equals/hashCode comparan su
+// contenido: el footgun que evita esta regla ya está cubierto explícitamente más abajo.
+@SuppressWarnings("ArrayRecordComponent")
+public record SealedPayload(String keyId, byte[] nonce, byte[] ciphertext) {
+    public SealedPayload {
+        Objects.requireNonNull(keyId);
+        nonce = Objects.requireNonNull(nonce).clone();
+        ciphertext = Objects.requireNonNull(ciphertext).clone();
     }
 
-    public String keyId() {
-        return keyId;
-    }
-
+    @Override
     public byte[] nonce() {
         return nonce.clone();
     }
 
+    @Override
     public byte[] ciphertext() {
         return ciphertext.clone();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof SealedPayload that
+                && keyId.equals(that.keyId)
+                && Arrays.equals(nonce, that.nonce)
+                && Arrays.equals(ciphertext, that.ciphertext);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(keyId, Arrays.hashCode(nonce), Arrays.hashCode(ciphertext));
     }
 }

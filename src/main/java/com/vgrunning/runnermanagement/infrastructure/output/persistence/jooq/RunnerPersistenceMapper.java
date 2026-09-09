@@ -3,6 +3,7 @@ package com.vgrunning.runnermanagement.infrastructure.output.persistence.jooq;
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository.NewRunner;
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository.StoredCreation;
 import com.vgrunning.runnermanagement.domain.Runner;
+import com.vgrunning.runnermanagement.domain.RunnerName;
 import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -22,8 +23,8 @@ public interface RunnerPersistenceMapper {
     RunnerRecord toRunnerRecord(NewRunner runner);
 
     @Mapping(target = "id", source = "id", qualifiedByName = "required")
-    @Mapping(target = "givenName", source = "givenName", qualifiedByName = "required")
-    @Mapping(target = "familyName", source = "familyName", qualifiedByName = "required")
+    @Mapping(target = "givenName", source = "givenName", qualifiedByName = "requiredName")
+    @Mapping(target = "familyName", source = "familyName", qualifiedByName = "requiredName")
     @Mapping(target = "status", source = "status", qualifiedByName = "required")
     Runner toDomain(RunnerRecord runner);
 
@@ -39,5 +40,10 @@ public interface RunnerPersistenceMapper {
     @Named("required")
     static <T> T required(T value) {
         return Objects.requireNonNull(value);
+    }
+
+    @Named("requiredName")
+    static RunnerName requiredName(String value) {
+        return new RunnerName(Objects.requireNonNull(value));
     }
 }

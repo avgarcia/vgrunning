@@ -14,6 +14,7 @@ import com.vgrunning.runnermanagement.application.port.in.CreateRunnerUseCase.Cr
 import com.vgrunning.runnermanagement.application.port.out.DigestPort;
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository;
 import com.vgrunning.runnermanagement.domain.Runner;
+import com.vgrunning.runnermanagement.domain.RunnerName;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.OffsetDateTime;
@@ -132,6 +133,20 @@ class CreateRunnerServiceTest {
                 .isInstanceOfSatisfying(
                         InvalidRunnerCreationException.class,
                         exception -> assertThat(exception.code()).isEqualTo("invalid_request"));
+        assertThatThrownBy(
+                        () ->
+                                service.create(
+                                        new ActorContext(ADMIN_ID, "administrador"),
+                                        KEY,
+                                        new CreateRunner("Lucía", "Martín", null, true)))
+                .isInstanceOf(InvalidRunnerCreationException.class);
+        assertThatThrownBy(
+                        () ->
+                                service.create(
+                                        new ActorContext(ADMIN_ID, "administrador"),
+                                        KEY,
+                                        new CreateRunner("Lucía", "Martín", " ", true)))
+                .isInstanceOf(InvalidRunnerCreationException.class);
         assertThat(runners.reserved).isFalse();
     }
 
@@ -169,8 +184,8 @@ class CreateRunnerServiceTest {
         private static final Runner EXISTING =
                 new Runner(
                         UUID.fromString("30000000-0000-0000-0000-000000000005"),
-                        "Lucía",
-                        "Martín",
+                        new RunnerName("Lucía"),
+                        new RunnerName("Martín"),
                         "pending_activation");
 
         private final ReservationMode mode;
@@ -200,8 +215,8 @@ class CreateRunnerServiceTest {
         public Runner create(NewRunner runner) {
             return new Runner(
                     runner.runnerId(),
-                    runner.givenName(),
-                    runner.familyName(),
+                    new RunnerName(runner.givenName()),
+                    new RunnerName(runner.familyName()),
                     "pending_activation");
         }
 
