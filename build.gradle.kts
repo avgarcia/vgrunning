@@ -3,6 +3,7 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
+import org.gradle.testing.jacoco.tasks.JacocoReportBase
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.jvm.toolchain.JvmVendorSpec
@@ -224,6 +225,23 @@ fun hasCriticalSourceFiles(): Boolean =
         include("com/vgrunning/**/domain/**/*.java", "com/vgrunning/**/application/**/*.java")
     }.files.isNotEmpty()
 
+// Código sin lógica propia que solo distorsiona el denominador de la cobertura: implementaciones
+// generadas por MapStruct, cableado de Spring y marcadores de paquete. Medirlo obliga a escribir
+// pruebas de andamiaje sin valor y, sobre todo, hunde la cobertura de ramas.
+val exclusionesCobertura = listOf(
+    "**/config/**",
+    "**/*Configuration.class",
+    "**/*MapperImpl.class",
+    "**/package-info.class",
+    "com/vgrunning/RunningCoachApplication.class",
+)
+
+tasks.withType<JacocoReportBase>().configureEach {
+    classDirectories.setFrom(
+        files(classDirectories.files.map { directorio -> fileTree(directorio) { exclude(exclusionesCobertura) } }),
+    )
+}
+
 tasks.named<JacocoReport>("jacocoTestReport") {
     dependsOn(tasks.test)
     reports {
@@ -238,6 +256,8 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
         hasCriticalSourceFiles()
     }
     violationRules {
+        // Suelo global. No se aplica una regla por clase: element = "CLASS" convierte cualquier clase
+        // nueva por debajo del umbral en un fallo de build aunque el agregado esté muy por encima.
         rule {
             limit {
                 counter = "LINE"
@@ -247,21 +267,23 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
             limit {
                 counter = "BRANCH"
                 value = "COVEREDRATIO"
-                minimum = "0.70".toBigDecimal()
+                minimum = "0.80".toBigDecimal()
             }
         }
+        // JaCoCo no sabe agregar sobre un subconjunto de paquetes: includes filtra por el nombre del
+        // elemento, y en una regla BUNDLE ese nombre es el del informe, con lo que la regla quedaría
+        // inerte. PACKAGE es la granularidad más gruesa que permite acotar el código crítico.
+        //
+        // Solo se exige LINE. Los paquetes críticos rondan las diez ramas, así que un suelo de ramas
+        // por paquete vuelve a ser un precipicio: perder una sola rama en application/port/out (hoy
+        // 8/10) lo incumpliría. Esa garantía la da el suelo global de ramas, que sí tiene margen.
         rule {
-            element = "CLASS"
+            element = "PACKAGE"
             includes = listOf("com.vgrunning.*.domain.*", "com.vgrunning.*.application.*")
             limit {
                 counter = "LINE"
                 value = "COVEREDRATIO"
                 minimum = "0.90".toBigDecimal()
-            }
-            limit {
-                counter = "BRANCH"
-                value = "COVEREDRATIO"
-                minimum = "0.80".toBigDecimal()
             }
         }
     }

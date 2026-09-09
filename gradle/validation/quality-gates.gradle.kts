@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.testing.Test
+import org.gradle.testing.jacoco.tasks.JacocoReportBase
 import org.gradle.api.tasks.SourceSetContainer
 
 val validationNode = if (System.getProperty("os.name").startsWith("Windows")) "node.exe" else "node"
@@ -54,6 +55,14 @@ val spaDeliveryTest = tasks.register<Test>("spaDeliveryTest") {
 
 tasks.named("verifySpaPackaging") {
     dependsOn(spaDeliveryTest)
+}
+
+// La cobertura se medía solo sobre `test`, que excluye SecurityAndManagementEndpointTest, mientras que
+// quien ejecuta esa prueba es `spaDeliveryTest`. El resultado era contar como no cubierto código cuya
+// prueba sí existe. Ambas ejecuciones alimentan ahora el informe y la verificación.
+tasks.withType<JacocoReportBase>().configureEach {
+    dependsOn(tasks.named("test"), spaDeliveryTest)
+    executionData(tasks.named<Test>("test").get(), spaDeliveryTest.get())
 }
 
 // Autopruebas de las propias herramientas: demuestran sobre fixtures que una infracción bloquea.
