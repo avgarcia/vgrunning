@@ -5,6 +5,7 @@
 **Fecha de aceptación:** 2026-08-21
 **Responsable de revisión:** Revisor de arquitectura
 **Refina parcialmente:** [ADR-0007](0007-atomic-publication-versioning-recipients.md), [ADR-0008](0008-transactional-publication-notifications.md), [ADR-0011](0011-transactional-email-delivery-strategy.md), [ADR-0014](0014-modular-hexagonal-ddd-architecture.md), [ADR-0018](0018-runner-lifecycle-inactivity-reactivation.md) y [ADR-0020](0020-planning-lifecycle-objectives-history.md)
+**Refinado parcialmente por:** [ADR-0030](0030-publication-jsonb-snapshot-model.md)
 **Validación documental:** Decisiones de publicación aceptadas explícitamente por el responsable el 2026-08-21
 
 ## Contexto

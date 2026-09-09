@@ -3,6 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-14
 **Responsable de revisión:** Responsable de privacidad o asesor especializado
+**Refinado parcialmente por:** [ADR-0031](0031-notification-delivery-provider-delegation.md)
 **Validación documental:** Aceptado explícitamente por el responsable el 2026-08-14; evidencias jurídicas y operativas pendientes antes de producción
 
 ## Contexto

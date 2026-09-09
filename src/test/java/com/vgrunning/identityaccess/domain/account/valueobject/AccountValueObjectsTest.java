@@ -55,4 +55,28 @@ class AccountValueObjectsTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("formato válido");
     }
+
+    @Test
+    void presentationValuePreservesCaseAfterNormalizing() {
+        assertThat(EmailAddress.presentationValue("  RUNNER@Example.Invalid  "))
+                .isEqualTo("RUNNER@Example.Invalid");
+    }
+
+    @Test
+    void acceptsAPasswordWithinTheAllowedLength() {
+        assertThat(RawPassword.from("una-contraseña-válida").value())
+                .isEqualTo("una-contraseña-válida");
+    }
+
+    @Test
+    void rejectsAPasswordShorterThanTwelveCharacters() {
+        assertThatThrownBy(() -> RawPassword.from("corta"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void rejectsAPasswordLongerThanOneHundredTwentyEightCharacters() {
+        assertThatThrownBy(() -> RawPassword.from("a".repeat(129)))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 }

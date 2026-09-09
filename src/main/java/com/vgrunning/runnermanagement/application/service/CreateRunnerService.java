@@ -7,12 +7,14 @@ import com.vgrunning.identityaccess.api.provisioning.ProvisionedRunnerAccount;
 import com.vgrunning.runnermanagement.application.exception.IdempotencyKeyReusedException;
 import com.vgrunning.runnermanagement.application.exception.InvalidRunnerCreationException;
 import com.vgrunning.runnermanagement.application.exception.RunnerCreationForbiddenException;
-import com.vgrunning.runnermanagement.application.mapper.RunnerCreationMapper;
 import com.vgrunning.runnermanagement.application.port.in.CreateRunnerUseCase;
+import com.vgrunning.runnermanagement.application.port.out.DigestPort;
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository;
-import java.nio.charset.StandardCharsets;
+import com.vgrunning.runnermanagement.domain.Runner;
+import com.vgrunning.runnermanagement.domain.RunnerName;
 import java.security.MessageDigest;
 import java.text.Normalizer;
+import java.util.Locale;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,31 +24,26 @@ import org.springframework.transaction.annotation.Transactional;
 public class CreateRunnerService implements CreateRunnerUseCase {
     private final AccountProvisioningApi accounts;
     private final RunnerCreationRepository runners;
-    private final RunnerCreationMapper mapper;
+    private final DigestPort digest;
 
     @Override
     @Transactional
-    public CreatedRunner create(ActorContext actor, UUID idempotencyKey, CreateRunner command) {
-        if (!actor.isAdministrator()) {
-            throw new RunnerCreationForbiddenException();
-        }
+    public Runner create(ActorContext actor, UUID idempotencyKey, CreateRunner command) {
+        actor.requireAdministrator(RunnerCreationForbiddenException::new);
         CreateRunner normalized = normalize(command);
         byte[] fingerprint = fingerprint(normalized);
-        RunnerCreationRepository.Reservation reservation =
-                runners.reserve(actor.accountId(), idempotencyKey, fingerprint);
-        return reservation
-                .existing()
+        return runners.reserve(actor.accountId(), idempotencyKey, fingerprint)
                 .map(existing -> replay(existing, fingerprint))
                 .orElseGet(() -> createNew(actor, idempotencyKey, normalized));
     }
 
-    private CreatedRunner createNew(ActorContext actor, UUID idempotencyKey, CreateRunner command) {
+    private Runner createNew(ActorContext actor, UUID idempotencyKey, CreateRunner command) {
         UUID runnerId = UUID.randomUUID();
         UUID correlationId = UUID.randomUUID();
         ProvisionedRunnerAccount account =
                 accounts.provision(
                         new ProvisionRunnerAccount(command.email(), actor, correlationId));
-        var stored =
+        Runner stored =
                 runners.create(
                         new RunnerCreationRepository.NewRunner(
                                 runnerId,
@@ -57,15 +54,14 @@ public class CreateRunnerService implements CreateRunnerUseCase {
                                 correlationId,
                                 account.activationExpiresAt()));
         runners.complete(actor.accountId(), idempotencyKey, stored);
-        return mapper.toCreatedRunner(stored);
+        return stored;
     }
 
-    private CreatedRunner replay(
-            RunnerCreationRepository.StoredCreation existing, byte[] fingerprint) {
+    private Runner replay(RunnerCreationRepository.StoredCreation existing, byte[] fingerprint) {
         if (!MessageDigest.isEqual(existing.fingerprint(), fingerprint)) {
             throw new IdempotencyKeyReusedException();
         }
-        return mapper.toCreatedRunner(existing.runner());
+        return existing.runner();
     }
 
     private static CreateRunner normalize(CreateRunner command) {
@@ -73,10 +69,18 @@ public class CreateRunnerService implements CreateRunnerUseCase {
             throw new InvalidRunnerCreationException();
         }
         return new CreateRunner(
-                normalizedText(command.givenName()),
-                normalizedText(command.familyName()),
-                normalizedText(command.email()).toLowerCase(java.util.Locale.ROOT),
+                normalizedName(command.givenName()).value(),
+                normalizedName(command.familyName()).value(),
+                normalizedText(command.email()).toLowerCase(Locale.ROOT),
                 true);
+    }
+
+    private static RunnerName normalizedName(String value) {
+        try {
+            return RunnerName.from(value);
+        } catch (IllegalArgumentException exception) {
+            throw new InvalidRunnerCreationException();
+        }
     }
 
     private static String normalizedText(String value) {
@@ -90,18 +94,8 @@ public class CreateRunnerService implements CreateRunnerUseCase {
         return normalized;
     }
 
-    private static byte[] fingerprint(CreateRunner command) {
-        try {
-            return MessageDigest.getInstance("SHA-256")
-                    .digest(
-                            (command.givenName()
-                                            + "\n"
-                                            + command.familyName()
-                                            + "\n"
-                                            + command.email())
-                                    .getBytes(StandardCharsets.UTF_8));
-        } catch (java.security.NoSuchAlgorithmException exception) {
-            throw new IllegalStateException(exception);
-        }
+    private byte[] fingerprint(CreateRunner command) {
+        return digest.sha256(
+                command.givenName() + "\n" + command.familyName() + "\n" + command.email());
     }
 }

@@ -120,4 +120,24 @@ class HexagonalLayeringTest {
                     .resideOutsideOfPackages(
                             "..adapter..", "..application.model..", "..application.usecase..")
                     .allowEmptyShould(false);
+
+    @ArchTest
+    static final ArchRule securityMustNotCoordinateApplicationServices =
+            noClasses()
+                    .that()
+                    .resideInAnyPackage("..infrastructure.security..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage("..application.service..")
+                    .allowEmptyShould(false);
+
+    @ArchTest
+    static final ArchRule securityMustNotUsePersistenceInfrastructure =
+            noClasses()
+                    .that()
+                    .resideInAnyPackage("..infrastructure.security..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage("..infrastructure.output.persistence..")
+                    .allowEmptyShould(false);
 }

@@ -3,6 +3,7 @@ package com.vgrunning.identityaccess.infrastructure.output.persistence.jooq;
 import com.vgrunning.identityaccess.api.provisioning.ProvisionedRunnerAccount;
 import com.vgrunning.identityaccess.application.exception.EmailAlreadyReservedException;
 import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository;
+import com.vgrunning.identityaccess.domain.RunnerInvitation;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class JooqRunnerInvitationProvisioningRepository
     private final InvitationPersistenceMapper mapper;
 
     @Override
-    public ProvisionedRunnerAccount provision(PendingRunnerInvitation invitation) {
+    public ProvisionedRunnerAccount provision(RunnerInvitation invitation) {
         OffsetDateTime now =
                 Objects.requireNonNull(
                         jooq.select(DSL.currentOffsetDateTime())

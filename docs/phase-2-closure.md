@@ -43,7 +43,7 @@ Se mantienen los ocho módulos de `ADR-0014`: `identity-access`, `runner-managem
 16. Todo el PMV web debe cumplir WCAG `2.2 AA`, incluidas pruebas a `320` CSS px, zoom `400 %`, texto `200 %`, teclado, foco, errores y objetivos de puntero de `24 × 24` CSS px o excepción oficial documentada.
 17. `ADR-0023` fija recuperación por escenario: PITR Azure `RPO <= 15 min` y `RTO <= 4 h`; pérdida total de Azure `RPO <= 24 h` y `RTO <= 24 h`; migración planificada con objetivo de pérdida cero y `RTO <= 4 h`. La clave privada y las credenciales externas se custodian fuera de Azure.
 18. Los objetivos se muestran como «Zx según las zonas que utilizas con tu entrenador» o «ritmo de distancia +/− segundos por km, usando tu marca de referencia acordada con tu entrenador». No se almacenan, calculan o validan referencias personales; desconocerlas no bloquea y se resuelve fuera del producto.
-19. Se normaliza el lenguaje a «miembro efectivo del segmento» y «entrenamiento publicado para el corredor».
+19. «Miembro efectivo» es un término cualificado, no normalizado a una sola forma: cada diseño lo usa con el sufijo de su población (miembro efectivo del segmento, miembro efectivo de grupo, miembro efectivo de la publicación) para evitar tres significados bajo una misma etiqueta desnuda. «Entrenamiento publicado para el corredor» se mantiene como forma única.
 20. La línea base de acceso y seguridad queda enlazada desde `README.md`; las fechas históricas no se reescriben de forma masiva.
 
 ## Trazabilidad desde Fase 0
@@ -63,8 +63,8 @@ Se mantienen los ocho módulos de `ADR-0014`: `identity-access`, `runner-managem
 | --- | --- | --- |
 | Trazabilidad entre fases | `RF-01..RF-21`, `D-01..D-11`, riesgos, ADR y mejoras futuras enlazados. | Autorrevisión del mantenedor único: `21` filas de requisitos, `11` de decisiones, `23` ADR indexados y enlaces locales válidos; evidencia reproducible en la PR. |
 | Requisitos verificables | Actor, condición, comportamiento y resultado observable por requisito. | Autorrevisión completada sobre los `21` requisitos; evidencia en la PR. |
-| Criterios de aceptación | Éxito y error o límite para los `21` requisitos imprescindibles. | Autorrevisión: `21/21` secciones contienen ambos escenarios y `42/42` identificadores son únicos; evidencia en la PR. |
-| Terminología | Cuenta, corredor, segmento, grupo, miembro efectivo, publicación, seguimiento y revisión usados sin significados incompatibles. | Autorrevisión terminológica completada; no aparecen los dos términos obsoletos buscados; evidencia en la PR. |
+| Criterios de aceptación | Éxito y error o límite para los `21` requisitos imprescindibles. | Autorrevisión: `21/21` secciones contienen ambos escenarios y `44/44` identificadores son únicos; evidencia en la PR. |
+| Terminología | Cuenta, corredor, segmento, grupo, miembro efectivo, publicación, seguimiento y revisión usados sin significados incompatibles. | Revisión posterior detectó que «miembro efectivo» tenía tres referentes (segmento, grupo, publicación) usados sin cualificar en algunos puntos; corregido cualificando el término donde el contexto no lo desambiguaba (ver punto 19). No aparecen los dos términos obsoletos buscados; evidencia en la PR. |
 | Decisiones de diseño | Alternativas, consecuencias, trazabilidad y validación de `ADR-0001..ADR-0023`. | Auditoría estricta: `23 ADR(s), 0 error(es), 0 aviso(s)`; nueve relaciones parciales simétricas y evidencia en la PR. |
 | Preguntas bloqueantes | Decisiones no resueltas clasificadas por implementación, datos reales o producción, con tratamiento. | Autovalidación: sin decisión de producto o arquitectura implícita; artefactos y bloqueos posteriores conservan responsable y tratamiento. |
 | Cambios de alcance | `RF-21`, `D-09..D-11`, `ADR-0023` y `MF-006` declarados; no se añade módulo. | Autorrevisión del diff completada; alcance y riesgo sin revisión independiente aceptados expresamente en la PR. |

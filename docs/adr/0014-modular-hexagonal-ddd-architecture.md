@@ -120,19 +120,23 @@ com.vgrunning.<module>/
     port/out/                        puertos de salida requeridos por la aplicación
   domain/
     <concepto>/                      agregados, entidades, value objects y políticas
-  infrastructure/input/web/                    adaptación OpenAPI/Spring MVC a puertos de entrada
-  infrastructure/input/scheduling/             entradas programadas cuando correspondan
-  infrastructure/output/persistence/jooq/      implementación JDBC, consultas y mapeadores
-  infrastructure/output/provider/              implementación de proveedores externos
+  adapter/in/web/                    adaptación OpenAPI/Spring MVC a puertos de entrada
+  adapter/in/scheduling/             entradas programadas cuando correspondan
+  adapter/out/persistence/jooq/      implementación JDBC, consultas y mapeadores
+  adapter/out/provider/              implementación de proveedores externos
 ```
+
+> **Refinamiento aceptado:** `ADR-0026` sustituye la raíz `adapter/in` y `adapter/out` de este árbol por `infrastructure/input` e `infrastructure/output`, reserva `application.port.in`/`application.port.out` para interfaces y elimina `application.model`. El árbol vigente es el de `ADR-0026`; el de aquí arriba refleja la decisión tal como se aceptó el 2026-08-13 y no se reescribe, conforme a la norma de `docs/adr/README.md`.
+>
+> *Nota de restauración:* el commit `b36d9fc` reescribió este árbol en el sitio al aceptar `ADR-0026`, sustituyendo `adapter/in`/`adapter/out` por la estructura de `infrastructure`. Se restauró el árbol original tal como se aceptó y se añadió esta nota de refinamiento en su lugar.
 
 Los puertos de entrada y salida se escribirán manualmente; no serán código generado. Los puertos de entrada publicados vivirán en `api` y expresarán casos de uso, comandos, consultas y resultados con tipos del módulo. Sus implementaciones vivirán en `application/service`. Los puertos de salida vivirán en `application/port/out` y describirán únicamente capacidades que la aplicación necesita de persistencia, reloj, correo u otro sistema.
 
-OpenAPI Generator producirá interfaces y modelos HTTP en el source set generado del build. Las entradas `infrastructure/input/web` implementarán o delegarán esas interfaces y mapearán sus modelos a comandos o consultas de `api`. jOOQ producirá tipos SQL en otro source set generado; las salidas `infrastructure/output/persistence/jooq` los usarán y mapearán a tipos de aplicación o dominio. Ningún generador creará casos de uso, puertos o lógica de negocio y el código generado no se versionará.
+OpenAPI Generator producirá interfaces y modelos HTTP en el source set generado del build. Los adaptadores `in/web` implementarán o delegarán esas interfaces y mapearán sus modelos a comandos o consultas de `api`. jOOQ producirá tipos SQL en otro source set generado; los adaptadores `out/persistence/jooq` los usarán y mapearán a tipos de aplicación o dominio. Ningún generador creará casos de uso, puertos o lógica de negocio y el código generado no se versionará.
 
 Dentro de `domain`, los paquetes se organizarán por concepto de negocio, como `plan`, `planninggroup`, `segment` o `publication`, no por categorías genéricas globales como `entities`, `services` o `valueobjects`. El dominio no dependerá de Spring, jOOQ, OpenAPI, JDBC ni adaptadores.
 
-Las entradas de infraestructura no decidirán invariantes y las salidas de infraestructura no coordinarán casos de uso. Los puertos serán específicos de una capacidad; no se crearán interfaces espejo de cada clase, repositorios CRUD genéricos ni DTOs duplicados sin una frontera real.
+Los adaptadores de entrada no decidirán invariantes y los adaptadores de salida no coordinarán casos de uso. Los puertos serán específicos de una capacidad; no se crearán interfaces espejo de cada clase, repositorios CRUD genéricos ni DTOs duplicados sin una frontera real.
 
 ### Aplicación de DDD
 

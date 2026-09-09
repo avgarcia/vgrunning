@@ -3,7 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-11
 **Responsable de revisión:** Revisor de arquitectura
-**Refinado parcialmente por:** [ADR-0025](0025-spring-session-jdbc-local-login-rate-limit.md) — Propuesto; sustituye el token y verificador propios por Spring Session JDBC.
+**Refinado parcialmente por:** [ADR-0025](0025-spring-session-jdbc-local-login-rate-limit.md) — Aceptado; sustituye el token y verificador propios por Spring Session JDBC.
 
 ## Contexto
 
@@ -30,6 +30,8 @@ Los secretos de activación, reactivación, recuperación y verificación de cor
 El enlace HTTPS transportará el secreto exclusivamente en el fragmento de URL. La SPA lo leerá y eliminará mediante `history.replaceState` durante el bootstrap, antes de renderizar, iniciar telemetría o cargar recursos adicionales. Solo permanecerá en memoria durante el flujo y se enviará a la API dentro del cuerpo HTTPS protegido; nunca se copiará a ruta, query, `Referer`, historial visible, `localStorage`, `sessionStorage`, logs o analítica. La página aplicará `Referrer-Policy: no-referrer`, `Cache-Control: no-store`, CSP estricta y ausencia de terceros. Esta regla cubre activación, reactivación, recuperación y verificación de cambio de correo.
 
 El inicio de sesión creará una sesión opaca de 32 bytes generada con el CSPRNG del sistema operativo y gestionada por el servidor mediante un verificador `SHA-256`. El navegador la recibirá exclusivamente en una cookie `Secure`, `HttpOnly` y `SameSite=Lax`; no se expondrá un token de acceso al código del navegador. Las operaciones que cambien estado deberán protegerse contra solicitudes forjadas. La duración, rotación, revocación y protección anti-CSRF se fijan en la [Línea base de seguridad de acceso — Fase 2](../phase-2-access-security-baseline.md). Restablecer una contraseña invalida todas las sesiones de la cuenta y no inicia sesión automáticamente.
+
+*Derogado por `ADR-0025` (Aceptado): la sesión la gestiona Spring Session JDBC, sin token ni verificador propios. La cookie, su duración y CSRF quedan fijados en la línea base de seguridad y en el propio `ADR-0025`.*
 
 El primer administrador se provisionará mediante el flujo de bootstrap definido en la línea base de seguridad. No se creará mediante registro público ni con una contraseña inicial visible.
 
@@ -82,6 +84,6 @@ Se descarta para la primera aplicación web. Complica revocación, tratamiento a
 
 ## Decisiones pendientes
 
-- **Resuelto por `ADR-0013`:** framework y runtime compatibles con sesiones opacas, secretos verificables y cookies seguras.
+- **Resuelto por `ADR-0013`:** framework y runtime compatibles con sesiones opacas, secretos verificables y cookies seguras. *Derogado en la parte de sesión por `ADR-0025` (Aceptado): Spring Session JDBC sustituye el repositorio propio; los secretos verificables de invitación/recuperación no cambian.*
 - **Tratado por `ADR-0016` (Aceptado), sin bloquear este ADR:** plataforma de despliegue, gestión de secretos y dominio. Las evidencias operativas indicadas por `ADR-0016` siguen siendo obligatorias antes de producción.
-- **Resuelto por `ADR-0012`:** sesiones y verificadores se persistirán en PostgreSQL bajo las restricciones y migraciones allí definidas.
+- **Resuelto por `ADR-0012`:** sesiones y verificadores se persistirán en PostgreSQL bajo las restricciones y migraciones allí definidas. *Derogado en la parte de sesión por `ADR-0025` (Aceptado): las tablas `spring_session`/`spring_session_attributes` sustituyen la persistencia propia; el verificador de `access_challenge` no cambia.*

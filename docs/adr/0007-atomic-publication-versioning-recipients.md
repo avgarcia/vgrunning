@@ -3,7 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-12
 **Responsable de revisión:** Revisor de arquitectura
-**Refinado parcialmente por:** [ADR-0021](0021-publication-editing-notification-eligibility.md)
+**Refinado parcialmente por:** [ADR-0021](0021-publication-editing-notification-eligibility.md) y [ADR-0030](0030-publication-jsonb-snapshot-model.md)
 
 ## Contexto
 

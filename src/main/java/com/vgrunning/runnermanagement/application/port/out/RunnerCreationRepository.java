@@ -1,40 +1,46 @@
 package com.vgrunning.runnermanagement.application.port.out;
 
-import java.beans.ConstructorProperties;
+import com.vgrunning.runnermanagement.domain.Runner;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 /** Puerto de persistencia de perfil, auditoría e idempotencia del alta. */
 public interface RunnerCreationRepository {
-    Reservation reserve(UUID administratorId, UUID idempotencyKey, byte[] fingerprint);
+    Optional<StoredCreation> reserve(UUID administratorId, UUID idempotencyKey, byte[] fingerprint);
 
-    StoredRunner create(NewRunner runner);
+    Runner create(NewRunner runner);
 
-    void complete(UUID administratorId, UUID idempotencyKey, StoredRunner runner);
+    void complete(UUID administratorId, UUID idempotencyKey, Runner runner);
 
-    record Reservation(Optional<StoredCreation> existing) {}
-
-    final class StoredCreation {
-        private final byte[] fingerprint;
-        private final StoredRunner runner;
-
-        @ConstructorProperties({"fingerprint", "runner"})
-        public StoredCreation(byte[] fingerprint, StoredRunner runner) {
-            this.fingerprint = java.util.Objects.requireNonNull(fingerprint).clone();
-            this.runner = java.util.Objects.requireNonNull(runner);
+    // La huella se clona al construir y al leer, y equals/hashCode comparan su contenido:
+    // el footgun que evita esta regla ya está cubierto explícitamente más abajo.
+    @SuppressWarnings("ArrayRecordComponent")
+    record StoredCreation(byte[] fingerprint, Runner runner) {
+        public StoredCreation {
+            fingerprint = Objects.requireNonNull(fingerprint).clone();
+            Objects.requireNonNull(runner);
         }
 
+        @Override
         public byte[] fingerprint() {
             return fingerprint.clone();
         }
 
-        public StoredRunner runner() {
-            return runner;
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof StoredCreation that
+                    && Arrays.equals(fingerprint, that.fingerprint)
+                    && runner.equals(that.runner);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(Arrays.hashCode(fingerprint), runner);
         }
     }
-
-    record StoredRunner(UUID id, String givenName, String familyName, String status) {}
 
     record NewRunner(
             UUID runnerId,

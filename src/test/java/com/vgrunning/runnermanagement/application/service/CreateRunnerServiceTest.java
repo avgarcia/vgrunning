@@ -10,31 +10,31 @@ import com.vgrunning.identityaccess.api.provisioning.ProvisionedRunnerAccount;
 import com.vgrunning.runnermanagement.application.exception.IdempotencyKeyReusedException;
 import com.vgrunning.runnermanagement.application.exception.InvalidRunnerCreationException;
 import com.vgrunning.runnermanagement.application.exception.RunnerCreationForbiddenException;
-import com.vgrunning.runnermanagement.application.mapper.RunnerCreationMapper;
 import com.vgrunning.runnermanagement.application.port.in.CreateRunnerUseCase.CreateRunner;
-import com.vgrunning.runnermanagement.application.port.in.CreateRunnerUseCase.CreatedRunner;
+import com.vgrunning.runnermanagement.application.port.out.DigestPort;
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository;
+import com.vgrunning.runnermanagement.domain.Runner;
+import com.vgrunning.runnermanagement.domain.RunnerName;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
 
 /** Prueba el alta administrativa y la reserva idempotente antes de persistir perfiles. */
 class CreateRunnerServiceTest {
     private static final UUID ADMIN_ID = UUID.fromString("30000000-0000-0000-0000-000000000001");
     private static final UUID KEY = UUID.fromString("30000000-0000-0000-0000-000000000002");
-    private static final RunnerCreationMapper MAPPER =
-            Mappers.getMapper(RunnerCreationMapper.class);
 
     @Test
     void createsAPendingRunnerForAnAdministrator() {
         AccountsFake accounts = new AccountsFake();
         RunnersFake runners = new RunnersFake();
-        CreateRunnerService service = new CreateRunnerService(accounts, runners, MAPPER);
+        CreateRunnerService service = new CreateRunnerService(accounts, runners, digest());
 
-        CreatedRunner result =
+        Runner result =
                 service.create(
                         new ActorContext(ADMIN_ID, "administrador"),
                         KEY,
@@ -50,7 +50,7 @@ class CreateRunnerServiceTest {
     void refusesNonAdministratorsBeforeReservingAnything() {
         AccountsFake accounts = new AccountsFake();
         RunnersFake runners = new RunnersFake();
-        CreateRunnerService service = new CreateRunnerService(accounts, runners, MAPPER);
+        CreateRunnerService service = new CreateRunnerService(accounts, runners, digest());
 
         assertThatThrownBy(
                         () ->
@@ -68,9 +68,9 @@ class CreateRunnerServiceTest {
     void replaysTheSameRequestWithoutProvisioningAnotherAccount() {
         AccountsFake accounts = new AccountsFake();
         RunnersFake runners = new RunnersFake(ReservationMode.REPLAY);
-        CreateRunnerService service = new CreateRunnerService(accounts, runners, MAPPER);
+        CreateRunnerService service = new CreateRunnerService(accounts, runners, digest());
 
-        CreatedRunner result =
+        Runner result =
                 service.create(
                         new ActorContext(ADMIN_ID, "administrador"),
                         KEY,
@@ -85,7 +85,7 @@ class CreateRunnerServiceTest {
     void rejectsAnIdempotencyKeyUsedForAnotherRequest() {
         AccountsFake accounts = new AccountsFake();
         RunnersFake runners = new RunnersFake(ReservationMode.CONFLICT);
-        CreateRunnerService service = new CreateRunnerService(accounts, runners, MAPPER);
+        CreateRunnerService service = new CreateRunnerService(accounts, runners, digest());
 
         assertThatThrownBy(
                         () ->
@@ -105,7 +105,7 @@ class CreateRunnerServiceTest {
     void rejectsInvalidRequestsBeforeReservingAnything() {
         AccountsFake accounts = new AccountsFake();
         RunnersFake runners = new RunnersFake();
-        CreateRunnerService service = new CreateRunnerService(accounts, runners, MAPPER);
+        CreateRunnerService service = new CreateRunnerService(accounts, runners, digest());
 
         assertThatThrownBy(
                         () ->
@@ -133,7 +133,32 @@ class CreateRunnerServiceTest {
                 .isInstanceOfSatisfying(
                         InvalidRunnerCreationException.class,
                         exception -> assertThat(exception.code()).isEqualTo("invalid_request"));
+        assertThatThrownBy(
+                        () ->
+                                service.create(
+                                        new ActorContext(ADMIN_ID, "administrador"),
+                                        KEY,
+                                        new CreateRunner("Lucía", "Martín", null, true)))
+                .isInstanceOf(InvalidRunnerCreationException.class);
+        assertThatThrownBy(
+                        () ->
+                                service.create(
+                                        new ActorContext(ADMIN_ID, "administrador"),
+                                        KEY,
+                                        new CreateRunner("Lucía", "Martín", " ", true)))
+                .isInstanceOf(InvalidRunnerCreationException.class);
         assertThat(runners.reserved).isFalse();
+    }
+
+    private static DigestPort digest() {
+        return value -> {
+            try {
+                return MessageDigest.getInstance("SHA-256")
+                        .digest(value.getBytes(StandardCharsets.UTF_8));
+            } catch (java.security.NoSuchAlgorithmException exception) {
+                throw new IllegalStateException(exception);
+            }
+        };
     }
 
     private static final class AccountsFake implements AccountProvisioningApi {
@@ -156,11 +181,11 @@ class CreateRunnerServiceTest {
     }
 
     private static final class RunnersFake implements RunnerCreationRepository {
-        private static final StoredRunner EXISTING =
-                new StoredRunner(
+        private static final Runner EXISTING =
+                new Runner(
                         UUID.fromString("30000000-0000-0000-0000-000000000005"),
-                        "Lucía",
-                        "Martín",
+                        new RunnerName("Lucía"),
+                        new RunnerName("Martín"),
                         "pending_activation");
 
         private final ReservationMode mode;
@@ -176,28 +201,27 @@ class CreateRunnerServiceTest {
         }
 
         @Override
-        public Reservation reserve(UUID administratorId, UUID idempotencyKey, byte[] fingerprint) {
+        public Optional<StoredCreation> reserve(
+                UUID administratorId, UUID idempotencyKey, byte[] fingerprint) {
             reserved = true;
             return switch (mode) {
-                case NEW -> new Reservation(Optional.empty());
-                case REPLAY ->
-                        new Reservation(Optional.of(new StoredCreation(fingerprint, EXISTING)));
-                case CONFLICT ->
-                        new Reservation(Optional.of(new StoredCreation(new byte[] {0}, EXISTING)));
+                case NEW -> Optional.empty();
+                case REPLAY -> Optional.of(new StoredCreation(fingerprint, EXISTING));
+                case CONFLICT -> Optional.of(new StoredCreation(new byte[] {0}, EXISTING));
             };
         }
 
         @Override
-        public StoredRunner create(NewRunner runner) {
-            return new StoredRunner(
+        public Runner create(NewRunner runner) {
+            return new Runner(
                     runner.runnerId(),
-                    runner.givenName(),
-                    runner.familyName(),
+                    new RunnerName(runner.givenName()),
+                    new RunnerName(runner.familyName()),
                     "pending_activation");
         }
 
         @Override
-        public void complete(UUID administratorId, UUID idempotencyKey, StoredRunner runner) {
+        public void complete(UUID administratorId, UUID idempotencyKey, Runner runner) {
             completed = true;
         }
     }

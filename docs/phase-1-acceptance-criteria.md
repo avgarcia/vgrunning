@@ -2,7 +2,7 @@
 
 **Estado:** Validado — Fase 1 cerrada
 **Fecha:** 2026-08-10
-**Última actualización:** 2026-08-24 — criterios revisados tras las decisiones H-01 a H-20 de la auditoría documental
+**Última actualización:** 2026-09-08 — criterios revisados tras las decisiones H-01 a H-20 de la auditoría documental; añadidos `CA-RF01-03` y `CA-RF01-04` para la ventana de validez de sesión
 
 ## Propósito
 
@@ -16,6 +16,8 @@ Cada escenario tiene un identificador estable para que contratos, pruebas y func
 
 - **ID:** `CA-RF01-01` — **Éxito:** dado un administrador, un correo válido y su declaración de que la persona tiene al menos `18` años, la transacción crea cuenta, desafío y solicitud de correo. El worker obtiene aceptación del proveedor sin que ello prometa entrega física o lectura; una prueba de extremo a extremo con buzón controlado verifica la recepción del enlace. Durante la activación inicial, la persona confirma la mayoría de edad, define contraseña y puede iniciar sesión. Ambas declaraciones conservan actor, origen, instante y versión del texto.
 - **ID:** `CA-RF01-02` — **Error o límite:** un correo inválido, la ausencia de cualquiera de las dos declaraciones o un enlace no válido, reemplazado o caducado impiden crear o activar la cuenta correspondiente. Una solicitud de restablecimiento para un correo no registrado no revela si existe una cuenta. No se almacena fecha de nacimiento, documento ni copia acreditativa.
+- **ID:** `CA-RF01-03` — **Éxito:** una sesión iniciada permanece válida mientras registre actividad dentro de las `12` horas previas y no supere `7` días de duración absoluta desde su creación (`ADR-0025`); restablecer la contraseña, cambiar el correo o desactivar la cuenta revoca inmediatamente todas sus sesiones.
+- **ID:** `CA-RF01-04` — **Error o límite:** una solicitud con una sesión que superó `12` horas de inactividad o `7` días de duración absoluta se rechaza como no autenticada y exige un nuevo inicio de sesión; ninguna operación posterior al restablecimiento de contraseña, cambio de correo o desactivación acepta una sesión emitida antes de esa acción.
 
 ### RF-02 — Cuentas, rol inicial y taxonomías
 

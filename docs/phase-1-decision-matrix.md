@@ -25,3 +25,5 @@ Registrar las decisiones de diseño con impacto funcional tomadas en [Fase 1](ph
 ## Uso en Fase 2
 
 Para cada fila `D-01` a `D-11`, Fase 2 enlaza documento de diseño, decisiones técnicas y pruebas previstas en su [trazabilidad de decisiones](phase-2-high-level-design.md#trazabilidad-de-decisiones-de-fase-1). Cualquier cambio futuro de una decisión, alternativa o impacto deberá actualizar esta matriz y activar el control de cambios de alcance.
+
+**Bloqueante pendiente de verificación legal — `D-11`:** el nivel de conformidad `WCAG 2.2 AA` de esta decisión no se relaja sin antes determinar si la Directiva (UE) 2019/882 (European Accessibility Act), traspuesta en España por la Ley 11/2023, resulta aplicable a este servicio y si aplicaría alguna exención por tamaño de la entidad. Mientras esa verificación no se realice, el compromiso se mantiene íntegro. Responsable: responsable del tratamiento con asesoramiento legal. Tratamiento: consulta especializada antes de producción; solo el método de verificación (automatizado vs. manual, ver `phase-2-detailed-design-runner-portal.md#diseño-adaptable-y-accesibilidad`) admite ajuste independiente de esta consulta.

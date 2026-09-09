@@ -2,6 +2,7 @@
 
 **Estado:** Vigente
 **Fecha:** 2026-08-15
+**Última actualización:** 2026-09-08 — simplificada la gobernanza de revisión para el flujo de único mantenedor (Bloque 4.1 del plan de corrección de la auditoría documental): se elimina el reparto de roles por control y la declaración de ausencia de revisión independiente pasa a hacerse una sola vez, en este documento
 
 ## Objetivo
 
@@ -51,25 +52,31 @@ Durante la revisión de una PR documental se debe confirmar lo siguiente:
 - Las operaciones HTTP no son acciones nominalizadas, no codifican roles en sus rutas y justifican recurso, método, estado, seguridad e idempotencia.
 - Se ha ejecutado `git diff --check`.
 
-## Ejecución con Skills y revisión humana
+## Ejecución con Skills
 
-Las Skills del complemento `documentation-quality-review` preparan evidencia y hallazgos para los ocho controles documentales generales. El control de API HTTP usa Spectral, `oasdiff`, generación de contrato y la revisión semántica humana definida en la guía de API. Ninguna herramienta aprueba una PR ni sustituye a un responsable humano.
+Las Skills del complemento `documentation-quality-review` preparan evidencia y hallazgos para los ocho controles documentales generales:
 
-| Control | Skill o herramienta | Rol revisor responsable |
-| --- | --- | --- |
-| Trazabilidad entre fases | `validate-phase-traceability` | Revisor de arquitectura |
-| Requisitos verificables | `validate-verifiable-requirements` | Revisor de producto |
-| Consistencia terminológica | `validate-terminology` | Revisor de arquitectura |
-| Matriz de decisiones | `validate-design-decisions` | Revisor de arquitectura |
-| Preguntas abiertas bloqueantes | `validate-blocking-questions` | Revisor de producto |
-| Criterios de aceptación | `validate-acceptance-criteria` | Revisores de producto y arquitectura |
-| Control de cambios de alcance | `validate-scope-changes` | Revisor de la PR |
-| Validación de privacidad | `validate-privacy-readiness` | Responsable de privacidad o DPO |
-| Diseño de API HTTP | Spectral, `oasdiff` y revisión de API HTTP | Revisor de arquitectura |
+| Control | Skill o herramienta |
+| --- | --- |
+| Trazabilidad entre fases | `validate-phase-traceability` |
+| Requisitos verificables | `validate-verifiable-requirements` |
+| Consistencia terminológica | `validate-terminology` |
+| Matriz de decisiones | `validate-design-decisions` |
+| Preguntas abiertas bloqueantes | `validate-blocking-questions` |
+| Criterios de aceptación | `validate-acceptance-criteria` |
+| Control de cambios de alcance | `validate-scope-changes` |
+| Validación de privacidad | `validate-privacy-readiness` |
+| Diseño de API HTTP | Spectral, `oasdiff` y revisión de API HTTP definida en la guía de API |
 
-Cuando haya una persona revisora independiente disponible, el autor ejecuta las Skills aplicables y adjunta los informes a la PR. El responsable humano asignado revisa la evidencia, resuelve o escala los hallazgos y registra la aprobación o solicitud de cambios. Antes de abrir una PR se debe asignar una persona concreta a cada rol de revisión aplicable.
+Ninguna Skill ni herramienta aprueba una PR ni sustituye el criterio de una persona.
 
-En este proyecto de un único mantenedor, el autor asume los roles de revisión aplicables. Debe ejecutar las Skills pertinentes, documentar su conclusión para cada control en la PR y declarar explícitamente la ausencia de revisión independiente y la aceptación de ese riesgo antes de fusionar. No se permite usar una cuenta alternativa para aparentar independencia. Esta excepción deja de aplicar cuando exista una persona revisora independiente.
+## Revisión
+
+El proyecto tiene un único mantenedor: el autor de cada PR documental ejecuta las Skills aplicables, revisa la evidencia que producen, resuelve o descarta cada hallazgo con su propio criterio y deja constancia de esa conclusión en la PR. No hay reparto de roles por control ni una persona revisora distinta del autor que asignar.
+
+La ausencia de revisión independiente se declara **una sola vez, aquí**: mientras el proyecto tenga un único mantenedor, ninguna PR documental cuenta con una segunda persona que confirme la evidencia, y ese riesgo se acepta como condición de trabajo del proyecto, no como una excepción a repetir en cada PR. No se permite usar una cuenta alternativa para aparentar independencia.
+
+Esta sección deja de aplicar en cuanto exista una segunda persona manteniendo el proyecto: en ese momento se debe volver a repartir responsabilidad de revisión por control y exigir de nuevo su declaración explícita por PR.
 
 ## Límites de esta validación
 

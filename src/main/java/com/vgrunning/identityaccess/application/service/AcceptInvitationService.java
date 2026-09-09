@@ -4,13 +4,15 @@ import com.vgrunning.identityaccess.application.exception.InvalidInvitationAccep
 import com.vgrunning.identityaccess.application.exception.InvitationNotAvailableException;
 import com.vgrunning.identityaccess.application.mapper.InvitationActivationMapper;
 import com.vgrunning.identityaccess.application.port.in.AcceptInvitationUseCase;
+import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationActivationPublisher;
 import com.vgrunning.identityaccess.application.port.out.InvitationRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
-import java.nio.charset.StandardCharsets;
+import com.vgrunning.identityaccess.domain.AdultDeclaration;
+import com.vgrunning.identityaccess.domain.account.valueobject.RawPassword;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.Normalizer;
+import java.time.Clock;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,8 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
     private final InvitationActivationPublisher activationPublisher;
     private final PasswordHasher passwords;
     private final InvitationActivationMapper mapper;
+    private final DigestPort digest;
+    private final Clock clock;
 
     @Override
     @Transactional
@@ -36,25 +40,28 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
                 invitations
                         .findAvailable(command.invitationId())
                         .orElseThrow(InvitationNotAvailableException::new);
-        if (!MessageDigest.isEqual(invitation.getVerifier(), sha256(command.secret()))) {
+        if (invitation.expiresAt().isBefore(OffsetDateTime.now(clock))) {
             throw new InvitationNotAvailableException();
         }
-        String password = Normalizer.normalize(command.password(), Normalizer.Form.NFC);
-        if (password.length() < 12 || password.length() > 128) {
+        if (!MessageDigest.isEqual(invitation.verifier(), digest.sha256(command.secret()))) {
+            throw new InvitationNotAvailableException();
+        }
+        RawPassword password;
+        try {
+            password = RawPassword.from(command.password());
+        } catch (IllegalArgumentException exception) {
             throw new InvalidInvitationAcceptanceException();
         }
         UUID correlationId = UUID.randomUUID();
-        UUID acceptanceId = invitations.accept(invitation, passwords.hash(password), correlationId);
+        UUID acceptanceId =
+                invitations
+                        .accept(
+                                invitation,
+                                passwords.hash(password.value()),
+                                AdultDeclaration.initialActivation(),
+                                correlationId)
+                        .orElseThrow(InvitationNotAvailableException::new);
         activationPublisher.publish(mapper.toActivation(invitation, correlationId));
         return new AcceptedInvitation(acceptanceId, "accepted");
-    }
-
-    private static byte[] sha256(String value) {
-        try {
-            return MessageDigest.getInstance("SHA-256")
-                    .digest(value.getBytes(StandardCharsets.UTF_8));
-        } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException(exception);
-        }
     }
 }

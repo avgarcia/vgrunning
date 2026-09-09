@@ -326,6 +326,8 @@ Todo el PMV web cumplirá WCAG `2.2` nivel `AA`. La validación incluye reflow a
 
 Las reglas se interpretan conforme a las explicaciones oficiales de W3C para [Reflow](https://www.w3.org/WAI/WCAG21/Understanding/reflow.html) y [Target Size (Minimum)](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html); una excepción no se presume, se documenta y prueba.
 
+El nivel de conformidad no se reduce sin la verificación legal pendiente que registra `phase-1-decision-matrix.md` (`D-11`). La cobertura automática corre en cada PR mediante `eslint-plugin-jsx-a11y` sobre `frontend/`, ya integrado en `frontend/eslint.config.js`; la revisión experta manual (`docs/ux-01-usability-test-plan.md`) cubre las rondas de prototipo y debe repetirse como puerta de cierre previa a producción.
+
 - etiquetas textuales; color e iconos nunca serán la única señal;
 - navegación y activación mediante teclado;
 - foco visible y retorno de foco al cerrar formularios o detalles;

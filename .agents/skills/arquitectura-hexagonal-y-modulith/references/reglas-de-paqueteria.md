@@ -90,6 +90,8 @@ Organiza primero por concepto y después por tipo. Una tabla no implica una enti
 - `infrastructure.security`: Spring Security, Spring Session, CSRF, Bucket4j y criptografía.
 - `infrastructure.configuration`: `@Configuration`, `@Bean`, `@ConfigurationProperties` y traducción global de excepciones de Spring MVC.
 
+Criterio de reparto entre las dos anteriores cuando la materia es seguridad: `@Configuration`, `@Bean` y `@ConfigurationProperties` van siempre a `infrastructure.configuration`, aunque compongan filtros, sesión o criptografía. Los componentes concretos que esas clases construyen e instancian van a `infrastructure.security`.
+
 Un controlador puede depender directamente de un componente técnico de infraestructura. No añadas un puerto entre ambos salvo que el núcleo necesite realmente esa capacidad.
 
 ## Matriz de dependencias permitidas
@@ -98,8 +100,8 @@ Un controlador puede depender directamente de un componente técnico de infraest
 | --- | --- |
 | `api` | JDK y tipos de la propia `api` |
 | `domain` | JDK y tipos del propio `domain` |
-| `application.port.in` | JDK, `api` y `domain` del módulo |
-| `application.port.out` | JDK, `api` y `domain` del módulo |
+| `application.port.in` | JDK, `domain` del módulo, `api` del propio módulo y `api` de un módulo declarado en `allowedDependencies` |
+| `application.port.out` | JDK, `domain` del módulo, `api` del propio módulo y `api` de un módulo declarado en `allowedDependencies` |
 | `application.service` | puertos, `api` y `domain` del módulo; `@Transactional` |
 | `application.mapper` | MapStruct, JDK, `api`, `domain` y contratos locales del módulo |
 | `infrastructure.input` | `application.port.in`, `api`, tipos de protocolo y componentes técnicos concretos de `infrastructure.security` |

@@ -7,11 +7,17 @@ import com.vgrunning.identityaccess.api.actor.ActorContext;
 import com.vgrunning.identityaccess.api.provisioning.ProvisionRunnerAccount;
 import com.vgrunning.identityaccess.api.provisioning.ProvisionedRunnerAccount;
 import com.vgrunning.identityaccess.application.exception.InvitationProvisioningForbiddenException;
+import com.vgrunning.identityaccess.application.port.out.ActivationLinkFactory;
+import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
 import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository;
+import com.vgrunning.identityaccess.application.port.out.SecretGenerator;
+import com.vgrunning.identityaccess.domain.RunnerInvitation;
+import com.vgrunning.identityaccess.domain.SealedPayload;
 import com.vgrunning.notificationdelivery.api.request.CreateNotificationRequest;
-import com.vgrunning.notificationdelivery.api.request.EncryptedValue;
 import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -28,7 +34,13 @@ class ProvisionRunnerAccountServiceTest {
         ProtectorFake protector = new ProtectorFake();
         NotificationsFake notifications = new NotificationsFake();
         ProvisionRunnerAccountService service =
-                new ProvisionRunnerAccountService(invitations, protector, notifications);
+                new ProvisionRunnerAccountService(
+                        invitations,
+                        protector,
+                        notifications,
+                        digest(),
+                        secrets(),
+                        activationLinks());
 
         ProvisionedRunnerAccount account =
                 service.provision(
@@ -37,11 +49,10 @@ class ProvisionRunnerAccountServiceTest {
                                 new ActorContext(ADMIN_ID, "administrador"),
                                 UUID.fromString("10000000-0000-0000-0000-000000000002")));
 
-        assertThat(invitations.invitation.getPresentationEmail())
-                .isEqualTo("Lucía@example.invalid");
-        assertThat(invitations.invitation.getCanonicalEmail()).isEqualTo("lucía@example.invalid");
-        assertThat(invitations.invitation.getSecretVerifier()).hasSize(32);
-        assertThat(account.invitationId()).isEqualTo(invitations.invitation.getInvitationId());
+        assertThat(invitations.invitation.presentationEmail()).isEqualTo("Lucía@example.invalid");
+        assertThat(invitations.invitation.canonicalEmail()).isEqualTo("lucía@example.invalid");
+        assertThat(invitations.invitation.secretVerifier()).hasSize(32);
+        assertThat(account.invitationId()).isEqualTo(invitations.invitation.invitationId());
         assertThat(notifications.request.logicalKey())
                 .isEqualTo("invitation:" + account.invitationId());
         assertThat(protector.values)
@@ -57,7 +68,13 @@ class ProvisionRunnerAccountServiceTest {
         InvitationsFake invitations = new InvitationsFake();
         NotificationsFake notifications = new NotificationsFake();
         ProvisionRunnerAccountService service =
-                new ProvisionRunnerAccountService(invitations, new ProtectorFake(), notifications);
+                new ProvisionRunnerAccountService(
+                        invitations,
+                        new ProtectorFake(),
+                        notifications,
+                        digest(),
+                        secrets(),
+                        activationLinks());
 
         assertThatThrownBy(
                         () ->
@@ -77,15 +94,34 @@ class ProvisionRunnerAccountServiceTest {
         assertThat(notifications.request).isNull();
     }
 
+    private static DigestPort digest() {
+        return value -> {
+            try {
+                return MessageDigest.getInstance("SHA-256")
+                        .digest(value.getBytes(StandardCharsets.UTF_8));
+            } catch (java.security.NoSuchAlgorithmException exception) {
+                throw new IllegalStateException(exception);
+            }
+        };
+    }
+
+    private static SecretGenerator secrets() {
+        return () -> "test-secret";
+    }
+
+    private static ActivationLinkFactory activationLinks() {
+        return (invitationId, secret) -> "/activar#i=" + invitationId + "&s=" + secret;
+    }
+
     private static final class InvitationsFake implements RunnerInvitationProvisioningRepository {
-        private PendingRunnerInvitation invitation;
+        private RunnerInvitation invitation;
 
         @Override
-        public ProvisionedRunnerAccount provision(PendingRunnerInvitation value) {
+        public ProvisionedRunnerAccount provision(RunnerInvitation value) {
             invitation = value;
             return new ProvisionedRunnerAccount(
-                    value.getAccountId(),
-                    value.getInvitationId(),
+                    value.accountId(),
+                    value.invitationId(),
                     OffsetDateTime.now(ZoneOffset.UTC).plusDays(30));
         }
     }
@@ -94,9 +130,9 @@ class ProvisionRunnerAccountServiceTest {
         private final List<String> values = new ArrayList<>();
 
         @Override
-        public EncryptedValue protect(String value) {
+        public SealedPayload protect(String value) {
             values.add(value);
-            return new EncryptedValue("test", new byte[] {1}, new byte[] {2});
+            return new SealedPayload("test", new byte[] {1}, new byte[] {2});
         }
     }
 

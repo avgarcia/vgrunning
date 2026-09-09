@@ -1,5 +1,9 @@
 package com.vgrunning.identityaccess.application.port.out;
 
+import com.vgrunning.identityaccess.domain.AdultDeclaration;
+import java.time.OffsetDateTime;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -7,40 +11,46 @@ import java.util.UUID;
 public interface InvitationRepository {
     Optional<ActivationInvitation> findAvailable(UUID invitationId);
 
-    UUID accept(ActivationInvitation invitation, String passwordHash, UUID correlationId);
+    /**
+     * Aplica la transición de estado completa. Devuelve vacío, sin lanzar, cuando la invitación o
+     * la cuenta ya no están en el estado esperado en el momento de escribir: decidir si eso es un
+     * fallo de negocio corresponde al llamante, no a este adaptador.
+     */
+    Optional<UUID> accept(
+            ActivationInvitation invitation,
+            String passwordHash,
+            AdultDeclaration adultDeclaration,
+            UUID correlationId);
 
-    final class ActivationInvitation {
-        private final UUID id;
-        private final UUID accountId;
-        private final byte[] verifier;
-        private final java.time.OffsetDateTime expiresAt;
-
-        public ActivationInvitation(
-                UUID id, UUID accountId, byte[] verifier, java.time.OffsetDateTime expiresAt) {
-            this.id = java.util.Objects.requireNonNull(id);
-            this.accountId = java.util.Objects.requireNonNull(accountId);
-            this.verifier = java.util.Objects.requireNonNull(verifier).clone();
-            this.expiresAt = java.util.Objects.requireNonNull(expiresAt);
+    // El verificador se clona al construir y al leer, y equals/hashCode comparan su contenido:
+    // el footgun que evita esta regla ya está cubierto explícitamente más abajo.
+    @SuppressWarnings("ArrayRecordComponent")
+    record ActivationInvitation(
+            UUID id, UUID accountId, byte[] verifier, OffsetDateTime expiresAt) {
+        public ActivationInvitation {
+            Objects.requireNonNull(id);
+            Objects.requireNonNull(accountId);
+            verifier = Objects.requireNonNull(verifier).clone();
+            Objects.requireNonNull(expiresAt);
         }
 
-        public UUID id() {
-            return id;
-        }
-
-        public UUID accountId() {
-            return accountId;
-        }
-
-        public UUID getAccountId() {
-            return accountId;
-        }
-
-        public byte[] getVerifier() {
+        @Override
+        public byte[] verifier() {
             return verifier.clone();
         }
 
-        public java.time.OffsetDateTime expiresAt() {
-            return expiresAt;
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof ActivationInvitation that
+                    && id.equals(that.id)
+                    && accountId.equals(that.accountId)
+                    && Arrays.equals(verifier, that.verifier)
+                    && expiresAt.equals(that.expiresAt);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, accountId, Arrays.hashCode(verifier), expiresAt);
         }
     }
 }

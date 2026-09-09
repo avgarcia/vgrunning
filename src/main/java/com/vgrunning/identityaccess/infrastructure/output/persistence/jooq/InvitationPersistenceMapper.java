@@ -1,7 +1,7 @@
 package com.vgrunning.identityaccess.infrastructure.output.persistence.jooq;
 
 import com.vgrunning.identityaccess.api.provisioning.ProvisionedRunnerAccount;
-import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository.PendingRunnerInvitation;
+import com.vgrunning.identityaccess.domain.RunnerInvitation;
 import java.time.OffsetDateTime;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,7 +16,7 @@ import org.vgrunning.generated.jooq.identity_access.tables.records.AdultDeclarat
 public interface InvitationPersistenceMapper {
     @Mapping(target = "activationExpiresAt", source = "expiresAt")
     ProvisionedRunnerAccount toProvisionedRunnerAccount(
-            PendingRunnerInvitation invitation, OffsetDateTime expiresAt);
+            RunnerInvitation invitation, OffsetDateTime expiresAt);
 
     @Mapping(target = "id", source = "invitation.accountId")
     @Mapping(target = "role", constant = "corredor")
@@ -27,7 +27,7 @@ public interface InvitationPersistenceMapper {
     @Mapping(target = "statusChangedAt", source = "now")
     @Mapping(target = "passwordChangedAt", ignore = true)
     @Mapping(target = "version", constant = "0L")
-    AccountRecord toAccountRecord(PendingRunnerInvitation invitation, OffsetDateTime now);
+    AccountRecord toAccountRecord(RunnerInvitation invitation, OffsetDateTime now);
 
     @Mapping(target = "id", source = "invitation.emailId")
     @Mapping(target = "accountId", source = "invitation.accountId")
@@ -39,7 +39,7 @@ public interface InvitationPersistenceMapper {
     @Mapping(target = "confirmedAt", ignore = true)
     @Mapping(target = "expiresAt", ignore = true)
     @Mapping(target = "releasedAt", ignore = true)
-    AccountEmailRecord toAccountEmailRecord(PendingRunnerInvitation invitation, OffsetDateTime now);
+    AccountEmailRecord toAccountEmailRecord(RunnerInvitation invitation, OffsetDateTime now);
 
     @Mapping(target = "id", source = "invitation.invitationId")
     @Mapping(target = "accountId", source = "invitation.accountId")
@@ -54,7 +54,7 @@ public interface InvitationPersistenceMapper {
     @Mapping(target = "consumedAt", ignore = true)
     @Mapping(target = "replacedAt", ignore = true)
     AccessChallengeRecord toAccessChallengeRecord(
-            PendingRunnerInvitation invitation, OffsetDateTime now, OffsetDateTime expiresAt);
+            RunnerInvitation invitation, OffsetDateTime now, OffsetDateTime expiresAt);
 
     @Mapping(target = "id", source = "invitation.declarationId")
     @Mapping(target = "accountId", source = "invitation.accountId")
@@ -64,7 +64,7 @@ public interface InvitationPersistenceMapper {
     @Mapping(target = "declaredAt", source = "now")
     @Mapping(target = "textVersion", constant = "ux-02-v0.1")
     AdultDeclarationRecord toAdministratorDeclaration(
-            PendingRunnerInvitation invitation, OffsetDateTime now);
+            RunnerInvitation invitation, OffsetDateTime now);
 
     @org.mapstruct.Named("required")
     static <T> T required(T value) {

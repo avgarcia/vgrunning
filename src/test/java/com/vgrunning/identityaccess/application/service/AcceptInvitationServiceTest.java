@@ -8,11 +8,15 @@ import com.vgrunning.identityaccess.application.exception.InvalidInvitationAccep
 import com.vgrunning.identityaccess.application.exception.InvitationNotAvailableException;
 import com.vgrunning.identityaccess.application.mapper.InvitationActivationMapper;
 import com.vgrunning.identityaccess.application.port.in.AcceptInvitationUseCase.AcceptInvitation;
+import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationActivationPublisher;
 import com.vgrunning.identityaccess.application.port.out.InvitationRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
+import com.vgrunning.identityaccess.domain.AdultDeclaration;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
@@ -33,7 +37,8 @@ class AcceptInvitationServiceTest {
         InvitationsFake invitations = new InvitationsFake(sha256("secret"));
         EventsFake events = new EventsFake();
         AcceptInvitationService service =
-                new AcceptInvitationService(invitations, events, passwords(), ACTIVATION_MAPPER);
+                new AcceptInvitationService(
+                        invitations, events, passwords(), ACTIVATION_MAPPER, digest(), clock());
 
         var accepted =
                 service.accept(
@@ -49,7 +54,12 @@ class AcceptInvitationServiceTest {
         InvitationsFake invitations = new InvitationsFake(sha256("secret"));
         AcceptInvitationService service =
                 new AcceptInvitationService(
-                        invitations, event -> {}, passwords(), ACTIVATION_MAPPER);
+                        invitations,
+                        event -> {},
+                        passwords(),
+                        ACTIVATION_MAPPER,
+                        digest(),
+                        clock());
 
         assertThatThrownBy(
                         () ->
@@ -66,7 +76,8 @@ class AcceptInvitationServiceTest {
         unavailable.available = false;
         EventsFake events = new EventsFake();
         AcceptInvitationService unavailableService =
-                new AcceptInvitationService(unavailable, events, passwords(), ACTIVATION_MAPPER);
+                new AcceptInvitationService(
+                        unavailable, events, passwords(), ACTIVATION_MAPPER, digest(), clock());
 
         assertThatThrownBy(
                         () ->
@@ -78,7 +89,8 @@ class AcceptInvitationServiceTest {
 
         InvitationsFake mismatched = new InvitationsFake(sha256("secret"));
         AcceptInvitationService mismatchedService =
-                new AcceptInvitationService(mismatched, events, passwords(), ACTIVATION_MAPPER);
+                new AcceptInvitationService(
+                        mismatched, events, passwords(), ACTIVATION_MAPPER, digest(), clock());
 
         assertThatThrownBy(
                         () ->
@@ -90,11 +102,33 @@ class AcceptInvitationServiceTest {
     }
 
     @Test
+    void rejectsAnExpiredInvitationBeforeCheckingTheSecret() {
+        InvitationsFake expired =
+                new InvitationsFake(sha256("secret"), OffsetDateTime.parse("2020-01-01T00:00:00Z"));
+        AcceptInvitationService service =
+                new AcceptInvitationService(
+                        expired, event -> {}, passwords(), ACTIVATION_MAPPER, digest(), clock());
+
+        assertThatThrownBy(
+                        () ->
+                                service.accept(
+                                        new AcceptInvitation(
+                                                INVITATION_ID, "secret", true, "long-password")))
+                .isInstanceOf(InvitationNotAvailableException.class);
+        assertThat(expired.passwordHash).isNull();
+    }
+
+    @Test
     void rejectsInvalidDeclarationsAndPasswordLengthsBeforeAccepting() {
         InvitationsFake invitations = new InvitationsFake(sha256("secret"));
         AcceptInvitationService service =
                 new AcceptInvitationService(
-                        invitations, event -> {}, passwords(), ACTIVATION_MAPPER);
+                        invitations,
+                        event -> {},
+                        passwords(),
+                        ACTIVATION_MAPPER,
+                        digest(),
+                        clock());
 
         assertThatThrownBy(
                         () ->
@@ -117,6 +151,27 @@ class AcceptInvitationServiceTest {
         assertThat(invitations.passwordHash).isNull();
     }
 
+    @Test
+    void rejectsWhenTheRepositoryCannotApplyTheTransition() {
+        InvitationsFake invitations = new InvitationsFake(sha256("secret"));
+        invitations.acceptSucceeds = false;
+        AcceptInvitationService service =
+                new AcceptInvitationService(
+                        invitations,
+                        event -> {},
+                        passwords(),
+                        ACTIVATION_MAPPER,
+                        digest(),
+                        clock());
+
+        assertThatThrownBy(
+                        () ->
+                                service.accept(
+                                        new AcceptInvitation(
+                                                INVITATION_ID, "secret", true, "long-password")))
+                .isInstanceOf(InvitationNotAvailableException.class);
+    }
+
     private static byte[] sha256(String value) {
         try {
             return MessageDigest.getInstance("SHA-256")
@@ -124,6 +179,14 @@ class AcceptInvitationServiceTest {
         } catch (java.security.NoSuchAlgorithmException exception) {
             throw new IllegalStateException(exception);
         }
+    }
+
+    private static DigestPort digest() {
+        return AcceptInvitationServiceTest::sha256;
+    }
+
+    private static Clock clock() {
+        return Clock.fixed(Instant.parse("2026-09-08T00:00:00Z"), ZoneOffset.UTC);
     }
 
     private static PasswordHasher passwords() {
@@ -151,14 +214,14 @@ class AcceptInvitationServiceTest {
         private int lookups;
         private String passwordHash;
         private boolean available = true;
+        private boolean acceptSucceeds = true;
 
         private InvitationsFake(byte[] verifier) {
-            invitation =
-                    new ActivationInvitation(
-                            INVITATION_ID,
-                            ACCOUNT_ID,
-                            verifier,
-                            OffsetDateTime.now(ZoneOffset.UTC).plusDays(1));
+            this(verifier, OffsetDateTime.now(ZoneOffset.UTC).plusDays(1));
+        }
+
+        private InvitationsFake(byte[] verifier, OffsetDateTime expiresAt) {
+            invitation = new ActivationInvitation(INVITATION_ID, ACCOUNT_ID, verifier, expiresAt);
         }
 
         @Override
@@ -168,9 +231,16 @@ class AcceptInvitationServiceTest {
         }
 
         @Override
-        public UUID accept(ActivationInvitation invitation, String hash, UUID correlationId) {
+        public Optional<UUID> accept(
+                ActivationInvitation invitation,
+                String hash,
+                AdultDeclaration adultDeclaration,
+                UUID correlationId) {
             passwordHash = hash;
-            return UUID.fromString("20000000-0000-0000-0000-000000000003");
+            if (!acceptSucceeds) {
+                return Optional.empty();
+            }
+            return Optional.of(UUID.fromString("20000000-0000-0000-0000-000000000003"));
         }
     }
 

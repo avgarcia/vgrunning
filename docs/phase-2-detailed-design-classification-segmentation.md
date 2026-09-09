@@ -326,6 +326,8 @@ Las asignaciones, excepciones, revisiones por corredor y lotes vinculados se con
 
 Los cambios de definiciones, valores, segmentos y reglas sin referencia personal se conservan `24` meses desde el evento. El job de retención es idempotente, auditable y reaplica supresiones después de restaurar copias.
 
+Este plazo corresponde a la categoría «Planes publicados y seguimiento» de la matriz de `ADR-0010` (24 meses, evento inicial: fecha del entrenamiento).
+
 Hasta superar la revisión especializada, todos los ejemplos, migraciones de prueba, fixtures y cargas de rendimiento usarán datos sintéticos. Los estados anterior y posterior del historial se consideran datos de negocio restringidos, no contenido apto para logs o métricas.
 
 ## Observabilidad

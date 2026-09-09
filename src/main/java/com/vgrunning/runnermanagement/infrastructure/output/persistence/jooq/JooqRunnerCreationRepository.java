@@ -5,7 +5,7 @@ import static org.vgrunning.generated.jooq.runner_management.tables.RunnerCreati
 import static org.vgrunning.generated.jooq.runner_management.tables.RunnerLifecycleAudit.RUNNER_LIFECYCLE_AUDIT;
 
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository;
-import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository.StoredRunner;
+import com.vgrunning.runnermanagement.domain.Runner;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,7 +22,8 @@ public class JooqRunnerCreationRepository implements RunnerCreationRepository {
     private final RunnerPersistenceMapper mapper;
 
     @Override
-    public Reservation reserve(UUID administratorId, UUID idempotencyKey, byte[] fingerprint) {
+    public Optional<StoredCreation> reserve(
+            UUID administratorId, UUID idempotencyKey, byte[] fingerprint) {
         jooq.deleteFrom(RUNNER_CREATION_IDEMPOTENCY)
                 .where(RUNNER_CREATION_IDEMPOTENCY.ADMINISTRATOR_ACCOUNT_ID.eq(administratorId))
                 .and(RUNNER_CREATION_IDEMPOTENCY.IDEMPOTENCY_KEY.eq(idempotencyKey))
@@ -46,11 +47,11 @@ public class JooqRunnerCreationRepository implements RunnerCreationRepository {
                                 .onConflictDoNothing()
                                 .execute()
                         == 1;
-        return new Reservation(created ? Optional.empty() : find(administratorId, idempotencyKey));
+        return created ? Optional.empty() : find(administratorId, idempotencyKey);
     }
 
     @Override
-    public StoredRunner create(NewRunner runner) {
+    public Runner create(NewRunner runner) {
         var record = mapper.toRunnerRecord(runner);
         record.setCreatedAt(
                 jooq.select(DSL.currentOffsetDateTime()).fetchSingle(0, OffsetDateTime.class));
@@ -64,11 +65,11 @@ public class JooqRunnerCreationRepository implements RunnerCreationRepository {
                 .set(RUNNER_LIFECYCLE_AUDIT.OCCURRED_AT, DSL.currentOffsetDateTime())
                 .set(RUNNER_LIFECYCLE_AUDIT.CORRELATION_ID, runner.correlationId())
                 .execute();
-        return mapper.toStoredRunner(record);
+        return mapper.toDomain(record);
     }
 
     @Override
-    public void complete(UUID administratorId, UUID idempotencyKey, StoredRunner runner) {
+    public void complete(UUID administratorId, UUID idempotencyKey, Runner runner) {
         jooq.update(RUNNER_CREATION_IDEMPOTENCY)
                 .set(RUNNER_CREATION_IDEMPOTENCY.RUNNER_ID, runner.id())
                 .where(RUNNER_CREATION_IDEMPOTENCY.ADMINISTRATOR_ACCOUNT_ID.eq(administratorId))

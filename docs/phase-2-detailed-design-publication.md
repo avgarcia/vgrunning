@@ -12,7 +12,7 @@
 
 Materializar `RF-09`, `RF-10`, `RF-14`, `RF-15`, `RF-20` y `RF-21`, y la contribución de publicación a `RF-07`, `RF-08` y `RF-16`, para que una semana se publique y actualice como una unidad coherente, conserve miembros efectivos, genere notificaciones sin exponer cambios parciales ni depender del proveedor de correo y ofrezca al entrenador una cobertura semanal operativa.
 
-Este diseño aplica `ADR-0007`, `ADR-0008`, `ADR-0011`, `ADR-0012`, `ADR-0014`, `ADR-0015`, `ADR-0017`, `ADR-0018`, `ADR-0020` y el refinamiento aceptado en `ADR-0021`.
+Este diseño aplica `ADR-0007`, `ADR-0008`, `ADR-0011`, `ADR-0012`, `ADR-0014`, `ADR-0015`, `ADR-0017`, `ADR-0018`, `ADR-0020`, el refinamiento aceptado en `ADR-0021` y el modelo persistente mínimo de `ADR-0030`.
 
 ## Resultado funcional
 
@@ -147,8 +147,7 @@ Existe como máximo una publicación estable por `weeklyPlanId`. Contiene:
 - identificador estable y referencia opaca al plan;
 - grupo, nombre visible del grupo y semana congelados;
 - conjunto congelado de destinatarios;
-- número e identificador de versión activa;
-- revisión monotónica para `ETag`;
+- número de versión activa como escalar (`activeVersionNumber`), que también sirve de `ETag`: como ninguna representación puede mutar sin incrementarlo (`ADR-0021`), `(id, activeVersionNumber)` identifica de forma unívoca el contenido vigente sin una columna de revisión independiente;
 - creador e instante de creación del plan, copiados desde `planning`;
 - último modificador e instante de la última modificación confirmada de contenido o identidad, copiados en la primera publicación y actualizados en cada sustitución posterior.
 
@@ -169,12 +168,11 @@ Cada versión incluye:
 
 - número secuencial sin huecos por plan confirmado;
 - actor e instante de confirmación;
-- instantánea completa de nombre, grupo congelado, semana y entrenamientos;
-- identificadores estables de entrenamiento y toda su estructura visible;
+- instantánea completa de nombre, grupo congelado, semana y entrenamientos, como documento único (`ADR-0030`);
 - huella canónica de contenido;
-- conjunto completo de destinatarios copiado;
-- para una actualización, colección de días `added`, `modified` o `deleted`;
-- marca única de versión activa.
+- para una actualización, colección de días `added`, `modified` o `deleted`.
+
+El conjunto de destinatarios **no se copia por versión**: `ADR-0007` obliga a que toda versión conserve exactamente el mismo conjunto congelado en `published_plan_recipient`, así que una copia por versión sería, por invariante, siempre idéntica al original — no aporta información y sí superficie de divergencia accidental (`ADR-0030`). La versión activa se identifica por el escalar `activeVersionNumber` de `published_plan`, no por una marca propia.
 
 Una versión abortada no existe y no consume número. Las versiones anteriores no pueden volver a activarse.
 
@@ -198,33 +196,51 @@ La sesión existe solo en la SPA. Conserva la representación obtenida, su `ETag
 
 ## Modelo persistente
 
-El esquema `publication` contendrá inicialmente:
+`ADR-0030` sustituye el modelo relacional completo de instantáneas por un modelo mínimo de 3 tablas más un documento `JSONB` para el contenido congelado. El esquema `publication` contiene:
 
 | Tabla | Contenido e invariantes principales |
 | --- | --- |
-| `published_plan` | UUID, `weekly_plan_id` único, grupo y semana congelados, versión activa, revisión, creador y última modificación. |
-| `published_plan_recipient` | Pareja única plan publicado-corredor congelada en versión `1`; nunca se recalcula. |
-| `published_plan_version` | UUID, plan, número secuencial único, huella, actor, instante y marca activa única. |
-| `published_version_recipient` | Copia inmutable y única versión-corredor; refuerza la trazabilidad de cada publicación. |
-| `published_workout` | Versión, UUID estable de entrenamiento, día y campos visibles de cabecera. |
-| `published_phase_duration` | Duraciones congeladas de calentamiento y enfriamiento por entrenamiento publicado. |
-| `published_workout_block` | Orden, repeticiones, carga y objetivo congelados de la parte principal. |
-| `published_workout_recovery` | Recuperación congelada opcional por bloque. |
-| `published_version_changed_day` | Fecha y tipo `added`, `modified` o `deleted` para el resumen de actualización. |
+| `published_plan` | UUID, `weekly_plan_id` único, grupo y semana congelados, `active_version_number` (escalar, también `ETag`), creador y última modificación. |
+| `published_plan_recipient` | Pareja única plan publicado-corredor congelada en versión `1`; nunca se recalcula. `UNIQUE (runner_id, week_start)` no parcial: `ADR-0021` elimina retirada y despublicación, así que todo plan publicado está activo para siempre. |
+| `published_plan_version` | UUID, plan, número secuencial único, huella (`content_fingerprint`), actor, instante, `content JSONB` (instantánea completa) y `changed_days JSONB` (solo en actualizaciones). |
 
-Las tablas de instantánea son fuente de verdad de la publicación y nunca se reconstruyen desde `planning`. Conservarán valores visibles de catálogo necesarios para que un nombre posterior no altere una versión. Las tablas de notificación permanecen en `notification_delivery`.
+`published_workout`, `published_phase_duration`, `published_workout_block`, `published_workout_recovery`, `published_version_changed_day` y `published_version_recipient` **desaparecen**. Su contenido se absorbe así:
+
+- La estructura de entrenamientos, fases, bloques y recuperaciones pasa a `published_plan_version.content`, un documento único con forma:
+
+  ```json
+  {
+    "schemaVersion": 1,
+    "planName": "…", "planningGroupId": "…", "groupDisplayName": "…", "weekStart": "2026-09-07",
+    "workouts": [
+      { "id": "…", "date": "2026-09-08", "dayOfWeek": "TUESDAY", "modality": "carrera",
+        "mainType": "series", "clarification": "…", "meetingPlace": "…",
+        "warmUpMinutes": 15, "coolDownMinutes": 10,
+        "blocks": [ { "order": 1, "repetitions": 4,
+          "load": { "kind": "distance", "meters": 1000 },
+          "target": { "kind": "relativePace", "value": "…" },
+          "recovery": { "modality": "rodaje", "load": { "kind": "duration", "seconds": 180 }, "target": null } } ] }
+    ]
+  }
+  ```
+
+  Conserva valores visibles de catálogo (nombre de grupo, etiquetas de tipo), no solo claves, para que un renombrado posterior no altere una versión — la misma garantía que exigía el modelo relacional.
+
+- `published_version_changed_day` se absorbe como `changed_days: [{"date": "...", "kind": "added|modified|deleted"}]`, presente solo cuando `version_number > 1`.
+- `published_version_recipient` **no tiene sustituto porque no aportaba información propia**: `ADR-0007` obliga a que toda versión conserve exactamente el mismo conjunto que `published_plan_recipient`; una copia por versión era, por invariante, siempre idéntica. La unicidad `(versión, corredor, tipo)` que exige `ADR-0008` vive en `notification_delivery.notification_request.logical_key`.
+
+La validación estructural (un entrenamiento por día, orden de bloques único, variante de carga exclusiva — `ADR-0006`, `ADR-0020`) la ejerce el validador canónico de `planning` antes de que `publication` reciba el contenido (paso 7 de *Editar y actualizar una publicación*); no se re-declara en DDL dentro de `publication`. Las tablas de notificación permanecen en `notification_delivery`.
 
 Restricciones mínimas:
 
-- un único `published_plan` por plan semanal;
-- número de versión único y creciente por publicación;
-- una única versión activa por plan;
-- destinatario único por plan y por versión;
-- un entrenamiento por versión y día;
-- estructura, órdenes y variantes exclusivas coherentes con `ADR-0006` y `ADR-0020`;
-- destinatario activo único por corredor y semana mediante la restricción de exclusividad aceptada;
-- día cambiado único por versión y fecha;
-- huella diferente de la versión activa anterior para crear otra versión.
+- un único `published_plan` por plan semanal (`UNIQUE (weekly_plan_id)`);
+- número de versión único y creciente por publicación (`UNIQUE (published_plan_id, version_number)`);
+- destinatario único por plan y exclusividad corredor-semana no parcial (`published_plan_recipient`, ver arriba);
+- `content` con al menos un entrenamiento (`CHECK (jsonb_array_length(content->'workouts') > 0)`);
+- `changed_days` presente si y solo si `version_number > 1` (`CHECK ((version_number = 1) = (changed_days IS NULL))`);
+- huella diferente de la versión activa anterior para crear otra versión (`UNIQUE (published_plan_id, content_fingerprint)`).
+
+**Qué se sacrifica explícitamente:** la unicidad `(versión, día)` y `(versión, día cambiado)` deja de estar en DDL y pasa a validación de código, verificada por prueba dirigida en vez de por restricción física.
 
 ## Casos de uso
 
@@ -440,9 +456,19 @@ Orden de bloqueo:
 
 La primera publicación comparte el bloqueo de coordinación con clasificación y grupos. Una actualización no lo adquiere porque conserva exactamente los destinatarios efectivos congelados, incluso si el grupo está inactivo.
 
-Toda sustitución compara revisión global. No existen revisiones por día porque una versión representa la semana completa. Dos sesiones que cambien días distintos no se mezclan: una se confirma y la otra recibe `412`.
+Toda sustitución compara `activeVersionNumber` mediante una sentencia CAS de una sola operación (`ADR-0030`), sin lectura previa bajo bloqueo:
 
-Versión, instantánea, destinatarios, días cambiados, versión activa, contenido de `planning`, autoría y solicitudes de outbox participan en la misma transacción PostgreSQL. Ninguna llamada a Brevo ocurre dentro de ella.
+```sql
+UPDATE publication.published_plan
+   SET active_version_number = :expected + 1,
+       last_modified_by = :actor, last_modified_at = :now
+ WHERE id = :planId AND active_version_number = :expected;
+-- 0 filas afectadas => 412 Precondition Failed
+```
+
+Es más fuerte que la comparación de revisión anterior: detecta la escritura perdida en la propia sentencia, no en una lectura previa que podría quedar obsoleta antes del `UPDATE`. No existen revisiones por día porque una versión representa la semana completa; dos sesiones que cambien días distintos no se mezclan: una se confirma y la otra recibe `412`.
+
+Versión (con su contenido `JSONB`), destinatarios, versión activa, contenido de `planning`, autoría y solicitudes de outbox participan en la misma transacción PostgreSQL: 3 inserciones/actualizaciones en lugar de las 9 del modelo anterior, con menos superficie de fallo parcial. Ninguna llamada a Brevo ocurre dentro de ella.
 
 Las restricciones físicas impiden dos versiones activas, números duplicados y un segundo plan activo para el mismo corredor y semana. Un error revierte todo; no se usan compensaciones.
 
@@ -450,16 +476,21 @@ Las restricciones físicas impiden dos versiones activas, números duplicados y 
 
 Índices candidatos:
 
-- publicación por plan semanal;
-- versión activa por publicación y número de versión;
-- destinatarios por publicación, versión y corredor;
-- exclusividad activa por corredor y semana;
-- publicaciones activas por corredor y semana para `runner-portal`;
-- entrenamientos por versión y día;
-- solicitudes por plan, destinatario, versión, estado y siguiente intento;
-- versiones y contenido por fecha de entrenamiento para retención.
+- publicación por plan semanal (`UNIQUE (weekly_plan_id)`);
+- versión por publicación y número de versión (`UNIQUE (published_plan_id, version_number)`);
+- destinatarios por publicación y corredor (`PK (published_plan_id, runner_id)`);
+- exclusividad activa por corredor y semana (`UNIQUE (runner_id, week_start)`);
+- solicitudes por plan, destinatario, versión, estado y siguiente intento (en `notification_delivery`);
+- versiones por fecha de creación para retención.
 
-Los índices se confirmarán con cardinalidades y `EXPLAIN (ANALYZE, BUFFERS)`. No se indexará contenido de entrenamientos sin un patrón medido.
+**Dos accesos que el modelo de 3 tablas no cubre con índice relacional**, ambos en `tracking-review`, y su solución sin tabla adicional:
+
+- *Lookup puntual* — ¿fue publicado el entrenamiento X para el corredor R? — se resuelve con un índice `GIN` sobre `content` (`jsonb_ops`) y `content -> 'workouts' @> '[{"id": "<uuid>"}]'`; el corredor se valida por `published_plan_recipient`.
+- *Recorrido paginado* — asignaciones publicadas por corredor/semana **incluidas las retiradas** — exige expandir el `JSONB` con `LATERAL jsonb_to_recordset(content -> 'workouts')` sobre las versiones de los planes donde el corredor es destinatario, deduplicando por `id` con `max(version_number)`.
+
+**Coste declarado, no escondido:** la expansión no ofrece recorrido ordenado por índice; cada página del cursor re-expande y re-ordena el conjunto completo, **O(total) por página**. Para el historial de un corredor (~104 planes × ~2 versiones × 7 entrenamientos ≈ 1.500 filas) es irrelevante. Para la revisión semanal del entrenador (~500 destinatarios × 7 ≈ 3.500 filas por página) es el caso a medir con `EXPLAIN (ANALYZE, BUFFERS)` antes de dar el diseño por cerrado.
+
+**Escotilla condicionada, no preventiva:** si la medición con más de 500 corredores muestra que el coste no es aceptable, se añade una tabla delgada `published_workout_index (version_id, workout_id, workout_date)` solo entonces — no se crea preventivamente. No se indexará el resto del contenido de entrenamientos sin un patrón medido.
 
 ## Retención y privacidad
 
@@ -506,6 +537,7 @@ Alertas:
 - Rechazar grupo inactivo, vacío, conflicto corredor-semana y cualquier entrenamiento de hoy o anterior.
 - Inyectar fallos entre cada escritura y comprobar rollback de planificación, versión, destinatarios y outbox.
 - Ejecutar carrera con reconfiguración y demostrar que el bloqueo común captura un estado completo.
+- Validar el `content JSONB` de la versión `1` contra el esquema declarado en `ADR-0030` y comprobar que conserva valores visibles de catálogo (nombre de grupo, etiquetas de tipo).
 
 ### Edición y republicación
 
@@ -516,6 +548,7 @@ Alertas:
 - Ejecutar dos editores sobre el mismo `ETag`; confirmar uno y conservar localmente la propuesta rechazada del otro.
 - Comprobar que nombre, grupo y semana no cambian y que no existen rutas de retirada, restauración o historial.
 - Probar que `planning` y publicación activa siempre confirman o revierten juntos.
+- Ejecutar el CAS de `active_version_number` bajo concurrencia real (no solo con mocks) y comprobar que la segunda escritura recibe `412` sin haber mutado la fila.
 
 ### Destinatarios y correo
 
@@ -536,6 +569,7 @@ Alertas:
 - Probar que todos y solo los corredores `active` aparecen una vez y reciben exactamente uno entre `cubierto`, `sin-grupo`, `grupo-sin-plan`, `plan-en-borrador` y `fuera-de-publicacion`.
 - Probar que `sin-modalidad` es independiente, que los conteos cuadran con la lista paginada y que modalidades mezcladas o ubicación ausente no bloquean ni alteran el estado.
 - Probar cálculo bajo demanda desde fuentes canónicas, ausencia de proyección y ausencia de operaciones de búsqueda o mutación.
+- Medir con `EXPLAIN (ANALYZE, BUFFERS)` el recorrido paginado de asignaciones publicadas (incluidas las retiradas) con más de 500 corredores destinatarios, y decidir si se activa la escotilla `published_workout_index` de `ADR-0030`.
 
 ### Seguridad, módulos y API
 
@@ -561,7 +595,9 @@ Riesgos aceptados:
 - sesiones concurrentes pueden exigir reaplicar cambios manualmente;
 - guardados separados producen correos separados;
 - un correo ya en vuelo puede llegar tras la baja;
-- las versiones históricas ocupan almacenamiento aunque no aporten una interfaz visible.
+- las versiones históricas ocupan almacenamiento aunque no aporten una interfaz visible;
+- el recorrido paginado de asignaciones publicadas por corredor, incluidas las retiradas, no tiene recorrido ordenado por índice y su coste es O(total) por página; aceptable en los volúmenes actuales, sujeto a la medición de `ADR-0030` antes de escalar más allá de 500 destinatarios por semana;
+- las unicidades `(versión, día)` y `(versión, día cambiado)` dejaron de ser restricciones físicas y pasaron a validación de código, cubierta por prueba dirigida.
 
 ## Conclusiones
 

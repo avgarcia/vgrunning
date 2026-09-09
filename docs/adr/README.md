@@ -15,9 +15,10 @@ Los ADRs no sustituyen los documentos de diseño de Fase 2. Cada ADR debe enlaza
 - El nombre sigue el formato `NNNN-titulo-en-kebab-case.md`.
 - El identificador visible sigue el formato `ADR-NNNN`.
 - Los estados permitidos son `Propuesto`, `Aceptado`, `Reemplazado` y `Descartado`.
-- Un ADR aceptado solo se modifica para corregir errores menores, añadir enlaces o registrar que ha sido reemplazado. Un cambio de decisión requiere un ADR nuevo.
+- Un ADR aceptado solo se modifica para corregir errores menores, añadir enlaces o registrar que ha sido reemplazado. Un cambio de decisión requiere un ADR nuevo — esto incluye actualizar en el sitio un árbol de paquetes, una tabla de estados o cualquier otro contenido que un ADR posterior refine: el ADR base conserva lo que decía cuando se aceptó, y el ADR posterior es la única fuente del estado vigente. (Precedente corregido: ver nota de refinamiento en `ADR-0014`.)
 - Un refinamiento parcial conserva ambos ADR en estado `Aceptado`. El ADR posterior declara `Refina parcialmente`, el anterior declara `Refinado parcialmente por` y el índice registra el alcance exacto de la relación.
 - El responsable de revisión por defecto es el Revisor de arquitectura. En el flujo actual de único mantenedor, el autor asume ese rol y registra la aceptación del riesgo en la PR.
+- `Fecha` es la fecha de propuesta y, salvo que se indique lo contrario, también la de aceptación. `Fecha de aceptación` solo se añade cuando la aceptación ocurre en una fecha distinta; no es obligatoria si coincide con `Fecha`. `Validación documental` es un campo narrativo adicional, no sustitutivo, para cuando la aceptación lleva condiciones, evidencias o caveats que una fecha sola no transmite (por ejemplo, `ADR-0010`, con evidencias jurídicas pendientes).
 
 ## Cuándo crear un ADR
 
@@ -63,6 +64,10 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | [ADR-0026](0026-hexagonal-packaging-under-infrastructure.md) | Paquetería hexagonal bajo infraestructura | Aceptado | Todos los `RF` |
 | [ADR-0027](0027-login-attempt-consumption-policy.md) | Consumo de todos los intentos de inicio de sesión | Aceptado | `RF-01`, `RF-02`, `RF-16`, `RF-18`, `RF-19` |
 | [ADR-0028](0028-mapstruct-mapping-boundaries.md) | MapStruct en las fronteras de representaciones | Aceptado | Todos los `RF` implementados mediante contratos HTTP o persistencia |
+| ADR-0029 | *(número quemado)* CQRS para queries de solo lectura | Descartado | — Un borrador se descartó antes de mergear; su regla útil se incorpora como refinamiento en `ADR-0030`. El número no se reutiliza para evitar confundir dos decisiones distintas si se consulta una rama que aún lo referencie. |
+| [ADR-0030](0030-publication-jsonb-snapshot-model.md) | Instantáneas de publicación en JSONB y modelo relacional mínimo | Aceptado | `RF-08` a `RF-10`, `RF-14` a `RF-16`, `RF-20`, `RF-21` |
+| [ADR-0031](0031-notification-delivery-provider-delegation.md) | Delegación de supresión, eventos y operación en el proveedor de correo | Aceptado | `RF-01`, `RF-15`, `RF-20` |
+| [ADR-0032](0032-simplified-recovery-key-custody.md) | Custodia simplificada de la clave privada de recuperación | Aceptado | Todos los `RF`; disponibilidad, seguridad, datos y privacidad |
 
 ## Relaciones de refinamiento
 
@@ -84,7 +89,45 @@ No crees un ADR para decisiones locales de interfaz, nombres internos, detalles 
 | `ADR-0014` | `ADR-0026` | Reúne adaptadores de entrada y salida bajo infraestructura, reserva `application.port` para interfaces, mantiene `api` como contrato intermodular y elimina `application.model`. |
 | `ADR-0025` | `ADR-0027` | Sustituye el conteo de fallos por el consumo de todos los intentos válidos de login en ambos buckets locales. |
 | `ADR-0026` | `ADR-0028` | Añade `application.mapper` para MapStruct puro y obliga a usar MapStruct en conversiones entre representaciones. |
+| `ADR-0007` | `ADR-0030` | Sustituye el modelo relacional completo de instantáneas (9 tablas) por 3 tablas más un documento `JSONB` para el contenido congelado; la congelación de destinatarios en la primera publicación y la inmutabilidad de versiones siguen vigentes. |
+| `ADR-0012` | `ADR-0030` | Concreta qué invariantes de `publication` se expresan como restricción física (unicidad de plan, versión, destinatario) y cuáles pasan a validación de código; la estrategia transaccional general sigue vigente. |
+| `ADR-0021` | `ADR-0030` | El `ETag` deja de ser una columna de revisión propia y pasa a derivarse de `active_version_number`, resuelto mediante una sentencia CAS; miembro efectivo, miembro elegible y `omitido-inactivo` siguen vigentes. |
+| `ADR-0010` | `ADR-0031` | Retira el tratamiento de la huella HMAC de supresión y su bloqueante de producción; la supresión pasa a ser responsabilidad del proveedor de correo como encargado del tratamiento. |
+| `ADR-0011` | `ADR-0031` | Sustituye supresión local, inbox de eventos, ledger de transiciones, pausa persistida y cuatro calendarios de reintento por delegación en el proveedor, proyección directa, circuit breaker en memoria y backoff único; la creación transaccional, prioridad y orden siguen vigentes. |
+| `ADR-0012` | `ADR-0031` | Retira de `notification-delivery` la coordinación de inbox y ledger; lease y `SKIP LOCKED` siguen vigentes. |
+| `ADR-0016` | `ADR-0031` | Reduce el alcance de Key Vault en este módulo a la clave del payload, la API key de Brevo y el Bearer del webhook; retira la rotación de clave HMAC. |
+| `ADR-0023` | `ADR-0032` | Sustituye la segunda copia bajo persona custodio designada por fragmentación Shamir 2 de 2 sostenida por el propio operador, con contacto de emergencia pasivo; escenarios, objetivos, permisos y cadencia de simulacros de `ADR-0023` siguen vigentes. |
+
+## Bloqueantes activos para producción
+
+Consolida los 19 bloqueantes declarados en «Decisiones pendientes» de los 7 ADRs que los tienen, para no tener que releerlos completos. Cada fila remite a su ADR de origen (enlazado en el índice superior); esta tabla no sustituye su texto completo, solo evita perder la vista de conjunto.
+
+| ADR | Bloqueante | Alcance | Responsable |
+| --- | --- | --- | --- |
+| `ADR-0010` | Documentar identidad y contacto del responsable; adquirir dominio y crear `privacidad@` | Producción | Responsable del tratamiento |
+| `ADR-0010` | Revisión especializada de bases jurídicas, consentimiento explícito, interés legítimo y plazos | Producción | Responsable del tratamiento con asesoramiento de privacidad |
+| `ADR-0010` | Inventariar y aprobar DPA/subencargados/regiones/transferencias de Azure, GHCR, Scaleway, Grafana Cloud, Brevo y buzón | Producción | Responsable del tratamiento y Revisor de arquitectura |
+| `ADR-0010` | Análisis de riesgos y EIPD aprobada con stack, escala y proveedores reales | Producción | Responsable del tratamiento con asesoramiento de privacidad o DPO |
+| `ADR-0010` | Aprobar información de privacidad, RAT, procedimiento de derechos, automatización de retención/bloqueo/destrucción, brechas, medidas y simulacros | Producción | Responsable del tratamiento |
+| `ADR-0011` | Adquirir y controlar dominio; definir y autenticar remitente con Brevo | Producción | Propietario del servicio |
+| `ADR-0011` | Aprobar Brevo como encargado (DPA, subencargados, ubicaciones, retención, transferencias) | Producción | Responsable del tratamiento con asesoramiento de privacidad |
+| `ADR-0016` | Adquirir dominio, configurar DNS y completar TLS | Producción | Propietario del servicio |
+| `ADR-0016` | Aprobar Azure, GHCR, Scaleway y Grafana Cloud como encargados/subencargados | Producción | Responsable del tratamiento |
+| `ADR-0016` | Escribir y probar runbooks de despliegue, rollback, restauración, rotación, incidentes, saturación, caída y salida de proveedor | Producción | Persona operadora y Revisor de arquitectura |
+| `ADR-0018` | Confirmar base jurídica y proporcionalidad de conservar cuenta/perfil/clasificación 24 meses tras finalizar la relación | Datos personales reales y producción | Responsable del tratamiento con Revisor de privacidad o DPO |
+| `ADR-0018` | Usar solo datos ficticios/sintéticos/anonimizados mientras el punto anterior no se resuelva | Desarrollo y pruebas (restricción vigente) | Revisor de arquitectura |
+| `ADR-0023` | Seleccionar y versionar herramienta de cifrado híbrido, formato de sobre y comandos de recuperación | Producción | Revisor de arquitectura |
+| `ADR-0023` | Crear identidades separadas de Azure y Scaleway, MFA, Object Lock, retención y runbooks | Producción | Persona operadora |
+| `ADR-0023` | Ejecutar con éxito la primera restauración externa completa y corregir desviaciones | Producción | Persona operadora y Revisor de arquitectura |
+| `ADR-0032` | Elegir gestor de secretos personal y soporte físico del segundo fragmento; documentar fragmentación/reconstrucción fuera del repositorio | Producción | Propietario del servicio |
+| `ADR-0032` | Designar contacto de emergencia y configurar el acceso de emergencia en el gestor de secretos elegido | Producción | Propietario del servicio |
+| `ADR-0025` | Concretar y probar la invalidación de todas las sesiones de una cuenta mediante Spring Session | Recuperación, cambio de contraseña y desactivación | Revisor de arquitectura |
+| `ADR-0025` | Definir proxies confiables y su configuración antes de interpretar `Forwarded`/`X-Forwarded-For` | Confiar en cabeceras de origen | Responsable de plataforma |
+
+Ecos que remiten a estos mismos bloqueantes sin añadir uno nuevo: `ADR-0004:128`, `ADR-0009:132` y `ADR-0015:130` (→ `ADR-0010`); `ADR-0011:191` y `ADR-0013:159` (→ `ADR-0016`).
+
+Bloqueantes adicionales, declarados en los diseños detallados de Fase 2 (no en ADRs): la tabla de `phase-2-detailed-design-notification-delivery.md` («Decisiones pendientes») y los bullets de la misma sección en `phase-2-detailed-design-publication.md`.
 
 ## Resultado del backlog inicial de Fase 2
 
-El backlog inicial y la auditoría H-01 a H-20 se materializan en `ADR-0001` a `ADR-0023`, todos aceptados. `ADR-0024` es una decisión posterior aceptada que refina la estrategia de validación técnica sin sustituir los umbrales ni herramientas de `ADR-0013`. Una decisión arquitectónica nueva o contradictoria deberá abrir otro ADR a partir de evidencia; no se resolverá implícitamente durante la implementación.
+El backlog inicial y la auditoría H-01 a H-20 se materializan en `ADR-0001` a `ADR-0023`, todos aceptados. `ADR-0024` a `ADR-0028` son decisiones posteriores aceptadas que refinan implementación, sesión, paquetería y mapeo sin sustituir los umbrales, herramientas ni el mapa modular de sus ADR base. `ADR-0029` fue descartado antes de mergear y su número no se reutiliza. `ADR-0030` y `ADR-0031` refinan el modelo persistente de `publication` y `notification-delivery` antes de su implementación, aprovechando que ninguno de los dos módulos tiene código ni migraciones propias más allá de una tabla. `ADR-0032` refina la custodia de la clave privada de recuperación de `ADR-0023`, sustituyendo una persona custodio designada —que nunca llegó a existir— por fragmentación sostenida por el propio operador. Una decisión arquitectónica nueva o contradictoria deberá abrir otro ADR a partir de evidencia; no se resolverá implícitamente durante la implementación.

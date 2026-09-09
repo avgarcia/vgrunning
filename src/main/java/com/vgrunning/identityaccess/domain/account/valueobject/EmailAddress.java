@@ -25,4 +25,9 @@ public record EmailAddress(String canonicalValue) {
         return Normalizer.normalize(suppliedEmail.strip(), Normalizer.Form.NFC)
                 .toLowerCase(Locale.ROOT);
     }
+
+    /** Forma de presentación del correo suministrado: sin recortar mayúsculas ni minúsculas. */
+    public static String presentationValue(String suppliedEmail) {
+        return Normalizer.normalize(suppliedEmail.strip(), Normalizer.Form.NFC);
+    }
 }

@@ -158,6 +158,7 @@ dependencies {
     compileOnly("org.jspecify:jspecify:1.0.1")
     compileOnly("com.github.spotbugs:spotbugs-annotations:4.10.4")
     testCompileOnly("org.jspecify:jspecify:1.0.1")
+    testCompileOnly("com.github.spotbugs:spotbugs-annotations:4.10.4")
     testCompileOnly("org.projectlombok:lombok:1.18.44")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.44")
 

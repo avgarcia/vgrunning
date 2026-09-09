@@ -3,7 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
-**Refinado parcialmente por:** [ADR-0025](0025-spring-session-jdbc-local-login-rate-limit.md) — Propuesto; Spring Session JDBC conserva el `SecurityContext` sin repositorio propio.
+**Refinado parcialmente por:** [ADR-0025](0025-spring-session-jdbc-local-login-rate-limit.md) — Aceptado; Spring Session JDBC conserva el `SecurityContext` sin repositorio propio.
 
 ## Contexto
 
@@ -18,6 +18,8 @@ Este ADR materializa técnicamente `ADR-0004`; no modifica roles, jerarquía, ca
 ### Autenticación y actor
 
 Spring Security autenticará cada solicitud mediante la sesión opaca de `ADR-0003`. Un `SecurityContextRepository` propio resolverá exclusivamente el verificador persistido mediante jOOQ/JDBC y producirá una identidad autenticada con identificador de cuenta, rol vigente y estado. `identity-access` no resolverá ni poseerá la vinculación entre cuenta y corredor.
+
+*Derogado por `ADR-0025` (Aceptado): la integración de Spring Security con Spring Session JDBC sustituye el `SecurityContextRepository` propio. El `ActorContext` inmutable descrito a continuación no cambia.*
 
 El adaptador HTTP transformará esa identidad en un `ActorContext` inmutable emitido por `identity-access`, compuesto por identificador de cuenta, rol y clase de actor. El actor se pasará explícitamente a cada caso de uso protegido; la capa de aplicación y el dominio no leerán `SecurityContextHolder`, cookies, cabeceras ni clases de Spring Security. El contexto de seguridad asociado al hilo quedará limitado a filtros y adaptadores.
 

@@ -4,6 +4,7 @@
 **Fecha:** 2026-08-24
 **Responsable de revisión:** Revisor de arquitectura y persona operadora
 **Refina parcialmente:** [ADR-0016](0016-deployment-platform-operations.md)
+**Refinado parcialmente por:** [ADR-0032](0032-simplified-recovery-key-custody.md)
 **Validación documental:** Escenarios, objetivos y custodia aceptados explícitamente por el responsable durante la auditoría H-17; evidencias y simulacros pendientes antes de producción
 
 ## Contexto
@@ -44,6 +45,8 @@ Azure solo dispondrá de la clave pública necesaria para cifrar. La clave priva
 - imagen OCI, equipo de desarrollo ordinario, logs o documentación pública.
 
 Existirán dos copias protegidas de la clave privada y del procedimiento mínimo de recuperación, en ubicaciones físicas separadas. Una quedará bajo custodia del propietario del servicio y otra bajo una persona custodio de recuperación designada. Acceso, sustitución y prueba quedarán registrados fuera del repositorio. Una clave privada antigua no se destruirá mientras exista una copia retenida que dependa de ella.
+
+*Derogado por `ADR-0032` (Aceptado): la segunda copia deja de requerir una persona custodio designada. La clave se fragmenta mediante Shamir 2 de 2 y el propio operador sostiene ambos fragmentos en mecanismos y ubicaciones independientes, con un contacto de emergencia pasivo en lugar de una custodia técnica activa.*
 
 La pérdida conjunta de las dos copias privadas hace irrecuperables los backups cifrados y se acepta como riesgo que debe reducirse mediante custodia, inventario y simulacros, no mediante una copia oculta en Azure.
 
@@ -127,10 +130,10 @@ Se descarta porque incendio, pérdida, indisponibilidad o error de una sola pers
 
 No quedan decisiones de producto o arquitectura pendientes para aceptar este ADR. Permanecen estos artefactos y evidencias bloqueantes para producción:
 
-- designar nominalmente a la persona custodio y documentar aceptación, sustitución y acceso de emergencia fuera del repositorio;
-- seleccionar y versionar la herramienta estándar de cifrado híbrido, formato de sobre y comandos de recuperación sin cambiar las propiedades decididas;
-- crear las identidades separadas de Azure y Scaleway, MFA, Object Lock, retención y runbooks;
-- ejecutar con éxito la primera restauración externa completa y corregir cualquier desviación de objetivos.
+- **Bloqueante para producción — sustituido por `ADR-0032`:** ver ese ADR para los bloqueantes vigentes de custodia de la clave privada (elección de herramientas de fragmentación/gestor de secretos y configuración del contacto de emergencia).
+- **Bloqueante para producción:** seleccionar y versionar la herramienta estándar de cifrado híbrido, formato de sobre y comandos de recuperación sin cambiar las propiedades decididas. Responsable: Revisor de arquitectura. Tratamiento: fijar herramienta y formato antes de producción.
+- **Bloqueante para producción:** crear las identidades separadas de Azure y Scaleway, MFA, Object Lock, retención y runbooks. Responsable: Persona operadora. Tratamiento: aprovisionar y probar antes de producción.
+- **Bloqueante para producción:** ejecutar con éxito la primera restauración externa completa y corregir cualquier desviación de objetivos. Responsable: Persona operadora y Revisor de arquitectura. Tratamiento: ejecutar el simulacro descrito en *Validación prevista* y cerrar desviaciones antes de producción.
 
 ## Referencias oficiales
 

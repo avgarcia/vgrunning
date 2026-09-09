@@ -1,14 +1,14 @@
 package com.vgrunning.runnermanagement.infrastructure.configuration;
 
 import com.vgrunning.identityaccess.api.provisioning.AccountProvisioningApi;
-import com.vgrunning.runnermanagement.application.mapper.RunnerCreationMapper;
 import com.vgrunning.runnermanagement.application.port.in.ActivateRunnerUseCase;
 import com.vgrunning.runnermanagement.application.port.in.CreateRunnerUseCase;
+import com.vgrunning.runnermanagement.application.port.out.DigestPort;
 import com.vgrunning.runnermanagement.application.port.out.RunnerActivationRepository;
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository;
 import com.vgrunning.runnermanagement.application.service.ActivateRunnerService;
 import com.vgrunning.runnermanagement.application.service.CreateRunnerService;
-import org.mapstruct.factory.Mappers;
+import com.vgrunning.runnermanagement.infrastructure.security.Sha256DigestAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,20 +16,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class RunnerManagementInfrastructureConfiguration {
     @Bean
+    DigestPort runnerManagementDigestPort() {
+        return new Sha256DigestAdapter();
+    }
+
+    @Bean
     CreateRunnerUseCase createRunnerUseCase(
-            AccountProvisioningApi accounts,
-            RunnerCreationRepository runners,
-            RunnerCreationMapper runnerCreationMapper) {
-        return new CreateRunnerService(accounts, runners, runnerCreationMapper);
+            AccountProvisioningApi accounts, RunnerCreationRepository runners, DigestPort digest) {
+        return new CreateRunnerService(accounts, runners, digest);
     }
 
     @Bean
     ActivateRunnerUseCase activateRunnerUseCase(RunnerActivationRepository runners) {
         return new ActivateRunnerService(runners);
-    }
-
-    @Bean
-    RunnerCreationMapper runnerCreationMapper() {
-        return Mappers.getMapper(RunnerCreationMapper.class);
     }
 }

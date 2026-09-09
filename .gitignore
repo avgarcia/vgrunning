@@ -28,6 +28,9 @@ frontend/test-results/
 *.jks
 secrets/
 
+# Salidas locales de scripts de validación manual (pueden contener datos personales del operador)
+.local/
+
 # IDE and operating-system files
 .idea/
 *.iml

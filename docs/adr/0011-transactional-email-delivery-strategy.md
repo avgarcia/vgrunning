@@ -4,7 +4,7 @@
 **Fecha:** 2026-08-13
 **Fecha de aceptación:** 2026-08-13
 **Responsable de revisión:** Revisor de arquitectura
-**Refinado parcialmente por:** [ADR-0021](0021-publication-editing-notification-eligibility.md)
+**Refinado parcialmente por:** [ADR-0021](0021-publication-editing-notification-eligibility.md) y [ADR-0031](0031-notification-delivery-provider-delegation.md)
 
 ## Contexto
 
