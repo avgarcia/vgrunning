@@ -310,10 +310,16 @@ class IdentityAccessHttpTest {
         assertThat(finalResponse.getBody()).contains("\"code\":\"rate_limit_exceeded\"");
     }
 
+    /**
+     * Añade el Origin público configurado (test properties) a toda mutación: reproduce lo que envía
+     * el navegador y ejerce el filtro de origen con el hueco de proxy cerrado, en lugar de dejarlo
+     * pasar por ausencia de cabecera.
+     */
     private HttpHeaders csrfHeaders(String csrfCookie) {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.COOKIE, "__Host-pmv_csrf=" + csrfCookie);
         headers.add("X-CSRF-TOKEN", csrfCookie);
+        headers.add(HttpHeaders.ORIGIN, "http://localhost:8080");
         return headers;
     }
 
