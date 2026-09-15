@@ -14,24 +14,19 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.JdbcTransactionManager;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @SpringBootTest
-@Testcontainers
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class PersistenceInfrastructureTest {
 
     private static final Set<String> APPLICATION_SCHEMAS =
@@ -56,11 +51,14 @@ class PersistenceInfrastructureTest {
                     "org.vgrunning.generated.jooq.tracking_review.TrackingReview",
                     "org.vgrunning.generated.jooq.platform.Platform");
 
-    @Container private static final PostgreSQLContainer POSTGRES = PostgreSqlTestContainer.create();
-
     @DynamicPropertySource
     static void registerDatabaseProperties(DynamicPropertyRegistry registry) {
-        PostgreSqlTestContainer.registerProperties(registry, POSTGRES);
+        PostgreSqlTestContainer.registerProperties(registry);
+    }
+
+    @BeforeAll
+    static void resetDatabase() {
+        PostgreSqlTestContainer.truncateApplicationData();
     }
 
     @Autowired private DataSource dataSource;
