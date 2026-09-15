@@ -1,8 +1,7 @@
 package com.vgrunning.runnermanagement.infrastructure.input.web;
 
-import com.vgrunning.identityaccess.api.actor.ActorContext;
+import com.vgrunning.identityaccess.api.actor.CurrentActor;
 import com.vgrunning.runnermanagement.application.port.in.CreateRunnerUseCase;
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -19,12 +18,13 @@ import org.vgrunning.generated.openapi.server.model.RunnerCreation;
 public class RunnerHttpController implements RunnersApi {
     private final CreateRunnerUseCase createRunner;
     private final RunnerWebMapper mapper;
-    private final HttpServletRequest request;
+    private final CurrentActor currentActor;
 
     @Override
     public ResponseEntity<Runner> createRunner(UUID idempotencyKey, RunnerCreation runnerCreation) {
-        ActorContext actor = (ActorContext) request.getAttribute(ActorContext.class.getName());
-        var runner = createRunner.create(actor, idempotencyKey, mapper.toCommand(runnerCreation));
+        var runner =
+                createRunner.create(
+                        currentActor.require(), idempotencyKey, mapper.toCommand(runnerCreation));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .header(HttpHeaders.LOCATION, "/api/runners/" + runner.id())
                 .body(mapper.toResponse(runner));

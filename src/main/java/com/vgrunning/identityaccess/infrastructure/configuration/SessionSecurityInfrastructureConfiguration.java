@@ -1,8 +1,8 @@
 package com.vgrunning.identityaccess.infrastructure.configuration;
 
-import com.vgrunning.identityaccess.infrastructure.security.ActorContextRequestFilter;
+import com.vgrunning.identityaccess.api.actor.CurrentActor;
 import com.vgrunning.identityaccess.infrastructure.security.CurrentSessionIdentityResolver;
-import com.vgrunning.identityaccess.infrastructure.security.SessionActorMapper;
+import com.vgrunning.identityaccess.infrastructure.security.SecurityContextCurrentActor;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -59,9 +59,9 @@ public class SessionSecurityInfrastructureConfiguration {
         return new CurrentSessionIdentityResolver();
     }
 
+    /** Resuelve el actor autenticado que consumen los controladores de otros módulos. */
     @Bean
-    ActorContextRequestFilter actorContextRequestFilter(
-            CurrentSessionIdentityResolver sessions, SessionActorMapper mapper) {
-        return new ActorContextRequestFilter(sessions, mapper);
+    CurrentActor currentActor(CurrentSessionIdentityResolver sessions) {
+        return new SecurityContextCurrentActor(sessions);
     }
 }
