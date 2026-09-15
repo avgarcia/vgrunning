@@ -8,7 +8,6 @@ import com.vgrunning.runnermanagement.application.exception.IdempotencyKeyReused
 import com.vgrunning.runnermanagement.application.exception.InvalidRunnerCreationException;
 import com.vgrunning.runnermanagement.application.exception.RunnerCreationForbiddenException;
 import com.vgrunning.runnermanagement.application.port.in.CreateRunnerUseCase;
-import com.vgrunning.runnermanagement.application.port.out.DigestPort;
 import com.vgrunning.runnermanagement.application.port.out.RunnerCreationRepository;
 import com.vgrunning.runnermanagement.domain.Runner;
 import com.vgrunning.runnermanagement.domain.RunnerName;
@@ -24,14 +23,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class CreateRunnerService implements CreateRunnerUseCase {
     private final AccountProvisioningApi accounts;
     private final RunnerCreationRepository runners;
-    private final DigestPort digest;
 
     @Override
     @Transactional
     public Runner create(ActorContext actor, UUID idempotencyKey, CreateRunner command) {
         actor.requireAdministrator(RunnerCreationForbiddenException::new);
         CreateRunner normalized = normalize(command);
-        byte[] fingerprint = fingerprint(normalized);
+        byte[] fingerprint = normalized.fingerprint();
         return runners.reserve(actor.accountId(), idempotencyKey, fingerprint)
                 .map(existing -> replay(existing, fingerprint))
                 .orElseGet(() -> createNew(actor, idempotencyKey, normalized));
@@ -92,10 +90,5 @@ public class CreateRunnerService implements CreateRunnerUseCase {
             throw new InvalidRunnerCreationException();
         }
         return normalized;
-    }
-
-    private byte[] fingerprint(CreateRunner command) {
-        return digest.sha256(
-                command.givenName() + "\n" + command.familyName() + "\n" + command.email());
     }
 }

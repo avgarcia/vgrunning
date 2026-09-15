@@ -4,11 +4,11 @@ import com.vgrunning.identityaccess.application.exception.InvalidInvitationAccep
 import com.vgrunning.identityaccess.application.exception.InvitationNotAvailableException;
 import com.vgrunning.identityaccess.application.mapper.InvitationActivationMapper;
 import com.vgrunning.identityaccess.application.port.in.AcceptInvitationUseCase;
-import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationActivationPublisher;
 import com.vgrunning.identityaccess.application.port.out.InvitationRepository;
 import com.vgrunning.identityaccess.application.port.out.PasswordHasher;
 import com.vgrunning.identityaccess.domain.AdultDeclaration;
+import com.vgrunning.identityaccess.domain.Digest;
 import com.vgrunning.identityaccess.domain.account.valueobject.RawPassword;
 import java.security.MessageDigest;
 import java.time.Clock;
@@ -24,7 +24,6 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
     private final InvitationActivationPublisher activationPublisher;
     private final PasswordHasher passwords;
     private final InvitationActivationMapper mapper;
-    private final DigestPort digest;
     private final Clock clock;
 
     @Override
@@ -43,7 +42,7 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
         if (invitation.expiresAt().isBefore(OffsetDateTime.now(clock))) {
             throw new InvitationNotAvailableException();
         }
-        if (!MessageDigest.isEqual(invitation.verifier(), digest.sha256(command.secret()))) {
+        if (!MessageDigest.isEqual(invitation.verifier(), Digest.sha256(command.secret()))) {
             throw new InvitationNotAvailableException();
         }
         RawPassword password;

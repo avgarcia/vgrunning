@@ -7,7 +7,6 @@ import com.vgrunning.identityaccess.application.port.in.AcceptInvitationUseCase;
 import com.vgrunning.identityaccess.application.port.in.AuthenticateCredentialsUseCase;
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
 import com.vgrunning.identityaccess.application.port.out.ActivationLinkFactory;
-import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationActivationPublisher;
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
 import com.vgrunning.identityaccess.application.port.out.InvitationRepository;
@@ -22,7 +21,6 @@ import com.vgrunning.identityaccess.infrastructure.output.provider.ActivationRou
 import com.vgrunning.identityaccess.infrastructure.security.AesGcmInvitationPayloadProtector;
 import com.vgrunning.identityaccess.infrastructure.security.Argon2PasswordHasher;
 import com.vgrunning.identityaccess.infrastructure.security.SecureRandomSecretGenerator;
-import com.vgrunning.identityaccess.infrastructure.security.Sha256DigestAdapter;
 import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
 import java.time.Clock;
 import org.mapstruct.factory.Mappers;
@@ -70,11 +68,6 @@ public class IdentityAccessInfrastructureConfiguration {
     }
 
     @Bean
-    DigestPort identityAccessDigestPort() {
-        return new Sha256DigestAdapter();
-    }
-
-    @Bean
     SecretGenerator identityAccessSecretGenerator() {
         return new SecureRandomSecretGenerator();
     }
@@ -89,11 +82,10 @@ public class IdentityAccessInfrastructureConfiguration {
             RunnerInvitationProvisioningRepository invitations,
             InvitationPayloadProtector protector,
             NotificationRequestApi notifications,
-            DigestPort digest,
             SecretGenerator secrets,
             ActivationLinkFactory activationLinks) {
         return new ProvisionRunnerAccountService(
-                invitations, protector, notifications, digest, secrets, activationLinks);
+                invitations, protector, notifications, secrets, activationLinks);
     }
 
     @Bean
@@ -107,14 +99,12 @@ public class IdentityAccessInfrastructureConfiguration {
             InvitationActivationPublisher activationPublisher,
             PasswordHasher passwordHasher,
             InvitationActivationMapper invitationActivationMapper,
-            DigestPort digest,
             Clock clock) {
         return new AcceptInvitationService(
                 invitations,
                 activationPublisher,
                 passwordHasher,
                 invitationActivationMapper,
-                digest,
                 clock);
     }
 
