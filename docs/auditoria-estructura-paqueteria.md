@@ -108,6 +108,8 @@ Aplica la segunda rama de la propuesta: **son ruido, se pueden retirar.**
 
 Las consecuencias de diseño de esto están analizadas en [auditoría de arquitectura hexagonal](auditoria-arquitectura-hexagonal.md); a efectos de paquetería basta con registrar que es el único módulo cuya `api` no tiene detrás una capa de aplicación, y que `ADR-0031` ya prevé construir ese worker, momento en el que la rama `application` aparece de forma natural.
 
+**Segunda instancia de la misma tensión, asumida a propósito.** `identityaccess.infrastructure.security.SecurityContextCurrentActor` implementa el contrato `identityaccess.api.actor.CurrentActor` desde `infrastructure`, no desde `application`: lee `SecurityContextHolder`, que `applicationMayNotDependOnFrameworksOrPersistence` prohíbe en `application`. Aquí no hay alternativa que no sea la misma forma que H5 señala: la firma de `RunnersApi.createRunner(...)` (el controlador que lo consume, en `runnermanagement`) está generada desde OpenAPI y no admite un parámetro nuevo, así que la resolución del actor no puede entrar por firma de método. Se documenta como el mismo patrón, no como una excepción nueva.
+
 ### H6 · La taxonomía de cuatro raíces solo existe completa en un módulo
 
 | Módulo | `api` | `domain` | `application` | `infrastructure` |
