@@ -1,5 +1,6 @@
 package com.vgrunning.identityaccess.infrastructure.configuration.error;
 
+import com.vgrunning.ProblemDetails;
 import com.vgrunning.identityaccess.application.exception.EmailAlreadyReservedException;
 import com.vgrunning.identityaccess.application.exception.InvalidCredentialsException;
 import com.vgrunning.identityaccess.application.exception.InvalidInvitationAcceptanceException;
@@ -8,25 +9,25 @@ import com.vgrunning.identityaccess.application.exception.InvitationProvisioning
 import com.vgrunning.identityaccess.infrastructure.security.AuthenticationRequiredException;
 import com.vgrunning.identityaccess.infrastructure.security.CsrfValidationException;
 import com.vgrunning.identityaccess.infrastructure.security.ratelimit.RateLimitedException;
-import java.net.URI;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-/** Configura la representación Problem Details de los fallos de acceso y seguridad. */
+/**
+ * Configura la representación Problem Details de los fallos propios de acceso y seguridad.
+ *
+ * <p>El catch-all de {@code RuntimeException} vive en {@code
+ * com.vgrunning.ApplicationProblemHandler}, fuera de los módulos: este advice se ordena por delante
+ * ({@code @Order(0)}) para que sus handlers específicos ganen frente a ese catch-all sin depender
+ * de compartir clase con él.
+ */
 @RestControllerAdvice
-public class IdentityAccessProblemHandler extends ResponseEntityExceptionHandler {
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(IdentityAccessProblemHandler.class);
+@Order(0)
+public class IdentityAccessProblemHandler {
 
     @ExceptionHandler(AuthenticationRequiredException.class)
     ResponseEntity<ProblemDetail> authenticationRequired(
@@ -74,70 +75,14 @@ public class IdentityAccessProblemHandler extends ResponseEntityExceptionHandler
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .header(HttpHeaders.RETRY_AFTER, Long.toString(retryAfter))
                 .body(
-                        detail(
+                        ProblemDetails.detail(
                                 HttpStatus.TOO_MANY_REQUESTS,
                                 exception.code(),
                                 exception.getMessage()));
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    ResponseEntity<ProblemDetail> internalError(RuntimeException exception) {
-        LOGGER.atError()
-                .addKeyValue("exceptionType", exception.getClass().getName())
-                .addKeyValue(
-                        "rootCauseType",
-                        exception.getCause() == null
-                                ? exception.getClass().getName()
-                                : exception.getCause().getClass().getName())
-                .log("Fallo no controlado al procesar una solicitud");
-        return problem(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "internal_error",
-                "Se ha producido un error interno");
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(
-            MethodArgumentNotValidException exception,
-            HttpHeaders headers,
-            org.springframework.http.HttpStatusCode status,
-            WebRequest request) {
-        return ResponseEntity.status(status)
-                .headers(headers)
-                .body(
-                        (Object)
-                                detail(
-                                        HttpStatus.BAD_REQUEST,
-                                        "invalid_request",
-                                        "La solicitud no es válida"));
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleHttpMessageNotReadable(
-            HttpMessageNotReadableException exception,
-            HttpHeaders headers,
-            org.springframework.http.HttpStatusCode status,
-            WebRequest request) {
-        return ResponseEntity.status(status)
-                .headers(headers)
-                .body(
-                        (Object)
-                                detail(
-                                        HttpStatus.BAD_REQUEST,
-                                        "invalid_request",
-                                        "La solicitud no es válida"));
-    }
-
     private static ResponseEntity<ProblemDetail> problem(
             HttpStatus status, String code, String title) {
-        return ResponseEntity.status(status).body(detail(status, code, title));
-    }
-
-    private static ProblemDetail detail(HttpStatus status, String code, String title) {
-        ProblemDetail detail = ProblemDetail.forStatusAndDetail(status, title);
-        detail.setType(URI.create("/problems/" + code.replace('_', '-')));
-        detail.setTitle(title);
-        detail.setProperty("code", code);
-        return detail;
+        return ResponseEntity.status(status).body(ProblemDetails.detail(status, code, title));
     }
 }
