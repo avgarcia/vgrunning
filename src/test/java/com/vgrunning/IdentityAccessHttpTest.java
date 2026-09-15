@@ -144,6 +144,61 @@ class IdentityAccessHttpTest {
                 .isZero();
     }
 
+    /**
+     * Extremo a extremo del arreglo de precedencia entre advices: solo es determinista con los
+     * {@code @Order} explícitos de {@code IdentityAccessProblemHandler}, {@code
+     * RunnerManagementProblemHandler} y {@code ApplicationProblemHandler}. Sin ellos, el resultado
+     * depende del orden de registro de los beans y podría devolver 500 en vez de 403.
+     */
+    @Test
+    void refusesToCreateARunnerForANonAdministratorSession() {
+        TestRestTemplate client = new TestRestTemplate();
+        ResponseEntity<String> csrf = client.getForEntity(applicationUrl("/"), String.class);
+        String initialCsrfCookie =
+                cookieValue(
+                        csrf.getHeaders().getOrEmpty(HttpHeaders.SET_COOKIE), "__Host-pmv_csrf");
+        HttpHeaders loginHeaders = csrfHeaders(initialCsrfCookie);
+        loginHeaders.setContentType(MediaType.APPLICATION_JSON);
+        ResponseEntity<CurrentSession> login =
+                client.postForEntity(
+                        applicationUrl("/api/sessions"),
+                        new HttpEntity<>(
+                                new SessionCreation(
+                                        "runner@running-coach.invalid",
+                                        "synthetic-runner-password-only"),
+                                loginHeaders),
+                        CurrentSession.class);
+        assertThat(login.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String sessionCookie =
+                cookieValue(
+                        login.getHeaders().getOrEmpty(HttpHeaders.SET_COOKIE),
+                        "__Host-pmv_session");
+        String csrfCookie =
+                cookieValue(
+                        login.getHeaders().getOrEmpty(HttpHeaders.SET_COOKIE), "__Host-pmv_csrf");
+        HttpHeaders headers = csrfHeaders(csrfCookie);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set(
+                HttpHeaders.COOKIE,
+                "__Host-pmv_session=" + sessionCookie + "; __Host-pmv_csrf=" + csrfCookie);
+        headers.set("Idempotency-Key", UUID.randomUUID().toString());
+
+        ResponseEntity<String> rejected =
+                client.postForEntity(
+                        applicationUrl("/api/runners"),
+                        new HttpEntity<>(
+                                new RunnerCreation(
+                                        "Lucía",
+                                        "Martín",
+                                        "other-runner@running-coach.invalid",
+                                        true),
+                                headers),
+                        String.class);
+
+        assertThat(rejected.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(rejected.getBody()).contains("\"code\":\"runner_creation_forbidden\"");
+    }
+
     @Test
     void acceptsAnInvitationWithoutCreatingASessionAndActivatesItsRunner() {
         String secret = "synthetic-activation-secret";
