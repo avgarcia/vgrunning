@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,35 +16,28 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgreSQLContainer;
 
-/**
- * Comprueba la frontera HTTP con PostgreSQL real. {@code DirtiesContext} expulsa el contexto y su
- * pool de la caché al acabar la clase; así ninguna prueba posterior reutiliza una conexión al
- * contenedor estático, que Testcontainers destruye al finalizar esta clase.
- */
+/** Comprueba la frontera HTTP con PostgreSQL real, con un servidor Tomcat efímero real. */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = "management.server.port=0")
-@Testcontainers
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Import(SecurityAndManagementEndpointTest.SyntheticErrorEndpoint.class)
 class SecurityAndManagementEndpointTest {
 
     private static final Pattern SCRIPT_ASSET = Pattern.compile("src=\"(/assets/[^\"]+\\.js)\"");
 
-    @Container private static final PostgreSQLContainer POSTGRES = PostgreSqlTestContainer.create();
-
     @DynamicPropertySource
     static void registerDatabaseProperties(DynamicPropertyRegistry registry) {
-        PostgreSqlTestContainer.registerProperties(registry, POSTGRES);
+        PostgreSqlTestContainer.registerProperties(registry);
+    }
+
+    @BeforeAll
+    static void resetDatabase() {
+        PostgreSqlTestContainer.truncateApplicationData();
     }
 
     @LocalServerPort private int applicationPort;

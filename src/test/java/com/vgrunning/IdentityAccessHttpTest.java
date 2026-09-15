@@ -22,13 +22,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.vgrunning.generated.openapi.server.model.CurrentSession;
 import org.vgrunning.generated.openapi.server.model.InvitationAcceptance;
 import org.vgrunning.generated.openapi.server.model.InvitationAcceptanceCreation;
@@ -36,20 +32,26 @@ import org.vgrunning.generated.openapi.server.model.Runner;
 import org.vgrunning.generated.openapi.server.model.RunnerCreation;
 import org.vgrunning.generated.openapi.server.model.SessionCreation;
 
-/** Recorre el contrato HTTP de sesión exclusivamente con las cuentas sintéticas opt-in. */
+/**
+ * Recorre el contrato HTTP de sesión exclusivamente con las cuentas sintéticas opt-in.
+ *
+ * <p>Se mantiene sobre {@code RANDOM_PORT}/{@code TestRestTemplate} en vez de MockMvc: bajo {@code
+ * WebEnvironment.MOCK} no existe un {@code ServletWebServerFactory} real, y {@code
+ * server.servlet.session.cookie.*} solo se aplica al serializador de Spring Session a través del
+ * personalizador de esa fábrica. Con MockMvc la cookie de sesión vuelve a llamarse {@code SESSION}
+ * en vez de {@code __Host-pmv_session}, sin {@code Secure}/{@code HttpOnly}, lo que hace pasar la
+ * prueba sin comprobar el nombre `__Host-` real. No se reescribe a MockMvc por ese motivo; queda
+ * documentado como riesgo conocido en la auditoría de arquitectura.
+ */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = "management.server.port=0")
 @ActiveProfiles({"local", "synthetic-accounts"})
-@Testcontainers
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class IdentityAccessHttpTest {
-
-    @Container private static final PostgreSQLContainer POSTGRES = PostgreSqlTestContainer.create();
 
     @DynamicPropertySource
     static void registerDatabaseProperties(DynamicPropertyRegistry registry) {
-        PostgreSqlTestContainer.registerProperties(registry, POSTGRES);
+        PostgreSqlTestContainer.registerProperties(registry);
     }
 
     @LocalServerPort private int applicationPort;
