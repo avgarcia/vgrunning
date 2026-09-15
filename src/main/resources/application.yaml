@@ -53,6 +53,8 @@ server:
         path: /
 
 pmv:
+  web:
+    public-origin: ${PMV_WEB_PUBLIC_ORIGIN:http://localhost:8080}
   identity:
     invitation-encryption:
       key: ${PMV_IDENTITY_INVITATION_ENCRYPTION_KEY:}

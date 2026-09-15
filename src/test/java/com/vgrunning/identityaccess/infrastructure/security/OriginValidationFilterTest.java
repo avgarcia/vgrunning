@@ -1,6 +1,7 @@
 package com.vgrunning.identityaccess.infrastructure.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import jakarta.servlet.ServletException;
 import java.io.IOException;
@@ -17,23 +18,30 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 class OriginValidationFilterTest {
 
+    private static final String CANONICAL_ORIGIN = "https://running-coach.local";
+
     @Test
     void filtersOnlyTheApprovedUnsafeSessionMethods() {
         OriginValidationFilter filter = filter(new AtomicReference<>());
 
-        assertThat(filter.shouldNotFilter(request("GET", "http", "localhost", 80))).isTrue();
-        assertThat(filter.shouldNotFilter(request("PUT", "http", "localhost", 80))).isTrue();
-        assertThat(filter.shouldNotFilter(request("POST", "http", "localhost", 80))).isFalse();
-        assertThat(filter.shouldNotFilter(request("DELETE", "http", "localhost", 80))).isFalse();
+        assertThat(filter.shouldNotFilter(request("GET", "http", "localhost", 8080))).isTrue();
+        assertThat(filter.shouldNotFilter(request("PUT", "http", "localhost", 8080))).isTrue();
+        assertThat(filter.shouldNotFilter(request("POST", "http", "localhost", 8080))).isFalse();
+        assertThat(filter.shouldNotFilter(request("DELETE", "http", "localhost", 8080))).isFalse();
     }
 
+    /**
+     * La petición llega tal como la ve el contenedor detrás de un proxy TLS-terminating: HTTP, host
+     * y puerto internos. El Origin público que envía el navegador es el que debe decidir, no esos
+     * datos de la conexión interna.
+     */
     @ParameterizedTest
     @MethodSource("matchingOrigins")
-    void acceptsAbsentOrExactlyMatchingOrigins(String scheme, int port, String origin)
+    void acceptsAbsentOrExactlyMatchingOriginsBehindATlsTerminatingProxy(String origin)
             throws ServletException, IOException {
         AtomicReference<Exception> resolved = new AtomicReference<>();
         OriginValidationFilter filter = filter(resolved);
-        MockHttpServletRequest request = request("POST", scheme, "running-coach.local", port);
+        MockHttpServletRequest request = request("POST", "http", "localhost", 8080);
         if (origin != null) {
             request.addHeader("Origin", origin);
         }
@@ -53,7 +61,7 @@ class OriginValidationFilterTest {
     void rejectsMalformedOrCrossOriginValues(String origin) throws ServletException, IOException {
         AtomicReference<Exception> resolved = new AtomicReference<>();
         OriginValidationFilter filter = filter(resolved);
-        MockHttpServletRequest request = request("DELETE", "https", "running-coach.local", 443);
+        MockHttpServletRequest request = request("DELETE", "http", "localhost", 8080);
         request.addHeader("Origin", origin);
         AtomicBoolean continued = new AtomicBoolean();
 
@@ -66,12 +74,26 @@ class OriginValidationFilterTest {
         assertThat(resolved.get()).isInstanceOf(CsrfValidationException.class);
     }
 
+    @Test
+    void rejectsAMissingOrInvalidPublicOriginAtConstruction() {
+        HandlerExceptionResolver resolver = (request, response, handler, exception) -> null;
+
+        assertThatThrownBy(() -> new OriginValidationFilter(resolver, null))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> new OriginValidationFilter(resolver, "  "))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> new OriginValidationFilter(resolver, "ftp://running-coach.local"))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> new OriginValidationFilter(resolver, "https:opaque"))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
     private static Stream<Arguments> matchingOrigins() {
         return Stream.of(
-                Arguments.of("http", 80, null),
-                Arguments.of("http", 80, "http://running-coach.local"),
-                Arguments.of("https", 443, "https://running-coach.local"),
-                Arguments.of("https", 8443, "https://RUNNING-COACH.LOCAL:8443"));
+                Arguments.of((Object) null),
+                Arguments.of("https://running-coach.local"),
+                Arguments.of("HTTPS://RUNNING-COACH.LOCAL"),
+                Arguments.of("https://running-coach.local:443"));
     }
 
     private static Stream<Arguments> rejectedOrigins() {
@@ -94,7 +116,7 @@ class OriginValidationFilterTest {
                     resolved.set(exception);
                     return null;
                 };
-        return new OriginValidationFilter(resolver);
+        return new OriginValidationFilter(resolver, CANONICAL_ORIGIN);
     }
 
     private static MockHttpServletRequest request(
