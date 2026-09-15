@@ -5,7 +5,6 @@ import com.vgrunning.identityaccess.api.provisioning.ProvisionRunnerAccount;
 import com.vgrunning.identityaccess.api.provisioning.ProvisionedRunnerAccount;
 import com.vgrunning.identityaccess.application.exception.InvitationProvisioningForbiddenException;
 import com.vgrunning.identityaccess.application.port.out.ActivationLinkFactory;
-import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationPayloadProtector;
 import com.vgrunning.identityaccess.application.port.out.RunnerInvitationProvisioningRepository;
 import com.vgrunning.identityaccess.application.port.out.SecretGenerator;
@@ -26,7 +25,6 @@ public class ProvisionRunnerAccountService implements AccountProvisioningApi {
     private final RunnerInvitationProvisioningRepository invitations;
     private final InvitationPayloadProtector protector;
     private final NotificationRequestApi notifications;
-    private final DigestPort digest;
     private final SecretGenerator secrets;
     private final ActivationLinkFactory activationLinks;
 
@@ -50,7 +48,7 @@ public class ProvisionRunnerAccountService implements AccountProvisioningApi {
                         email,
                         presentationEmail,
                         command.actor().accountId(),
-                        digest.sha256(secret),
+                        secret,
                         command.correlationId());
         ProvisionedRunnerAccount account = invitations.provision(invitation);
         notifications.create(buildActivationNotificationRequest(invitation, secret));

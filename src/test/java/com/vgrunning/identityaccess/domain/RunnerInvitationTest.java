@@ -10,17 +10,18 @@ import org.junit.jupiter.api.Test;
 class RunnerInvitationTest {
 
     @Test
-    void createGeneratesFourDistinctIdentifiers() {
+    void createGeneratesFourDistinctIdentifiersAndDigestsTheSecret() {
         RunnerInvitation invitation =
                 RunnerInvitation.create(
                         EmailAddress.from("Runner@Example.invalid"),
                         "Runner@Example.invalid",
                         UUID.randomUUID(),
-                        new byte[] {1, 2},
+                        "secret",
                         UUID.randomUUID());
 
         assertThat(invitation.presentationEmail()).isEqualTo("Runner@Example.invalid");
         assertThat(invitation.canonicalEmail()).isEqualTo("runner@example.invalid");
+        assertThat(invitation.secretVerifier()).isEqualTo(Digest.sha256("secret"));
         assertThat(
                         java.util.Set.of(
                                 invitation.accountId(),

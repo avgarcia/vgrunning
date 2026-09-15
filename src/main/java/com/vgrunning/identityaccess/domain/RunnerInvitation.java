@@ -32,12 +32,16 @@ public record RunnerInvitation(
         Objects.requireNonNull(correlationId);
     }
 
-    /** Genera los identificadores de una invitación nueva a partir de datos ya validados. */
+    /**
+     * Genera los identificadores de una invitación nueva a partir de datos ya validados.
+     *
+     * @param secret desafío en claro entregado a la persona invitada; solo su huella se persiste
+     */
     public static RunnerInvitation create(
             EmailAddress email,
             String presentationEmail,
             UUID administratorAccountId,
-            byte[] secretVerifier,
+            String secret,
             UUID correlationId) {
         return new RunnerInvitation(
                 UUID.randomUUID(),
@@ -47,7 +51,7 @@ public record RunnerInvitation(
                 presentationEmail,
                 email.canonicalValue(),
                 administratorAccountId,
-                secretVerifier,
+                Digest.sha256(secret),
                 correlationId);
     }
 
