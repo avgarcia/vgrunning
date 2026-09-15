@@ -2,7 +2,6 @@ package com.vgrunning.identityaccess.infrastructure.configuration;
 
 import com.vgrunning.identityaccess.api.provisioning.AccountProvisioningApi;
 import com.vgrunning.identityaccess.application.mapper.AuthenticatedAccountMapper;
-import com.vgrunning.identityaccess.application.mapper.InvitationActivationMapper;
 import com.vgrunning.identityaccess.application.port.in.AcceptInvitationUseCase;
 import com.vgrunning.identityaccess.application.port.in.AuthenticateCredentialsUseCase;
 import com.vgrunning.identityaccess.application.port.out.AccountRepository;
@@ -106,25 +105,14 @@ public class IdentityAccessInfrastructureConfiguration {
             InvitationRepository invitations,
             InvitationActivationPublisher activationPublisher,
             PasswordHasher passwordHasher,
-            InvitationActivationMapper invitationActivationMapper,
             DigestPort digest,
             Clock clock) {
         return new AcceptInvitationService(
-                invitations,
-                activationPublisher,
-                passwordHasher,
-                invitationActivationMapper,
-                digest,
-                clock);
+                invitations, activationPublisher, passwordHasher, digest, clock);
     }
 
     @Bean
     InvitationActivationPublisher invitationActivationPublisher(ApplicationEventPublisher events) {
         return new SpringInvitationActivationPublisher(events);
-    }
-
-    @Bean
-    InvitationActivationMapper invitationActivationMapper() {
-        return Mappers.getMapper(InvitationActivationMapper.class);
     }
 }

@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.vgrunning.identityaccess.api.provisioning.RunnerInvitationActivated;
 import com.vgrunning.identityaccess.application.exception.InvalidInvitationAcceptanceException;
 import com.vgrunning.identityaccess.application.exception.InvitationNotAvailableException;
-import com.vgrunning.identityaccess.application.mapper.InvitationActivationMapper;
 import com.vgrunning.identityaccess.application.port.in.AcceptInvitationUseCase.AcceptInvitation;
 import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationActivationPublisher;
@@ -22,23 +21,19 @@ import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
 
 /** Prueba el consumo de una invitación sin crear sesión ni revelar el secreto. */
 class AcceptInvitationServiceTest {
     private static final UUID INVITATION_ID =
             UUID.fromString("20000000-0000-0000-0000-000000000001");
     private static final UUID ACCOUNT_ID = UUID.fromString("20000000-0000-0000-0000-000000000002");
-    private static final InvitationActivationMapper ACTIVATION_MAPPER =
-            Mappers.getMapper(InvitationActivationMapper.class);
 
     @Test
     void acceptsAValidInvitationAndPublishesActivationAfterPersistence() {
         InvitationsFake invitations = new InvitationsFake(sha256("secret"));
         EventsFake events = new EventsFake();
         AcceptInvitationService service =
-                new AcceptInvitationService(
-                        invitations, events, passwords(), ACTIVATION_MAPPER, digest(), clock());
+                new AcceptInvitationService(invitations, events, passwords(), digest(), clock());
 
         var accepted =
                 service.accept(
@@ -54,12 +49,7 @@ class AcceptInvitationServiceTest {
         InvitationsFake invitations = new InvitationsFake(sha256("secret"));
         AcceptInvitationService service =
                 new AcceptInvitationService(
-                        invitations,
-                        event -> {},
-                        passwords(),
-                        ACTIVATION_MAPPER,
-                        digest(),
-                        clock());
+                        invitations, event -> {}, passwords(), digest(), clock());
 
         assertThatThrownBy(
                         () ->
@@ -76,8 +66,7 @@ class AcceptInvitationServiceTest {
         unavailable.available = false;
         EventsFake events = new EventsFake();
         AcceptInvitationService unavailableService =
-                new AcceptInvitationService(
-                        unavailable, events, passwords(), ACTIVATION_MAPPER, digest(), clock());
+                new AcceptInvitationService(unavailable, events, passwords(), digest(), clock());
 
         assertThatThrownBy(
                         () ->
@@ -89,8 +78,7 @@ class AcceptInvitationServiceTest {
 
         InvitationsFake mismatched = new InvitationsFake(sha256("secret"));
         AcceptInvitationService mismatchedService =
-                new AcceptInvitationService(
-                        mismatched, events, passwords(), ACTIVATION_MAPPER, digest(), clock());
+                new AcceptInvitationService(mismatched, events, passwords(), digest(), clock());
 
         assertThatThrownBy(
                         () ->
@@ -106,8 +94,7 @@ class AcceptInvitationServiceTest {
         InvitationsFake expired =
                 new InvitationsFake(sha256("secret"), OffsetDateTime.parse("2020-01-01T00:00:00Z"));
         AcceptInvitationService service =
-                new AcceptInvitationService(
-                        expired, event -> {}, passwords(), ACTIVATION_MAPPER, digest(), clock());
+                new AcceptInvitationService(expired, event -> {}, passwords(), digest(), clock());
 
         assertThatThrownBy(
                         () ->
@@ -123,12 +110,7 @@ class AcceptInvitationServiceTest {
         InvitationsFake invitations = new InvitationsFake(sha256("secret"));
         AcceptInvitationService service =
                 new AcceptInvitationService(
-                        invitations,
-                        event -> {},
-                        passwords(),
-                        ACTIVATION_MAPPER,
-                        digest(),
-                        clock());
+                        invitations, event -> {}, passwords(), digest(), clock());
 
         assertThatThrownBy(
                         () ->
@@ -157,12 +139,7 @@ class AcceptInvitationServiceTest {
         invitations.acceptSucceeds = false;
         AcceptInvitationService service =
                 new AcceptInvitationService(
-                        invitations,
-                        event -> {},
-                        passwords(),
-                        ACTIVATION_MAPPER,
-                        digest(),
-                        clock());
+                        invitations, event -> {}, passwords(), digest(), clock());
 
         assertThatThrownBy(
                         () ->

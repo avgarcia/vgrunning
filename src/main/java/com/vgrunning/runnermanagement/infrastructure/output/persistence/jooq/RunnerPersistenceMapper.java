@@ -28,14 +28,13 @@ public interface RunnerPersistenceMapper {
     @Mapping(target = "status", source = "status", qualifiedByName = "required")
     Runner toDomain(RunnerRecord runner);
 
-    @Mapping(
-            target = "fingerprint",
-            expression = "java(java.util.Objects.requireNonNull(fingerprint))")
-    @Mapping(
-            target = "runner",
-            expression =
-                    "java(java.util.Objects.requireNonNull(toDomain(java.util.Objects.requireNonNull(runner))))")
-    StoredCreation toStoredCreation(byte[] fingerprint, RunnerRecord runner);
+    default StoredCreation toStoredCreation(byte[] fingerprint, RunnerRecord runner) {
+        if (fingerprint == null && runner == null) {
+            return null;
+        }
+        return new StoredCreation(
+                Objects.requireNonNull(fingerprint), toDomain(Objects.requireNonNull(runner)));
+    }
 
     @Named("required")
     static <T> T required(T value) {
