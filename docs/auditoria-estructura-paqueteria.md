@@ -108,6 +108,8 @@ Aplica la segunda rama de la propuesta: **son ruido, se pueden retirar.**
 
 Las consecuencias de diseño de esto están analizadas en [auditoría de arquitectura hexagonal](auditoria-arquitectura-hexagonal.md); a efectos de paquetería basta con registrar que es el único módulo cuya `api` no tiene detrás una capa de aplicación, y que `ADR-0031` ya prevé construir ese worker, momento en el que la rama `application` aparece de forma natural.
 
+`identityaccess.infrastructure.security.SecurityContextCurrentActor` (PR [#74](https://github.com/avgarcia/vgrunning/pull/74)) es una segunda instancia de la misma tensión, asumida a propósito: implementa `identityaccess.api.actor.CurrentActor` desde `infrastructure` porque lee `SecurityContextHolder`, y `applicationMayNotDependOnFrameworksOrPersistence` prohíbe esa lectura desde `application`. No hay alojamiento legal alternativo: la firma de `RunnersApi`, generada desde OpenAPI, no admite un parámetro nuevo. Se documenta en vez de forzar una capa de aplicación que no aportaría nada verificable.
+
 ### H6 · La taxonomía de cuatro raíces solo existe completa en un módulo
 
 | Módulo | `api` | `domain` | `application` | `infrastructure` |
@@ -187,3 +189,13 @@ Se puede argumentar que `infrastructure.security` es un cajón por rol —siete 
 **Se descarta.** El coste es mover diez clases de producción más cuatro de prueba (`OriginValidationFilterTest`, `CurrentSessionIdentityResolverTest`, `LoginRateLimiterTest`, `Argon2PasswordHasherTest`), actualizar sus imports **y refinar `ADR-0026`**, cuya línea 25 asigna explícitamente Spring Security, Spring Session, CSRF, rate limiting y criptografía a `infrastructure.security`. Sería un cambio de decisión, no una aclaración, y exigiría el ADR correspondiente conforme a la norma de `docs/adr/README.md`.
 
 El punto 1 compra la misma garantía con una regla y cero movimientos. Además, el paquete es coherente **por concern** aunque sea mixto por rol: el ciclo técnico de autenticación, sesión, CSRF y rate limiting es una unidad que la matriz reconoce explícitamente (`reglas-de-paqueteria.md:110`).
+
+---
+
+## Estado de aplicación (ronda de revisión de 2026-09-15)
+
+La ronda de ocho PRs descrita en el [«Estado de aplicación» de la auditoría de arquitectura hexagonal](auditoria-arquitectura-hexagonal.md) no tenía como objetivo esta auditoría de paquetería; se anota aquí solo lo que la tocó de forma incidental:
+
+- **H5** gana la nota de arriba sobre `SecurityContextCurrentActor` (PR #74), una segunda instancia consciente de la misma tensión.
+- **H1-H4 y H6** no se tocaron: ninguna de las ocho entregas creaba ni movía paquetes `api`/`domain`/`application`/`infrastructure` de forma que afectara a la matriz de dependencias.
+- La propuesta de retirar los `api` vacíos (punto 5) y de cerrar el hueco de `infrastructure.security` (punto 1) siguen pendientes de ejecución; no formaban parte del plan de esta ronda, que se limitó a los hallazgos de la auditoría hexagonal.
