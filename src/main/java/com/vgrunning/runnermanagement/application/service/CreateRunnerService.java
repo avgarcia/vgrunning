@@ -16,15 +16,20 @@ import java.security.MessageDigest;
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Coordina el alta atómica sin filtrar HTTP o SQL a la aplicación. */
-@RequiredArgsConstructor
 public class CreateRunnerService implements CreateRunnerUseCase {
     private final AccountProvisioningApi accounts;
     private final RunnerCreationRepository runners;
     private final DigestPort digest;
+
+    public CreateRunnerService(
+            AccountProvisioningApi accounts, RunnerCreationRepository runners, DigestPort digest) {
+        this.accounts = accounts;
+        this.runners = runners;
+        this.digest = digest;
+    }
 
     @Override
     @Transactional
