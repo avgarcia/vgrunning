@@ -1,8 +1,8 @@
 package com.vgrunning.identityaccess.application.service;
 
+import com.vgrunning.identityaccess.api.provisioning.RunnerInvitationActivated;
 import com.vgrunning.identityaccess.application.exception.InvalidInvitationAcceptanceException;
 import com.vgrunning.identityaccess.application.exception.InvitationNotAvailableException;
-import com.vgrunning.identityaccess.application.mapper.InvitationActivationMapper;
 import com.vgrunning.identityaccess.application.port.in.AcceptInvitationUseCase;
 import com.vgrunning.identityaccess.application.port.out.DigestPort;
 import com.vgrunning.identityaccess.application.port.out.InvitationActivationPublisher;
@@ -23,7 +23,6 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
     private final InvitationRepository invitations;
     private final InvitationActivationPublisher activationPublisher;
     private final PasswordHasher passwords;
-    private final InvitationActivationMapper mapper;
     private final DigestPort digest;
     private final Clock clock;
 
@@ -61,7 +60,8 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
                                 AdultDeclaration.initialActivation(),
                                 correlationId)
                         .orElseThrow(InvitationNotAvailableException::new);
-        activationPublisher.publish(mapper.toActivation(invitation, correlationId));
+        activationPublisher.publish(
+                new RunnerInvitationActivated(invitation.accountId(), correlationId));
         return new AcceptedInvitation(acceptanceId, "accepted");
     }
 }

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class NotificationRequestPersistenceMapperTest {
     private final NotificationRequestPersistenceMapper mapper =
-            new NotificationRequestPersistenceMapperImpl();
+            new NotificationRequestPersistenceMapper();
 
     @Test
     void mapsOnlyEncryptedNotificationPayloads() {

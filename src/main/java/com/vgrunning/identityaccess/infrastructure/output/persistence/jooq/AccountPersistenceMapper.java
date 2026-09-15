@@ -6,11 +6,12 @@ import com.vgrunning.identityaccess.domain.account.valueobject.AccountStatus;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 import org.vgrunning.generated.jooq.identity_access.tables.records.AccountEmailRecord;
 import org.vgrunning.generated.jooq.identity_access.tables.records.AccountRecord;
 
 /** Traduce exclusivamente las representaciones jOOQ de identidad. */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AccountPersistenceMapper {
     CredentialAccount toCredentialAccount(AccountRecord accountRecord);
 
