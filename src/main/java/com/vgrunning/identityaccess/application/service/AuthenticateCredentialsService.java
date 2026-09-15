@@ -9,15 +9,22 @@ import com.vgrunning.identityaccess.domain.account.valueobject.AccountStatus;
 import com.vgrunning.identityaccess.domain.account.valueobject.EmailAddress;
 import java.text.Normalizer;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Autentica credenciales sin conocer HTTP, sesiones, cookies ni jOOQ. */
-@RequiredArgsConstructor
 public class AuthenticateCredentialsService implements AuthenticateCredentialsUseCase {
     private final AccountRepository accounts;
     private final PasswordHasher passwordHasher;
     private final AuthenticatedAccountMapper mapper;
+
+    public AuthenticateCredentialsService(
+            AccountRepository accounts,
+            PasswordHasher passwordHasher,
+            AuthenticatedAccountMapper mapper) {
+        this.accounts = accounts;
+        this.passwordHasher = passwordHasher;
+        this.mapper = mapper;
+    }
 
     /** Autentica sin revelar si el correo existe, está activo o tiene contraseña configurada. */
     @Override

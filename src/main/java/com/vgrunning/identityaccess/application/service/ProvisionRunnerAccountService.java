@@ -16,12 +16,10 @@ import com.vgrunning.notificationdelivery.api.request.CreateNotificationRequest;
 import com.vgrunning.notificationdelivery.api.request.EncryptedValue;
 import com.vgrunning.notificationdelivery.api.request.NotificationRequestApi;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Crea la identidad pendiente y deja una solicitud de correo en la misma transacción. */
-@RequiredArgsConstructor
 public class ProvisionRunnerAccountService implements AccountProvisioningApi {
     private final RunnerInvitationProvisioningRepository invitations;
     private final InvitationPayloadProtector protector;
@@ -29,6 +27,21 @@ public class ProvisionRunnerAccountService implements AccountProvisioningApi {
     private final DigestPort digest;
     private final SecretGenerator secrets;
     private final ActivationLinkFactory activationLinks;
+
+    public ProvisionRunnerAccountService(
+            RunnerInvitationProvisioningRepository invitations,
+            InvitationPayloadProtector protector,
+            NotificationRequestApi notifications,
+            DigestPort digest,
+            SecretGenerator secrets,
+            ActivationLinkFactory activationLinks) {
+        this.invitations = invitations;
+        this.protector = protector;
+        this.notifications = notifications;
+        this.digest = digest;
+        this.secrets = secrets;
+        this.activationLinks = activationLinks;
+    }
 
     /**
      * Crea la cuenta pendiente de un corredor y deja lista, en la misma transacción, la solicitud

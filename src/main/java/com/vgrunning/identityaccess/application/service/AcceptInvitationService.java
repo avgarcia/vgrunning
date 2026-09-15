@@ -14,11 +14,9 @@ import java.security.MessageDigest;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Comprueba un desafío de activación y aplica todos sus cambios de estado juntos. */
-@RequiredArgsConstructor
 public class AcceptInvitationService implements AcceptInvitationUseCase {
     private final InvitationRepository invitations;
     private final InvitationActivationPublisher activationPublisher;
@@ -26,6 +24,21 @@ public class AcceptInvitationService implements AcceptInvitationUseCase {
     private final InvitationActivationMapper mapper;
     private final DigestPort digest;
     private final Clock clock;
+
+    public AcceptInvitationService(
+            InvitationRepository invitations,
+            InvitationActivationPublisher activationPublisher,
+            PasswordHasher passwords,
+            InvitationActivationMapper mapper,
+            DigestPort digest,
+            Clock clock) {
+        this.invitations = invitations;
+        this.activationPublisher = activationPublisher;
+        this.passwords = passwords;
+        this.mapper = mapper;
+        this.digest = digest;
+        this.clock = clock;
+    }
 
     @Override
     @Transactional

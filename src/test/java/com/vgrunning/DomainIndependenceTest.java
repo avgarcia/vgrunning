@@ -31,6 +31,9 @@ class DomainIndependenceTest {
                             "java.sql..",
                             "javax.sql..",
                             "io.swagger.v3..",
-                            "org.openapitools..")
+                            "org.openapitools..",
+                            "com.fasterxml.jackson..",
+                            "jakarta.persistence..",
+                            "jakarta.validation..")
                     .allowEmptyShould(true);
 }

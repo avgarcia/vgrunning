@@ -74,7 +74,10 @@ class HexagonalLayeringTest {
                             "org.springframework.jdbc..",
                             "org.springframework.session..",
                             "org.jooq..",
-                            "org.vgrunning.generated..")
+                            "org.vgrunning.generated..",
+                            "com.fasterxml.jackson..",
+                            "jakarta.persistence..",
+                            "jakarta.validation..")
                     .allowEmptyShould(false);
 
     @ArchTest
