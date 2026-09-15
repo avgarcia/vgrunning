@@ -156,3 +156,29 @@ Incoherencia menor de configuración: `AccountPersistenceMapper:13` usa `compone
 - **Interfaces `port/in` con una sola implementación.** No son ceremonia: `SessionHttpControllerTest:89-97` construye dobles a mano de `AuthenticateCredentialsUseCase` sin Mockito. La interfaz es la costura de prueba que hace eso trivial. Se mantienen.
 - **Wiring manual con `@Bean` en `IdentityAccessInfrastructureConfiguration`.** Es el precio correcto —y consciente— de una capa de aplicación sin anotaciones de Spring, verificado por `applicationMayNotDependOnFrameworksOrPersistence`. Cambiarlo por `@Service` ahorraría líneas y perdería la propiedad que sostiene toda la estructura.
 - **Separación `api/` vs `application/port/in`.** Responden a cosas distintas: `api/` es el contrato intermodular de Spring Modulith; `port/in`, el contrato local del caso de uso. La distinción se sostiene.
+
+---
+
+## Estado de aplicación (ronda de revisión de 2026-09-15)
+
+Una revisión posterior sobre `HEAD` de `feature/quality-gates-p4-point21-reject` encontró, entre otros, un bloqueante de producción (mismatch de origen detrás del proxy TLS-terminante de App Service) y varios focos de sobreingeniería. Se ejecutó como ocho entregas independientes, cada una con su rama `feature/` y su PR contra `main`:
+
+| PR | Contenido |
+| --- | --- |
+| [#70](https://github.com/avgarcia/vgrunning/pull/70) | Origen canónico configurado en `OriginValidationFilter`, para que las mutaciones se acepten detrás del proxy. |
+| [#71](https://github.com/avgarcia/vgrunning/pull/71) | `CreateRunnerService` deja de bajar a minúsculas el correo de presentación del administrador. |
+| [#72](https://github.com/avgarcia/vgrunning/pull/72) | **Reabre parcialmente la solución de la fuga nº6** de esta misma sección: los dos `DigestPort`/`Sha256DigestAdapter` (uno por módulo) se retiran y el hash SHA-256 pasa a un método estático de dominio (`identityaccess.domain.Digest`, `runnermanagement.domain.Digest`). El puerto no sustituía nada intercambiable en producción; era indirección sin variación real. Verificado con PIT mutation testing sobre las dos clases `Digest` y sus consumidores. |
+| [#73](https://github.com/avgarcia/vgrunning/pull/73) | El catch-all de `RuntimeException` sale de `identity-access` a un `ApplicationProblemHandler` compartido, con `@Order` explícito en los tres advices (antes dependía del orden de registro en el classpath). |
+| [#74](https://github.com/avgarcia/vgrunning/pull/74) | `ActorContext` llega al controlador por un puerto `CurrentActor` tipado en vez de un cast sin comprobar sobre un atributo de `HttpServletRequest`. |
+| [#75](https://github.com/avgarcia/vgrunning/pull/75) | `RunnerPersistenceMapper.toStoredCreation` y `NotificationRequestPersistenceMapper` dejan de usar `expression = "java(...)"` de MapStruct; `InvitationActivationMapper` se borra y `AcceptInvitationService` construye el hecho directamente. **Resuelve la inconsistencia señalada en Sobreingeniería nº4**: `AccountPersistenceMapper.componentModel` pasa de la cadena `"spring"` a `MappingConstants.ComponentModel.SPRING`, como el resto de mappers. |
+| [#76](https://github.com/avgarcia/vgrunning/pull/76) | `DomainIndependenceTest`/`HexagonalLayeringTest` ganan `com.fasterxml.jackson..`, `jakarta.persistence..` y `jakarta.validation..` como paquetes prohibidos; los seis servicios de aplicación pierden `@RequiredArgsConstructor`; `bcprov-jdk18on` pasa a `runtimeOnly`. |
+| [#77](https://github.com/avgarcia/vgrunning/pull/77) | Un único contenedor PostgreSQL compartido por las tres clases de integración en vez de uno por clase (49s → 33s en `./gradlew test`). |
+
+**Descartado conscientemente en esta ronda:**
+
+- **Fuga nº7 (`ActivationLinkFactory` → propiedad de configuración).** Planificada, pero depende de `WebOriginProperties` (creado en el PR #70, sin fusionar todavía). Queda como rama independiente pendiente de abrir en cuanto ese PR se fusione.
+- **Reescribir `IdentityAccessHttpTest` a MockMvc.** Investigado y descartado: bajo `WebEnvironment.MOCK` no existe un `ServletWebServerFactory` real, y `server.servlet.session.cookie.*` solo llega al serializador de Spring Session a través del personalizador de esa fábrica. Con MockMvc la cookie de sesión pasa a llamarse `SESSION` en vez de `__Host-pmv_session`, sin `Secure` ni `HttpOnly`: la prueba pasaría sin comprobar la propiedad de seguridad que existe para verificar. Documentado en el Javadoc de la clase.
+- La colapsión de la capa de `notificationdelivery` (Errores de Acoplamiento nº1) no se tocó: `transactionalBoundariesAreApplicationServices` lo impide sin antes mover la orquestación transaccional, y `ADR-0031` prevé el worker asíncrono para ese módulo. Queda como deuda consciente.
+- Se evaluó convertir `EncryptedValue` en `record` (relacionado con Errores de Acoplamiento nº2). No se ejecuta: con dos campos `byte[]`, exigiría `@SuppressWarnings("ArrayRecordComponent")`, copias defensivas y `equals`/`hashCode` manuales — el mismo patrón que ya tiene `SealedPayload` — así que no ahorra líneas frente a la clase actual.
+
+**Fuera de alcance de esta ronda, sin cambios:** las fugas de dominio nº1-5, los errores de acoplamiento nº1 y nº3, y las alertas de sobreingeniería nº1, nº2, nº3 y nº5 de las secciones anteriores. Siguen vigentes tal como se describieron.
