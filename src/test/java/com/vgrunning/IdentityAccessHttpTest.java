@@ -7,6 +7,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.locks.LockSupport;
@@ -114,6 +115,51 @@ class IdentityAccessHttpTest {
                                 "SELECT count(*) FROM runner_management.runner WHERE id = ?",
                                 runner.getId()))
                 .isOne();
+    }
+
+    /**
+     * La forma de presentación es evidencia de lo que escribió la persona administradora: debe
+     * sobrevivir intacta hasta la fila persistida, sin que ningún paso intermedio la reescriba en
+     * minúsculas.
+     */
+    @Test
+    void preservesTheOriginalCapitalizationOfThePresentationEmail() {
+        TestRestTemplate client = new TestRestTemplate();
+        UUID idempotencyKey = UUID.randomUUID();
+        HttpHeaders creationHeaders = administratorHeaders(client, idempotencyKey);
+        String presentationEmail = "Lucía.Martín@Example.invalid";
+        RunnerCreation request = new RunnerCreation("Lucía", "Martín", presentationEmail, true);
+
+        ResponseEntity<Runner> created =
+                client.postForEntity(
+                        applicationUrl("/api/runners"),
+                        new HttpEntity<>(request, creationHeaders),
+                        Runner.class);
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        UUID runnerId = Objects.requireNonNull(created.getBody()).getId();
+
+        assertThat(
+                        text(
+                                """
+                                SELECT account_email.presentation_email
+                                  FROM identity_access.account_email account_email
+                                  JOIN runner_management.runner runner
+                                    ON runner.account_id = account_email.account_id
+                                 WHERE runner.id = ? AND account_email.usage = 'current'
+                                """,
+                                runnerId))
+                .isEqualTo(presentationEmail);
+        assertThat(
+                        text(
+                                """
+                                SELECT account_email.canonical_email
+                                  FROM identity_access.account_email account_email
+                                  JOIN runner_management.runner runner
+                                    ON runner.account_id = account_email.account_id
+                                 WHERE runner.id = ? AND account_email.usage = 'current'
+                                """,
+                                runnerId))
+                .isEqualTo(presentationEmail.toLowerCase(Locale.ROOT));
     }
 
     @Test
@@ -360,6 +406,10 @@ class IdentityAccessHttpTest {
 
     private int count(String query, UUID id) {
         return Objects.requireNonNull(jdbc.queryForObject(query, Integer.class, id));
+    }
+
+    private String text(String query, UUID id) {
+        return Objects.requireNonNull(jdbc.queryForObject(query, String.class, id));
     }
 
     private String awaitRunnerActivation(UUID runnerId) {
