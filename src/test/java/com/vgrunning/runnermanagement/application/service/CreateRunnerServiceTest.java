@@ -41,9 +41,60 @@ class CreateRunnerServiceTest {
                         new CreateRunner(" Lucía ", " Martín ", " LUCIA@example.invalid ", true));
 
         assertThat(result.status()).isEqualTo("pending_activation");
-        assertThat(accounts.command.email()).isEqualTo("lucia@example.invalid");
+        assertThat(accounts.command.email()).isEqualTo("LUCIA@example.invalid");
         assertThat(accounts.command.actor().accountId()).isEqualTo(ADMIN_ID);
         assertThat(runners.completed).isTrue();
+    }
+
+    /**
+     * La forma de presentación pertenece a identidad ({@code EmailAddress.presentationValue}): este
+     * servicio no debe destruirla pasando a minúsculas antes de entregar el correo.
+     */
+    @Test
+    void distinguishesIdempotencyKeysByEmailCapitalization() {
+        AccountsFake accounts = new AccountsFake();
+        byte[][] storedFingerprint = new byte[1][];
+        RunnerCreationRepository runners =
+                new RunnerCreationRepository() {
+                    @Override
+                    public Optional<StoredCreation> reserve(
+                            UUID administratorId, UUID idempotencyKey, byte[] fingerprint) {
+                        if (storedFingerprint[0] == null) {
+                            storedFingerprint[0] = fingerprint;
+                            return Optional.empty();
+                        }
+                        return Optional.of(
+                                new StoredCreation(storedFingerprint[0], RunnersFake.EXISTING));
+                    }
+
+                    @Override
+                    public Runner create(NewRunner newRunner) {
+                        return new Runner(
+                                newRunner.runnerId(),
+                                new RunnerName(newRunner.givenName()),
+                                new RunnerName(newRunner.familyName()),
+                                "pending_activation");
+                    }
+
+                    @Override
+                    public void complete(
+                            UUID administratorId, UUID idempotencyKey, Runner runner) {}
+                };
+        CreateRunnerService service = new CreateRunnerService(accounts, runners, digest());
+
+        service.create(
+                new ActorContext(ADMIN_ID, "administrador"),
+                KEY,
+                new CreateRunner("Lucía", "Martín", "Lucia@example.invalid", true));
+
+        assertThatThrownBy(
+                        () ->
+                                service.create(
+                                        new ActorContext(ADMIN_ID, "administrador"),
+                                        KEY,
+                                        new CreateRunner(
+                                                "Lucía", "Martín", "LUCIA@example.invalid", true)))
+                .isInstanceOf(IdempotencyKeyReusedException.class);
     }
 
     @Test

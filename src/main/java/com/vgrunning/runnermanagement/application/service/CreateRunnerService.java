@@ -14,7 +14,6 @@ import com.vgrunning.runnermanagement.domain.Runner;
 import com.vgrunning.runnermanagement.domain.RunnerName;
 import java.security.MessageDigest;
 import java.text.Normalizer;
-import java.util.Locale;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +70,7 @@ public class CreateRunnerService implements CreateRunnerUseCase {
         return new CreateRunner(
                 normalizedName(command.givenName()).value(),
                 normalizedName(command.familyName()).value(),
-                normalizedText(command.email()).toLowerCase(Locale.ROOT),
+                normalizedText(command.email()),
                 true);
     }
 
