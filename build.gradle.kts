@@ -151,7 +151,7 @@ dependencies {
 
     "codegenImplementation"("org.flywaydb:flyway-core")
     "codegenImplementation"("org.flywaydb:flyway-database-postgresql")
-    "codegenImplementation"("org.jooq:jooq-codegen:3.21.7")
+    "codegenImplementation"("org.jooq:jooq-codegen:3.21.8")
     "codegenImplementation"("org.postgresql:postgresql")
     "codegenImplementation"("org.testcontainers:testcontainers-postgresql")
     "codegenRuntimeOnly"("org.slf4j:slf4j-simple")
