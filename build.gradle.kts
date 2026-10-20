@@ -139,7 +139,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-micrometer-tracing-opentelemetry")
     runtimeOnly("org.postgresql:postgresql")
 
-    testImplementation(enforcedPlatform("org.junit:junit-bom:6.0.3"))
+    testImplementation(enforcedPlatform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.springframework.boot:spring-boot-restclient")
