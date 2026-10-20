@@ -145,7 +145,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-restclient")
     testImplementation("org.springframework.boot:spring-boot-resttestclient")
     testImplementation("org.springframework.modulith:spring-modulith-starter-test")
-    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.5.0")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")
 
